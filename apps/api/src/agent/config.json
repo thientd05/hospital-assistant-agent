@@ -1,0 +1,40 @@
+{
+  "doctor": {
+    "tools": [
+      "find_patients",
+      "get_patient_record",
+      "get_lab_results",
+      "get_appointments",
+      "check_drug_interaction",
+      "create_patient",
+      "update_patient",
+      "read_skill",
+      "read_memory",
+      "update_user_profile",
+      "update_working_style",
+      "update_memory"
+    ],
+    "skills": ["patient-intake", "lab-result-entry", "write-user-md", "write-soul-md"]
+  },
+  "manager": {
+    "tools": [
+      "get_customer_stats",
+      "read_skill",
+      "read_memory",
+      "update_user_profile",
+      "update_working_style",
+      "update_memory"
+    ],
+    "skills": ["write-user-md", "write-soul-md"]
+  },
+  "patient": {
+    "tools": [
+      "read_skill",
+      "read_memory",
+      "update_user_profile",
+      "update_working_style",
+      "update_memory"
+    ],
+    "skills": ["write-user-md", "write-soul-md"]
+  }
+}

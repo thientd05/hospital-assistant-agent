@@ -1,0 +1,24 @@
+{
+  "name": "@pr_hospitalagent/api",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../../.env --experimental-strip-types src/index.ts",
+    "seed": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed.ts",
+    "seed:doctors": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-doctors.ts",
+    "seed:appointments": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-appointments.ts",
+    "seed:manager": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-manager.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@fastify/cors": "^10",
+    "@fastify/jwt": "^10.0.0",
+    "fastify": "^5",
+    "mongodb": "^6",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@pr_hospitalagent/types": "workspace:*",
+    "typescript": "^5"
+  }
+}
