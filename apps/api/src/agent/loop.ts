@@ -168,6 +168,37 @@ async function dispatchTool(
   }
 }
 
+const EPHEMERAL: Anthropic.CacheControlEphemeral = { type: "ephemeral" };
+
+function withToolsCache(toolList: Anthropic.Tool[]): Anthropic.Tool[] {
+  if (toolList.length === 0) return toolList;
+  const lastIdx = toolList.length - 1;
+  return toolList.map((t, i) =>
+    i === lastIdx ? { ...t, cache_control: EPHEMERAL } : t
+  );
+}
+
+function withMessagesCache(
+  msgs: Anthropic.MessageParam[]
+): Anthropic.MessageParam[] {
+  if (msgs.length === 0) return msgs;
+  const lastIdx = msgs.length - 1;
+  const last = msgs[lastIdx]!;
+  let content: Anthropic.MessageParam["content"];
+  if (typeof last.content === "string") {
+    content = [
+      { type: "text", text: last.content, cache_control: EPHEMERAL },
+    ];
+  } else {
+    if (last.content.length === 0) return msgs;
+    const blocks = last.content.map((b, i) =>
+      i === last.content.length - 1 ? { ...b, cache_control: EPHEMERAL } : b
+    );
+    content = blocks as typeof last.content;
+  }
+  return [...msgs.slice(0, lastIdx), { ...last, content }];
+}
+
 export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
   modelKey: ModelKey,
@@ -186,10 +217,9 @@ export async function runAgentLoop(
     const stream = anthropic.messages.stream({
       model: modelId,
       max_tokens: 8192,
-      cache_control: { type: "ephemeral" },
-      system: systemPrompt,
-      tools: allowedTools,
-      messages: working,
+      system: [{ type: "text", text: systemPrompt, cache_control: EPHEMERAL }],
+      tools: withToolsCache(allowedTools),
+      messages: withMessagesCache(working),
     });
 
     stream.on("text", (delta) => onChunk(delta));
