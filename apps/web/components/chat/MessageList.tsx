@@ -6,10 +6,11 @@ import { MessageBubble } from "./MessageBubble";
 
 type Props = {
   messages: Message[];
+  role?: string | null;
   onOpenWorkspace?: (name: string, result: string) => void;
 };
 
-export function MessageList({ messages, onOpenWorkspace }: Props) {
+export function MessageList({ messages, role, onOpenWorkspace }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function MessageList({ messages, onOpenWorkspace }: Props) {
           <MessageBubble
             key={m.id}
             message={m}
+            role={role}
             onOpenWorkspace={onOpenWorkspace}
           />
         ))}

@@ -26,7 +26,7 @@ export function ChatWindow({
   model,
   onModelChange,
 }: Props) {
-  const { doctor, manager, patient, expert } = useAuth();
+  const { doctor, manager, patient, expert, role } = useAuth();
   const doctorName = doctor
     ? [doctor.title, doctor.fullName].filter(Boolean).join(" ")
     : manager
@@ -82,7 +82,7 @@ export function ChatWindow({
         )}
       </header>
 
-      <MessageList messages={messages} onOpenWorkspace={onOpenWorkspace} />
+      <MessageList messages={messages} role={role} onOpenWorkspace={onOpenWorkspace} />
 
       <ChatInput
         onSend={onSend}

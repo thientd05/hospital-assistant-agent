@@ -8,6 +8,7 @@ const TOOL_LABELS: Record<string, string> = {
   check_drug_interaction: "Kiểm tra tương tác thuốc",
   get_appointments: "Lịch hẹn",
   get_customer_stats: "Thống kê khách hàng",
+  read_skill: "Đọc skill",
 };
 
 const OPENABLE_TOOLS = new Set([
@@ -16,6 +17,8 @@ const OPENABLE_TOOLS = new Set([
   "get_appointments",
   "get_customer_stats",
 ]);
+
+const EXPERT_OPENABLE_TOOLS = new Set(["read_skill"]);
 
 function previewResult(name: string, raw: string | undefined): string {
   if (!raw) return "";
@@ -37,6 +40,9 @@ function previewResult(name: string, raw: string | undefined): string {
     ) {
       return `${parsed.patients.total} BN · ${parsed.appointments?.total ?? 0} cuộc hẹn`;
     }
+    if (name === "read_skill" && parsed?.skill) {
+      return parsed.skill as string;
+    }
     return raw.slice(0, 80).replace(/\s+/g, " ");
   } catch {
     return raw.slice(0, 80);
@@ -45,15 +51,17 @@ function previewResult(name: string, raw: string | undefined): string {
 
 type Props = {
   toolCall: ToolCall;
+  role?: string | null;
   onOpenWorkspace?: (name: string, result: string) => void;
 };
 
-export function ToolCallCard({ toolCall, onOpenWorkspace }: Props) {
+export function ToolCallCard({ toolCall, role, onOpenWorkspace }: Props) {
   const label = TOOL_LABELS[toolCall.name] ?? toolCall.name;
   const canOpen =
     toolCall.status === "done" &&
     !!toolCall.result &&
-    OPENABLE_TOOLS.has(toolCall.name);
+    (OPENABLE_TOOLS.has(toolCall.name) ||
+      (role === "expert" && EXPERT_OPENABLE_TOOLS.has(toolCall.name)));
 
   return (
     <div
