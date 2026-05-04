@@ -35,7 +35,7 @@ export async function chatRoutes(app: FastifyInstance) {
       return;
     }
     const { conversationId, message, model } = parsed.data;
-    const ownerId = req.doctor?.id ?? req.manager?.id ?? req.patient?.id;
+    const ownerId = req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id;
     if (!ownerId || !req.authRole) {
       reply.code(401).send({ error: "Unauthorized" });
       return;

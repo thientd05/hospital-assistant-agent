@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export type AuthRole = "doctor" | "manager" | "patient";
+export type AuthRole = "doctor" | "manager" | "patient" | "expert";
 
 type RoleAccess = { tools: string[]; skills: string[] };
 type AccessConfig = Record<AuthRole, RoleAccess>;
@@ -14,9 +14,9 @@ function loadConfig(): AccessConfig {
   if (cached) return cached;
   const raw = readFileSync(CONFIG_PATH, "utf8");
   const parsed = JSON.parse(raw) as AccessConfig;
-  if (!parsed.doctor || !parsed.manager || !parsed.patient) {
+  if (!parsed.doctor || !parsed.manager || !parsed.patient || !parsed.expert) {
     throw new Error(
-      "config.json phải có khối 'doctor', 'manager' và 'patient' (mỗi khối gồm 'tools' và 'skills')."
+      "config.json phải có khối 'doctor', 'manager', 'patient' và 'expert' (mỗi khối gồm 'tools' và 'skills')."
     );
   }
   cached = parsed;

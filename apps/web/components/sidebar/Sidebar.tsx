@@ -38,15 +38,17 @@ export function Sidebar({
   disabled,
 }: Props) {
   const router = useRouter();
-  const { doctor, manager, patient, logout } = useAuth();
+  const { doctor, manager, patient, expert, logout } = useAuth();
   const profileName =
-    doctor?.fullName ?? manager?.fullName ?? patient?.name ?? "—";
+    doctor?.fullName ?? manager?.fullName ?? patient?.name ?? expert?.fullName ?? "—";
   const profileSubtitle = doctor
     ? doctor.specialty || doctor.department || ""
     : manager
     ? manager.title || manager.clinicName || ""
     : patient
     ? "Bệnh nhân"
+    : expert
+    ? "Chuyên gia"
     : "";
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);

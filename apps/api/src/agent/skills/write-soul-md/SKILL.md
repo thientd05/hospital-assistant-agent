@@ -111,6 +111,32 @@ description: Dùng khi người dùng yêu cầu thay đổi cách agent làm vi
 
 ---
 
+### Chuyên gia huấn luyện AI (CG00X)
+
+```markdown
+# Phong cách làm việc — CG00X
+
+## Tone & giọng văn
+- (ví dụ: kỹ thuật chính xác / thân thiện đồng nghiệp / súc tích không giải thích dài…)
+
+## Định dạng phản hồi
+- (ví dụ: ưu tiên bullet / luôn kèm ví dụ prompt cụ thể / không dán nội dung quá dài…)
+
+## Mức độ chi tiết
+- (ví dụ: chỉ nêu vấn đề và gợi ý, không phân tích dài / luôn giải thích lý do thay đổi prompt…)
+
+## Quy tắc luôn làm
+- (ví dụ: luôn so sánh prompt trước/sau khi đề xuất thay đổi / luôn nêu mục tiêu cải thiện cụ thể…)
+
+## Quy tắc không bao giờ làm
+- (ví dụ: không bịa thông tin y khoa để minh hoạ / không thay đổi prompt mà không giải thích lý do…)
+
+## Ghi chú khác
+-
+```
+
+---
+
 ## Nguyên tắc
 
 - **SOUL mạnh hơn mặc định.** Khi SOUL.md có quy tắc, áp dụng ngay — không chờ người dùng nhắc lại.

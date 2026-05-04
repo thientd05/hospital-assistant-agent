@@ -81,6 +81,21 @@ export type Manager = {
 
 export type ManagerPublic = Omit<Manager, "passwordHash">;
 
+export type Expert = {
+  id: string;
+  username: string;
+  passwordHash: string;
+  fullName: string;
+  title: string;
+  expertise: string;
+  phone: string;
+  email: string;
+  address: string;
+  createdAt: Date;
+};
+
+export type ExpertPublic = Omit<Expert, "passwordHash">;
+
 export type Conversation = {
   id: string;
   title: string;

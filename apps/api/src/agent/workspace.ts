@@ -54,3 +54,9 @@ export function ensurePatientWorkspace(
 ): EnsureWorkspaceResult {
   return ensureWorkspace(patientId);
 }
+
+export function ensureExpertWorkspace(
+  expertId: string
+): EnsureWorkspaceResult {
+  return ensureWorkspace(expertId);
+}

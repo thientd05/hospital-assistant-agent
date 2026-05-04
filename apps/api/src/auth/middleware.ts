@@ -2,6 +2,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
   Doctor,
   DoctorPublic,
+  Expert,
+  ExpertPublic,
   Manager,
   ManagerPublic,
   Patient,
@@ -10,17 +12,19 @@ import type {
 import { connectDB } from "../db/client.ts";
 import {
   ensureDoctorWorkspace,
+  ensureExpertWorkspace,
   ensureManagerWorkspace,
   ensurePatientWorkspace,
 } from "../agent/workspace.ts";
 
-export type AuthRole = "doctor" | "manager" | "patient";
+export type AuthRole = "doctor" | "manager" | "patient" | "expert";
 
 declare module "fastify" {
   interface FastifyRequest {
     doctor?: DoctorPublic;
     manager?: ManagerPublic;
     patient?: PatientPublic;
+    expert?: ExpertPublic;
     authRole?: AuthRole;
   }
 }
@@ -106,6 +110,39 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
 
     req.manager = manager as ManagerPublic;
     req.authRole = "manager";
+    return;
+  }
+
+  if (role === "expert") {
+    const expert = await db
+      .collection<Expert>("experts")
+      .findOne({ id: sub }, { projection: { _id: 0, passwordHash: 0 } });
+    if (!expert) {
+      reply.code(401).send({ error: "Unauthorized" });
+      return reply;
+    }
+
+    try {
+      const ensured = ensureExpertWorkspace(expert.id);
+      if (!ensured.alreadyComplete) {
+        req.log.info(
+          {
+            expertId: expert.id,
+            createdDir: ensured.createdDir,
+            createdFiles: ensured.createdFiles,
+          },
+          "Bootstrapped expert workspace"
+        );
+      }
+    } catch (err) {
+      req.log.error(
+        { err, expertId: expert.id },
+        "Failed to bootstrap expert workspace"
+      );
+    }
+
+    req.expert = expert as ExpertPublic;
+    req.authRole = "expert";
     return;
   }
 

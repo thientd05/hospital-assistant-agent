@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   DoctorPublic,
+  ExpertPublic,
   ManagerPublic,
   PatientPublic,
 } from "@pr_hospitalagent/types";
@@ -13,11 +14,12 @@ import { useAuth } from "@/app/providers/AuthProvider";
 type LoginResponse =
   | { token: string; role: "doctor"; doctor: DoctorPublic }
   | { token: string; role: "manager"; manager: ManagerPublic }
-  | { token: string; role: "patient"; patient: PatientPublic };
+  | { token: string; role: "patient"; patient: PatientPublic }
+  | { token: string; role: "expert"; expert: ExpertPublic };
 
 export default function LoginPage() {
   const router = useRouter();
-  const { doctor, manager, patient, isLoading, login } = useAuth();
+  const { doctor, manager, patient, expert, isLoading, login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (doctor || manager || patient) router.replace("/chat");
+    if (doctor || manager || patient || expert) router.replace("/chat");
   }, [doctor, manager, patient, isLoading, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -52,6 +54,8 @@ export default function LoginPage() {
         login(data.token, { role: "manager", manager: data.manager });
       } else if (data.role === "patient") {
         login(data.token, { role: "patient", patient: data.patient });
+      } else if (data.role === "expert") {
+        login(data.token, { role: "expert", expert: data.expert });
       } else {
         login(data.token, { role: "doctor", doctor: data.doctor });
       }
@@ -70,7 +74,7 @@ export default function LoginPage() {
           Đăng nhập
         </h1>
         <p className="text-sm text-gray-500 mb-6">
-          Hospital AI — bác sĩ, quản lý, bệnh nhân
+          Hospital AI — bác sĩ, quản lý, bệnh nhân, chuyên gia
         </p>
 
         <form onSubmit={onSubmit} className="space-y-4">

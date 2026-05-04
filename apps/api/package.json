@@ -7,7 +7,8 @@
     "seed": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed.ts",
     "seed:doctors": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-doctors.ts",
     "seed:appointments": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-appointments.ts",
-    "seed:manager": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-manager.ts"
+    "seed:manager": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-manager.ts",
+    "seed:experts": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-experts.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",

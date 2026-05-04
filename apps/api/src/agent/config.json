@@ -36,5 +36,15 @@
       "update_memory"
     ],
     "skills": ["write-user-md", "write-soul-md"]
+  },
+  "expert": {
+    "tools": [
+      "read_skill",
+      "read_memory",
+      "update_user_profile",
+      "update_working_style",
+      "update_memory"
+    ],
+    "skills": ["write-user-md", "write-soul-md"]
   }
 }

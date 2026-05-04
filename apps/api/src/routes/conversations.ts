@@ -17,7 +17,7 @@ type ConversationDoc = {
 };
 
 function ownerId(req: FastifyRequest): string | null {
-  return req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? null;
+  return req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id ?? null;
 }
 
 function unauthorized(reply: FastifyReply) {

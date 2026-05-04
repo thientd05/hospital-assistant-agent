@@ -26,13 +26,15 @@ export function ChatWindow({
   model,
   onModelChange,
 }: Props) {
-  const { doctor, manager, patient } = useAuth();
+  const { doctor, manager, patient, expert } = useAuth();
   const doctorName = doctor
     ? [doctor.title, doctor.fullName].filter(Boolean).join(" ")
     : manager
     ? [manager.title, manager.fullName].filter(Boolean).join(" ")
     : patient
     ? patient.name
+    : expert
+    ? [expert.title, expert.fullName].filter(Boolean).join(" ")
     : "Hospital AI";
   const specialty = doctor
     ? doctor.specialty || doctor.department || ""
@@ -40,6 +42,8 @@ export function ChatWindow({
     ? manager.clinicName || ""
     : patient
     ? "Bệnh nhân"
+    : expert
+    ? expert.expertise || ""
     : "";
   return (
     <div className="flex-1 min-w-0 flex flex-col h-full bg-white">

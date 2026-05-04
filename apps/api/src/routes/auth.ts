@@ -1,11 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import type { Doctor, Manager, Patient } from "@pr_hospitalagent/types";
+import type { Doctor, Expert, Manager, Patient } from "@pr_hospitalagent/types";
 import { connectDB } from "../db/client.ts";
 import { verifyPassword } from "../auth/password.ts";
 import { verifyAuth } from "../auth/middleware.ts";
 import {
   ensureDoctorWorkspace,
+  ensureExpertWorkspace,
   ensureManagerWorkspace,
   ensurePatientWorkspace,
 } from "../agent/workspace.ts";
@@ -27,6 +28,11 @@ function publicManager(mgr: Manager) {
 
 function publicPatient(pat: Patient) {
   const { passwordHash, ...rest } = pat;
+  return rest;
+}
+
+function publicExpert(exp: Expert) {
+  const { passwordHash, ...rest } = exp;
   return rest;
 }
 
@@ -105,6 +111,40 @@ export async function authRoutes(app: FastifyInstance) {
       };
     }
 
+    const expert = await db
+      .collection<Expert>("experts")
+      .findOne({ username });
+    if (expert && verifyPassword(password, expert.passwordHash)) {
+      try {
+        const ensured = ensureExpertWorkspace(expert.id);
+        if (!ensured.alreadyComplete) {
+          app.log.info(
+            {
+              expertId: expert.id,
+              createdDir: ensured.createdDir,
+              createdFiles: ensured.createdFiles,
+            },
+            "Bootstrapped expert workspace"
+          );
+        }
+      } catch (err) {
+        app.log.error(
+          { err, expertId: expert.id },
+          "Failed to bootstrap expert workspace"
+        );
+      }
+
+      const token = app.jwt.sign(
+        { sub: expert.id, role: "expert" },
+        { expiresIn: "24h" }
+      );
+      return {
+        token,
+        role: "expert" as const,
+        expert: publicExpert(expert),
+      };
+    }
+
     const patient = await db
       .collection<Patient>("patients")
       .findOne({ username });
@@ -148,6 +188,9 @@ export async function authRoutes(app: FastifyInstance) {
     }
     if (req.authRole === "patient" && req.patient) {
       return { role: "patient" as const, patient: req.patient };
+    }
+    if (req.authRole === "expert" && req.expert) {
+      return { role: "expert" as const, expert: req.expert };
     }
     return { role: "doctor" as const, doctor: req.doctor };
   });

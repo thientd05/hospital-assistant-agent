@@ -9,6 +9,7 @@ import {
 } from "react";
 import type {
   DoctorPublic,
+  ExpertPublic,
   ManagerPublic,
   PatientPublic,
 } from "@pr_hospitalagent/types";
@@ -17,14 +18,16 @@ import { ACCOUNT_KEY, API_URL, TOKEN_KEY } from "@/lib/api";
 export type AuthAccount =
   | { role: "doctor"; doctor: DoctorPublic }
   | { role: "manager"; manager: ManagerPublic }
-  | { role: "patient"; patient: PatientPublic };
+  | { role: "patient"; patient: PatientPublic }
+  | { role: "expert"; expert: ExpertPublic };
 
 type AuthState = {
   account: AuthAccount | null;
   doctor: DoctorPublic | null;
   manager: ManagerPublic | null;
   patient: PatientPublic | null;
-  role: "doctor" | "manager" | "patient" | null;
+  expert: ExpertPublic | null;
+  role: "doctor" | "manager" | "patient" | "expert" | null;
   token: string | null;
   isLoading: boolean;
   login: (token: string, account: AuthAccount) => void;
@@ -36,7 +39,8 @@ const AuthContext = createContext<AuthState | null>(null);
 type MeResponse =
   | { role: "doctor"; doctor: DoctorPublic }
   | { role: "manager"; manager: ManagerPublic }
-  | { role: "patient"; patient: PatientPublic };
+  | { role: "patient"; patient: PatientPublic }
+  | { role: "expert"; expert: ExpertPublic };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<AuthAccount | null>(null);
@@ -77,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? { role: "manager", manager: data.manager }
             : data.role === "patient"
             ? { role: "patient", patient: data.patient }
+            : data.role === "expert"
+            ? { role: "expert", expert: data.expert }
             : { role: "doctor", doctor: data.doctor };
         setToken(storedToken);
         setAccount(next);
@@ -116,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const doctor = account?.role === "doctor" ? account.doctor : null;
   const manager = account?.role === "manager" ? account.manager : null;
   const patient = account?.role === "patient" ? account.patient : null;
+  const expert = account?.role === "expert" ? account.expert : null;
   const role = account?.role ?? null;
 
   return (
@@ -125,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         doctor,
         manager,
         patient,
+        expert,
         role,
         token,
         isLoading,
