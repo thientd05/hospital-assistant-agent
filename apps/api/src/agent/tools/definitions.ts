@@ -298,6 +298,15 @@ export const tools: Anthropic.Tool[] = [
     },
   },
   {
+    name: "list_skills",
+    description:
+      "Liệt kê tất cả các skill hiện có trong thư viện `agent/skills/`. Trả về mảng `{ name, description }` của mọi skill (đọc từ frontmatter SKILL.md). Không cần truyền tham số. Dùng khi chuyên gia muốn xem có những skill nào, hoặc trước khi quyết định tạo/sửa skill.",
+    input_schema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "write_skill",
     description:
       "Tạo hoặc ghi đè nội dung của một skill trong thư viện. Tool tạo thư mục `skills/<name>/` nếu chưa tồn tại và ghi toàn bộ `content` vào `SKILL.md`. Chỉ dành cho CHUYÊN GIA — dùng khi chuyên gia yêu cầu tạo skill mới hoặc chỉnh sửa skill hiện có. Luôn truyền nội dung đầy đủ của cả file (tool ghi đè hoàn toàn, không append). Tên skill phải là kebab-case, chỉ gồm chữ cái, chữ số, gạch ngang.",

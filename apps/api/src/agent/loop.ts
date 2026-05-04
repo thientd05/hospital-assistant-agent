@@ -16,6 +16,7 @@ import {
   handleGetCustomerStats,
   handleCreatePatient,
   handleUpdatePatient,
+  handleListSkills,
   handleReadSkill,
   handleWriteSkill,
   handleReadMemory,
@@ -156,6 +157,8 @@ async function dispatchTool(
       }
       return handleReadSkill(skillName);
     }
+    case "list_skills":
+      return handleListSkills();
     case "write_skill":
       return handleWriteSkill(String(input.name ?? ""), String(input.content ?? ""));
     case "read_memory":
