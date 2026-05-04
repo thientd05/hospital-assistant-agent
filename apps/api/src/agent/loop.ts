@@ -17,6 +17,7 @@ import {
   handleCreatePatient,
   handleUpdatePatient,
   handleReadSkill,
+  handleWriteSkill,
   handleReadMemory,
   handleUpdateUserProfile,
   handleUpdateWorkingStyle,
@@ -155,6 +156,8 @@ async function dispatchTool(
       }
       return handleReadSkill(skillName);
     }
+    case "write_skill":
+      return handleWriteSkill(String(input.name ?? ""), String(input.content ?? ""));
     case "read_memory":
       return handleReadMemory(doctorId, String(input.file ?? ""));
     case "update_user_profile":

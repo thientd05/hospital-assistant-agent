@@ -4,13 +4,15 @@ import { useCallback, useState } from "react";
 import type { LabResult, Patient } from "@pr_hospitalagent/types";
 import type { AppointmentRow } from "@/components/workspace/Appointments";
 import type { CustomerStatsData } from "@/components/workspace/CustomerStats";
+import type { SkillData } from "@/components/workspace/SkillContent";
 
 export type WorkspaceTab =
   | "patient"
   | "lab"
   | "appointments"
   | "stats"
-  | "soap";
+  | "soap"
+  | "skill";
 
 export function useWorkspace() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +25,7 @@ export function useWorkspace() {
   >(null);
   const [customerStatsData, setCustomerStatsData] =
     useState<CustomerStatsData | null>(null);
+  const [skillData, setSkillData] = useState<SkillData | null>(null);
 
   const openWorkspace = useCallback(
     (toolName: string, rawResult: string) => {
@@ -53,6 +56,11 @@ export function useWorkspace() {
           setCustomerStatsData(parsed as CustomerStatsData);
           setActiveTab("stats");
           setIsOpen(true);
+        } else if (toolName === "read_skill") {
+          if (parsed?.error || !parsed?.skill || !parsed?.content) return;
+          setSkillData({ name: parsed.skill as string, content: parsed.content as string });
+          setActiveTab("skill");
+          setIsOpen(true);
         }
       } catch {
         // ignore non-JSON results
@@ -72,11 +80,12 @@ export function useWorkspace() {
         if (tab === "lab" && !labData) return "soap";
         if (tab === "appointments" && !appointmentsData) return "soap";
         if (tab === "stats" && !customerStatsData) return "soap";
+        if (tab === "skill" && !skillData) return "soap";
         return tab;
       });
       return true;
     });
-  }, [patientData, labData, appointmentsData, customerStatsData]);
+  }, [patientData, labData, appointmentsData, customerStatsData, skillData]);
 
   return {
     isOpen,
@@ -86,6 +95,7 @@ export function useWorkspace() {
     labPatientId,
     appointmentsData,
     customerStatsData,
+    skillData,
     openWorkspace,
     closeWorkspace,
     setTab,

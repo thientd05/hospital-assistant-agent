@@ -4,11 +4,13 @@ import { useCallback, useEffect } from "react";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { WorkspacePanel } from "@/components/workspace/WorkspacePanel";
+import { useAuth } from "@/app/providers/AuthProvider";
 import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
 export default function ChatPage() {
+  const { role } = useAuth();
   const workspace = useWorkspace();
   const handleToolDone = useCallback(
     (name: string, result: string | undefined) => {
@@ -16,13 +18,14 @@ export default function ChatPage() {
         (name === "get_patient_record" ||
           name === "get_lab_results" ||
           name === "get_appointments" ||
-          name === "get_customer_stats") &&
+          name === "get_customer_stats" ||
+          (name === "read_skill" && role === "expert")) &&
         result
       ) {
         workspace.openWorkspace(name, result);
       }
     },
-    [workspace]
+    [workspace, role]
   );
   const chat = useChat({ onToolDone: handleToolDone });
   const list = useConversations();
@@ -69,6 +72,8 @@ export default function ChatPage() {
         labPatientId={workspace.labPatientId}
         appointmentsData={workspace.appointmentsData}
         customerStatsData={workspace.customerStatsData}
+        skillData={workspace.skillData}
+        role={role}
         onClose={workspace.closeWorkspace}
         onTabChange={workspace.setTab}
       />

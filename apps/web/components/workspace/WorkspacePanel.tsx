@@ -8,6 +8,7 @@ import { LabResults } from "./LabResults";
 import { SoapNote } from "./SoapNote";
 import { Appointments, type AppointmentRow } from "./Appointments";
 import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
+import { SkillContent, type SkillData } from "./SkillContent";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = MIN_WIDTH * 2;
@@ -20,16 +21,19 @@ type Props = {
   labPatientId?: string | null;
   appointmentsData: AppointmentRow[] | null;
   customerStatsData: CustomerStatsData | null;
+  skillData: SkillData | null;
+  role: string | null;
   onClose: () => void;
   onTabChange: (tab: WorkspaceTab) => void;
 };
 
-const TABS: { key: WorkspaceTab; label: string }[] = [
+const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
   { key: "patient", label: "Hồ sơ" },
   { key: "lab", label: "Lab" },
   { key: "appointments", label: "Lịch hẹn" },
   { key: "stats", label: "Thống kê" },
   { key: "soap", label: "SOAP note" },
+  { key: "skill", label: "Skill", expertOnly: true },
 ];
 
 function hasTabData(
@@ -37,12 +41,14 @@ function hasTabData(
   patientData: Patient | null,
   labData: LabResult[] | null,
   appointmentsData: AppointmentRow[] | null,
-  customerStatsData: CustomerStatsData | null
+  customerStatsData: CustomerStatsData | null,
+  skillData: SkillData | null
 ) {
   if (tab === "patient") return patientData !== null;
   if (tab === "lab") return labData !== null;
   if (tab === "appointments") return appointmentsData !== null;
   if (tab === "stats") return customerStatsData !== null;
+  if (tab === "skill") return skillData !== null;
   return true;
 }
 
@@ -54,15 +60,18 @@ export function WorkspacePanel({
   labPatientId,
   appointmentsData,
   customerStatsData,
+  skillData,
+  role,
   onClose,
   onTabChange,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
 
-  const visibleTabs = TABS.filter((t) =>
-    hasTabData(t.key, patientData, labData, appointmentsData, customerStatsData)
-  );
+  const visibleTabs = TABS.filter((t) => {
+    if (t.expertOnly && role !== "expert") return false;
+    return hasTabData(t.key, patientData, labData, appointmentsData, customerStatsData, skillData);
+  });
 
   const startResize = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -162,6 +171,9 @@ export function WorkspacePanel({
             <CustomerStats data={customerStatsData} />
           )}
           {activeTab === "soap" && <SoapNote />}
+          {activeTab === "skill" && skillData && (
+            <SkillContent data={skillData} />
+          )}
         </div>
       </div>
     </aside>
