@@ -2,12 +2,14 @@
   "doctor": {
     "tools": [
       "find_patients",
+      "list_patients",
       "get_patient_record",
       "get_lab_results",
       "get_appointments",
       "check_drug_interaction",
       "create_patient",
       "update_patient",
+      "delete_patient",
       "read_skill",
       "read_memory",
       "update_user_profile",
@@ -18,6 +20,7 @@
   },
   "manager": {
     "tools": [
+      "list_patients",
       "get_customer_stats",
       "read_skill",
       "read_memory",

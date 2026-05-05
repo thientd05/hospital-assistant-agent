@@ -8,6 +8,8 @@ import {
 } from "./access.ts";
 import { definition as findPatientsDef } from "./tools/find_patients/definitions.ts";
 import { handleFindPatients } from "./tools/find_patients/handlers.ts";
+import { definition as listPatientsDef } from "./tools/list_patients/definitions.ts";
+import { handleListPatients } from "./tools/list_patients/handlers.ts";
 import { definition as getPatientRecordDef } from "./tools/get_patient_record/definitions.ts";
 import { handleGetPatientRecord } from "./tools/get_patient_record/handlers.ts";
 import { definition as getLabResultsDef } from "./tools/get_lab_results/definitions.ts";
@@ -22,6 +24,8 @@ import { definition as createPatientDef } from "./tools/create_patient/definitio
 import { handleCreatePatient } from "./tools/create_patient/handlers.ts";
 import { definition as updatePatientDef } from "./tools/update_patient/definitions.ts";
 import { handleUpdatePatient } from "./tools/update_patient/handlers.ts";
+import { definition as deletePatientDef } from "./tools/delete_patient/definitions.ts";
+import { handleDeletePatient } from "./tools/delete_patient/handlers.ts";
 import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
 import { definition as readMemoryDef } from "./tools/read_memory/definitions.ts";
@@ -39,6 +43,7 @@ import { handleWriteSkill } from "./tools/write_skill/handlers.ts";
 
 const tools: Anthropic.Tool[] = [
   findPatientsDef,
+  listPatientsDef,
   getPatientRecordDef,
   getLabResultsDef,
   getAppointmentsDef,
@@ -46,6 +51,7 @@ const tools: Anthropic.Tool[] = [
   checkDrugInteractionDef,
   createPatientDef,
   updatePatientDef,
+  deletePatientDef,
   readSkillDef,
   readMemoryDef,
   updateUserProfileDef,
@@ -159,6 +165,8 @@ async function dispatchTool(
   switch (name) {
     case "find_patients":
       return handleFindPatients(input);
+    case "list_patients":
+      return handleListPatients();
     case "get_patient_record":
       return handleGetPatientRecord(String(input.patient_id));
     case "get_lab_results":
@@ -178,6 +186,8 @@ async function dispatchTool(
       return handleCreatePatient(input);
     case "update_patient":
       return handleUpdatePatient(input);
+    case "delete_patient":
+      return handleDeletePatient(input);
     case "read_skill": {
       const skillName = String(input.name ?? "");
       if (!getAllowedSkills(role).has(skillName)) {

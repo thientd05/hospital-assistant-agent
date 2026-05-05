@@ -5,9 +5,11 @@ import type { LabResult, Patient } from "@pr_hospitalagent/types";
 import type { AppointmentRow } from "@/components/workspace/Appointments";
 import type { CustomerStatsData } from "@/components/workspace/CustomerStats";
 import type { SkillData } from "@/components/workspace/SkillContent";
+import type { PatientListData } from "@/components/workspace/PatientList";
 
 export type WorkspaceTab =
   | "patient"
+  | "patients"
   | "lab"
   | "appointments"
   | "stats"
@@ -25,6 +27,8 @@ export function useWorkspace() {
   const [customerStatsData, setCustomerStatsData] =
     useState<CustomerStatsData | null>(null);
   const [skillData, setSkillData] = useState<SkillData | null>(null);
+  const [patientListData, setPatientListData] =
+    useState<PatientListData | null>(null);
 
   const openWorkspace = useCallback(
     (toolName: string, rawResult: string) => {
@@ -59,6 +63,14 @@ export function useWorkspace() {
           setCustomerStatsData(parsed as CustomerStatsData);
           setActiveTab("stats");
           setIsOpen(true);
+        } else if (
+          toolName === "list_patients" ||
+          toolName === "delete_patient"
+        ) {
+          if (parsed?.error || !Array.isArray(parsed?.patients)) return;
+          setPatientListData(parsed as PatientListData);
+          setActiveTab("patients");
+          setIsOpen(true);
         } else if (toolName === "read_skill") {
           if (parsed?.error || !parsed?.skill || !parsed?.content) return;
           setSkillData({ name: parsed.skill as string, content: parsed.content as string });
@@ -88,6 +100,7 @@ export function useWorkspace() {
     appointmentsData,
     customerStatsData,
     skillData,
+    patientListData,
     openWorkspace,
     closeWorkspace,
     setTab,

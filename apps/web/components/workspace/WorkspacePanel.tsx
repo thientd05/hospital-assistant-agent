@@ -8,6 +8,7 @@ import { LabResults } from "./LabResults";
 import { Appointments, type AppointmentRow } from "./Appointments";
 import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
 import { SkillContent, type SkillData } from "./SkillContent";
+import { PatientList, type PatientListData } from "./PatientList";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = MIN_WIDTH * 2;
@@ -21,13 +22,17 @@ type Props = {
   appointmentsData: AppointmentRow[] | null;
   customerStatsData: CustomerStatsData | null;
   skillData: SkillData | null;
+  patientListData: PatientListData | null;
   role: string | null;
   onClose: () => void;
   onTabChange: (tab: WorkspaceTab) => void;
+  onSendMessage: (text: string) => void;
+  isStreaming: boolean;
 };
 
 const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
   { key: "patient", label: "Hồ sơ" },
+  { key: "patients", label: "Bệnh nhân" },
   { key: "lab", label: "Lab" },
   { key: "appointments", label: "Lịch hẹn" },
   { key: "stats", label: "Thống kê" },
@@ -40,9 +45,11 @@ function hasTabData(
   labData: LabResult[] | null,
   appointmentsData: AppointmentRow[] | null,
   customerStatsData: CustomerStatsData | null,
-  skillData: SkillData | null
+  skillData: SkillData | null,
+  patientListData: PatientListData | null
 ) {
   if (tab === "patient") return patientData !== null;
+  if (tab === "patients") return patientListData !== null;
   if (tab === "lab") return labData !== null;
   if (tab === "appointments") return appointmentsData !== null;
   if (tab === "stats") return customerStatsData !== null;
@@ -59,16 +66,27 @@ export function WorkspacePanel({
   appointmentsData,
   customerStatsData,
   skillData,
+  patientListData,
   role,
   onClose,
   onTabChange,
+  onSendMessage,
+  isStreaming,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
 
   const visibleTabs = TABS.filter((t) => {
     if (t.expertOnly && role !== "expert") return false;
-    return hasTabData(t.key, patientData, labData, appointmentsData, customerStatsData, skillData);
+    return hasTabData(
+      t.key,
+      patientData,
+      labData,
+      appointmentsData,
+      customerStatsData,
+      skillData,
+      patientListData
+    );
   });
 
   const startResize = useCallback((e: React.MouseEvent) => {
@@ -150,6 +168,15 @@ export function WorkspacePanel({
         <div className="flex-1 overflow-y-auto">
           {activeTab === "patient" && patientData && (
             <PatientRecord patient={patientData} />
+          )}
+          {activeTab === "patients" && (
+            <PatientList
+              data={patientListData}
+              onViewDetail={(id) =>
+                onSendMessage(`Xem hồ sơ bệnh nhân ${id}`)
+              }
+              disabled={isStreaming}
+            />
           )}
           {activeTab === "lab" && labData && (
             <LabResults

@@ -6,10 +6,12 @@ const TOOL_LABELS: Record<string, string> = {
   get_patient_record: "Hồ sơ bệnh nhân",
   create_patient: "Tạo bệnh nhân",
   update_patient: "Cập nhật bệnh nhân",
+  delete_patient: "Xoá bệnh nhân",
   get_lab_results: "Kết quả xét nghiệm",
   check_drug_interaction: "Kiểm tra tương tác thuốc",
   get_appointments: "Lịch hẹn",
   get_customer_stats: "Thống kê khách hàng",
+  list_patients: "Danh sách bệnh nhân",
   read_skill: "Đọc skill",
 };
 
@@ -48,9 +50,11 @@ const OPENABLE_TOOLS = new Set([
   "get_patient_record",
   "create_patient",
   "update_patient",
+  "delete_patient",
   "get_lab_results",
   "get_appointments",
   "get_customer_stats",
+  "list_patients",
 ]);
 
 const EXPERT_OPENABLE_TOOLS = new Set(["read_skill"]);
@@ -79,6 +83,12 @@ function previewResult(name: string, raw: string | undefined): string {
       parsed?.patients?.total !== undefined
     ) {
       return `${parsed.patients.total} BN · ${parsed.appointments?.total ?? 0} cuộc hẹn`;
+    }
+    if (name === "list_patients" && typeof parsed?.count === "number") {
+      return `${parsed.count} bệnh nhân`;
+    }
+    if (name === "delete_patient" && typeof parsed?.count === "number") {
+      return `Đã xoá · còn ${parsed.count} bệnh nhân`;
     }
     if (name === "read_skill" && parsed?.skill) {
       return parsed.skill as string;
