@@ -13,6 +13,37 @@ const TOOL_LABELS: Record<string, string> = {
   read_skill: "Đọc skill",
 };
 
+const SKILL_LABELS: Record<string, string> = {
+  "patient-intake": "quy trình tiếp nhận bệnh nhân",
+  "lab-result-entry": "quy trình nhập kết quả xét nghiệm",
+  "write-user-md": "quy trình cập nhật hồ sơ người dùng",
+  "write-soul-md": "quy trình cập nhật phong cách làm việc",
+  "create-skill": "quy trình tạo skill mới",
+};
+
+function readSkillSlug(toolCall: ToolCall): string | null {
+  const fromInput = toolCall.input?.name;
+  if (typeof fromInput === "string" && fromInput) return fromInput;
+  if (toolCall.result) {
+    try {
+      const parsed = JSON.parse(toolCall.result);
+      if (typeof parsed?.skill === "string") return parsed.skill;
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
+function toolLabel(toolCall: ToolCall): string {
+  if (toolCall.name === "read_skill") {
+    const slug = readSkillSlug(toolCall);
+    const skillLabel = slug ? SKILL_LABELS[slug] : null;
+    if (skillLabel) return `Đọc ${skillLabel}`;
+  }
+  return TOOL_LABELS[toolCall.name] ?? toolCall.name;
+}
+
 const OPENABLE_TOOLS = new Set([
   "get_patient_record",
   "create_patient",
@@ -65,7 +96,7 @@ type Props = {
 };
 
 export function ToolCallCard({ toolCall, role, onOpenWorkspace }: Props) {
-  const label = TOOL_LABELS[toolCall.name] ?? toolCall.name;
+  const label = toolLabel(toolCall);
   const canOpen =
     toolCall.status === "done" &&
     !!toolCall.result &&
