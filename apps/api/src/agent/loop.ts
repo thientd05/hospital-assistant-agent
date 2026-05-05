@@ -1,29 +1,59 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
-import { tools } from "./tools/definitions.ts";
 import {
   getAllowedSkills,
   getAllowedTools,
   type AuthRole,
 } from "./access.ts";
-import {
-  handleFindPatients,
-  handleGetPatientRecord,
-  handleGetLabResults,
-  handleCheckDrugInteraction,
-  handleGetAppointments,
-  handleGetCustomerStats,
-  handleCreatePatient,
-  handleUpdatePatient,
-  handleListSkills,
-  handleReadSkill,
-  handleWriteSkill,
-  handleReadMemory,
-  handleUpdateUserProfile,
-  handleUpdateWorkingStyle,
-  handleUpdateMemory,
-} from "./tools/handlers.ts";
+import { definition as findPatientsDef } from "./tools/find_patients/definitions.ts";
+import { handleFindPatients } from "./tools/find_patients/handlers.ts";
+import { definition as getPatientRecordDef } from "./tools/get_patient_record/definitions.ts";
+import { handleGetPatientRecord } from "./tools/get_patient_record/handlers.ts";
+import { definition as getLabResultsDef } from "./tools/get_lab_results/definitions.ts";
+import { handleGetLabResults } from "./tools/get_lab_results/handlers.ts";
+import { definition as getAppointmentsDef } from "./tools/get_appointments/definitions.ts";
+import { handleGetAppointments } from "./tools/get_appointments/handlers.ts";
+import { definition as getCustomerStatsDef } from "./tools/get_customer_stats/definitions.ts";
+import { handleGetCustomerStats } from "./tools/get_customer_stats/handlers.ts";
+import { definition as checkDrugInteractionDef } from "./tools/check_drug_interaction/definitions.ts";
+import { handleCheckDrugInteraction } from "./tools/check_drug_interaction/handlers.ts";
+import { definition as createPatientDef } from "./tools/create_patient/definitions.ts";
+import { handleCreatePatient } from "./tools/create_patient/handlers.ts";
+import { definition as updatePatientDef } from "./tools/update_patient/definitions.ts";
+import { handleUpdatePatient } from "./tools/update_patient/handlers.ts";
+import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
+import { handleReadSkill } from "./tools/read_skill/handlers.ts";
+import { definition as readMemoryDef } from "./tools/read_memory/definitions.ts";
+import { handleReadMemory } from "./tools/read_memory/handlers.ts";
+import { definition as updateUserProfileDef } from "./tools/update_user_profile/definitions.ts";
+import { handleUpdateUserProfile } from "./tools/update_user_profile/handlers.ts";
+import { definition as updateWorkingStyleDef } from "./tools/update_working_style/definitions.ts";
+import { handleUpdateWorkingStyle } from "./tools/update_working_style/handlers.ts";
+import { definition as updateMemoryDef } from "./tools/update_memory/definitions.ts";
+import { handleUpdateMemory } from "./tools/update_memory/handlers.ts";
+import { definition as listSkillsDef } from "./tools/list_skills/definitions.ts";
+import { handleListSkills } from "./tools/list_skills/handlers.ts";
+import { definition as writeSkillDef } from "./tools/write_skill/definitions.ts";
+import { handleWriteSkill } from "./tools/write_skill/handlers.ts";
+
+const tools: Anthropic.Tool[] = [
+  findPatientsDef,
+  getPatientRecordDef,
+  getLabResultsDef,
+  getAppointmentsDef,
+  getCustomerStatsDef,
+  checkDrugInteractionDef,
+  createPatientDef,
+  updatePatientDef,
+  readSkillDef,
+  readMemoryDef,
+  updateUserProfileDef,
+  updateWorkingStyleDef,
+  updateMemoryDef,
+  listSkillsDef,
+  writeSkillDef,
+];
 
 const AGENT_DIR = import.meta.dirname;
 const BOOTS_DIR = join(AGENT_DIR, "boots");
