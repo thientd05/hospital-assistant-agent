@@ -4,6 +4,8 @@ import type { ToolCall } from "@pr_hospitalagent/types";
 
 const TOOL_LABELS: Record<string, string> = {
   get_patient_record: "Hồ sơ bệnh nhân",
+  create_patient: "Tạo bệnh nhân",
+  update_patient: "Cập nhật bệnh nhân",
   get_lab_results: "Kết quả xét nghiệm",
   check_drug_interaction: "Kiểm tra tương tác thuốc",
   get_appointments: "Lịch hẹn",
@@ -13,6 +15,8 @@ const TOOL_LABELS: Record<string, string> = {
 
 const OPENABLE_TOOLS = new Set([
   "get_patient_record",
+  "create_patient",
+  "update_patient",
   "get_lab_results",
   "get_appointments",
   "get_customer_stats",
@@ -25,7 +29,12 @@ function previewResult(name: string, raw: string | undefined): string {
   try {
     const parsed = JSON.parse(raw);
     if (parsed?.error) return String(parsed.error);
-    if (name === "get_patient_record" && parsed?.name) {
+    if (
+      (name === "get_patient_record" ||
+        name === "create_patient" ||
+        name === "update_patient") &&
+      parsed?.name
+    ) {
       return `${parsed.name} — ${parsed.ward ?? ""}`.trim();
     }
     if (name === "get_lab_results" && Array.isArray(parsed?.labResults)) {

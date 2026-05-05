@@ -16,6 +16,8 @@ export default function ChatPage() {
     (name: string, result: string | undefined) => {
       if (
         (name === "get_patient_record" ||
+          name === "create_patient" ||
+          name === "update_patient" ||
           name === "get_lab_results" ||
           name === "get_appointments" ||
           name === "get_customer_stats" ||

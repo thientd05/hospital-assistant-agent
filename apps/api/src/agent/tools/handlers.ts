@@ -505,14 +505,7 @@ export async function handleCreatePatient(
   try {
     const db = await connectDB();
     await db.collection<Patient>("patients").insertOne(patient);
-    const { passwordHash, ...patientPublic } = patient;
-    return JSON.stringify({
-      ok: true,
-      id,
-      username,
-      password,
-      patient: patientPublic,
-    });
+    return handleGetPatientRecord(id);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return JSON.stringify({ error: `Tạo bệnh nhân thất bại: ${msg}` });
@@ -618,7 +611,7 @@ export async function handleUpdatePatient(
     if (res.matchedCount === 0) {
       return JSON.stringify({ error: `Không tìm thấy bệnh nhân ${id}.` });
     }
-    return JSON.stringify({ ok: true, id, applied });
+    return handleGetPatientRecord(id);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return JSON.stringify({ error: `Cập nhật thất bại: ${msg}` });

@@ -11,7 +11,6 @@ export type WorkspaceTab =
   | "lab"
   | "appointments"
   | "stats"
-  | "soap"
   | "skill";
 
 export function useWorkspace() {
@@ -31,7 +30,11 @@ export function useWorkspace() {
     (toolName: string, rawResult: string) => {
       try {
         const parsed = JSON.parse(rawResult);
-        if (toolName === "get_patient_record") {
+        if (
+          toolName === "get_patient_record" ||
+          toolName === "create_patient" ||
+          toolName === "update_patient"
+        ) {
           if (parsed?.error) return;
           setPatientData(parsed as Patient);
           setActiveTab("patient");
@@ -73,19 +76,8 @@ export function useWorkspace() {
   const setTab = useCallback((tab: WorkspaceTab) => setActiveTab(tab), []);
 
   const togglePanel = useCallback(() => {
-    setIsOpen((open) => {
-      if (open) return false;
-      setActiveTab((tab) => {
-        if (tab === "patient" && !patientData) return "soap";
-        if (tab === "lab" && !labData) return "soap";
-        if (tab === "appointments" && !appointmentsData) return "soap";
-        if (tab === "stats" && !customerStatsData) return "soap";
-        if (tab === "skill" && !skillData) return "soap";
-        return tab;
-      });
-      return true;
-    });
-  }, [patientData, labData, appointmentsData, customerStatsData, skillData]);
+    setIsOpen((open) => !open);
+  }, []);
 
   return {
     isOpen,

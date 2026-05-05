@@ -5,7 +5,6 @@ import type { LabResult, Patient } from "@pr_hospitalagent/types";
 import type { WorkspaceTab } from "@/hooks/useWorkspace";
 import { PatientRecord } from "./PatientRecord";
 import { LabResults } from "./LabResults";
-import { SoapNote } from "./SoapNote";
 import { Appointments, type AppointmentRow } from "./Appointments";
 import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
 import { SkillContent, type SkillData } from "./SkillContent";
@@ -32,7 +31,6 @@ const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
   { key: "lab", label: "Lab" },
   { key: "appointments", label: "Lịch hẹn" },
   { key: "stats", label: "Thống kê" },
-  { key: "soap", label: "SOAP note" },
   { key: "skill", label: "Skill", expertOnly: true },
 ];
 
@@ -170,7 +168,6 @@ export function WorkspacePanel({
           {activeTab === "stats" && (
             <CustomerStats data={customerStatsData} />
           )}
-          {activeTab === "soap" && <SoapNote />}
           {activeTab === "skill" && skillData && (
             <SkillContent data={skillData} />
           )}
