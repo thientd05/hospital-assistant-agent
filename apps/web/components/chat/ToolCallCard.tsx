@@ -88,7 +88,16 @@ function previewResult(name: string, raw: string | undefined): string {
       return `${parsed.count} bệnh nhân`;
     }
     if (name === "delete_patient" && typeof parsed?.count === "number") {
-      return `Đã xoá · còn ${parsed.count} bệnh nhân`;
+      const deleted = Array.isArray(parsed?.deletedIds)
+        ? parsed.deletedIds.length
+        : 0;
+      const notFound = Array.isArray(parsed?.notFoundIds)
+        ? parsed.notFoundIds.length
+        : 0;
+      const parts = [`Đã xoá ${deleted}`];
+      if (notFound > 0) parts.push(`${notFound} không tìm thấy`);
+      parts.push(`còn ${parsed.count} bệnh nhân`);
+      return parts.join(" · ");
     }
     if (name === "read_skill" && parsed?.skill) {
       return parsed.skill as string;
