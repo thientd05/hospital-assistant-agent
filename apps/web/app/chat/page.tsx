@@ -23,7 +23,8 @@ export default function ChatPage() {
           name === "get_customer_stats" ||
           name === "list_patients" ||
           name === "delete_patient" ||
-          (name === "read_skill" && role === "expert")) &&
+          (name === "read_skill" && role === "expert") ||
+          (name === "delete_skill" && role === "expert")) &&
         result
       ) {
         workspace.openWorkspace(name, result);
@@ -77,6 +78,7 @@ export default function ChatPage() {
         appointmentsData={workspace.appointmentsData}
         customerStatsData={workspace.customerStatsData}
         skillData={workspace.skillData}
+        skillsListData={workspace.skillsListData}
         patientListData={workspace.patientListData}
         role={role}
         onClose={workspace.closeWorkspace}

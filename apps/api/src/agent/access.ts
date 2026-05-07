@@ -1,12 +1,14 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export type AuthRole = "doctor" | "manager" | "patient" | "expert";
 
-type RoleAccess = { tools: string[]; skills: string[] };
+type SkillsAccess = string[] | "all";
+type RoleAccess = { tools: string[]; skills: SkillsAccess };
 type AccessConfig = Record<AuthRole, RoleAccess>;
 
 const CONFIG_PATH = join(import.meta.dirname, "config.json");
+const SKILLS_DIR = join(import.meta.dirname, "skills");
 
 let cached: AccessConfig | null = null;
 
@@ -23,10 +25,19 @@ function loadConfig(): AccessConfig {
   return cached;
 }
 
+function listAllSkills(): string[] {
+  if (!existsSync(SKILLS_DIR)) return [];
+  return readdirSync(SKILLS_DIR, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+}
+
 export function getAllowedTools(role: AuthRole): Set<string> {
   return new Set(loadConfig()[role].tools);
 }
 
 export function getAllowedSkills(role: AuthRole): Set<string> {
-  return new Set(loadConfig()[role].skills);
+  const skills = loadConfig()[role].skills;
+  if (skills === "all") return new Set(listAllSkills());
+  return new Set(skills);
 }

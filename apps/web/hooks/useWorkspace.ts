@@ -5,6 +5,7 @@ import type { LabResult, Patient } from "@pr_hospitalagent/types";
 import type { AppointmentRow } from "@/components/workspace/Appointments";
 import type { CustomerStatsData } from "@/components/workspace/CustomerStats";
 import type { SkillData } from "@/components/workspace/SkillContent";
+import type { SkillsListData } from "@/components/workspace/SkillsList";
 import type { PatientListData } from "@/components/workspace/PatientList";
 
 export type WorkspaceTab =
@@ -13,7 +14,8 @@ export type WorkspaceTab =
   | "lab"
   | "appointments"
   | "stats"
-  | "skill";
+  | "skill"
+  | "skills";
 
 export function useWorkspace() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +29,8 @@ export function useWorkspace() {
   const [customerStatsData, setCustomerStatsData] =
     useState<CustomerStatsData | null>(null);
   const [skillData, setSkillData] = useState<SkillData | null>(null);
+  const [skillsListData, setSkillsListData] =
+    useState<SkillsListData | null>(null);
   const [patientListData, setPatientListData] =
     useState<PatientListData | null>(null);
 
@@ -76,6 +80,15 @@ export function useWorkspace() {
           setSkillData({ name: parsed.skill as string, content: parsed.content as string });
           setActiveTab("skill");
           setIsOpen(true);
+        } else if (toolName === "delete_skill") {
+          if (parsed?.error || !Array.isArray(parsed?.skills)) return;
+          setSkillsListData({
+            skills: parsed.skills as SkillsListData["skills"],
+            deleted:
+              typeof parsed.deleted === "string" ? parsed.deleted : undefined,
+          });
+          setActiveTab("skills");
+          setIsOpen(true);
         }
       } catch {
         // ignore non-JSON results
@@ -100,6 +113,7 @@ export function useWorkspace() {
     appointmentsData,
     customerStatsData,
     skillData,
+    skillsListData,
     patientListData,
     openWorkspace,
     closeWorkspace,

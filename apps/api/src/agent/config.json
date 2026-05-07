@@ -45,11 +45,12 @@
       "list_skills",
       "read_skill",
       "write_skill",
+      "delete_skill",
       "read_memory",
       "update_user_profile",
       "update_working_style",
       "update_memory"
     ],
-    "skills": ["write-user-md", "write-soul-md", "create-skill", "patient-intake", "lab-result-entry"]
+    "skills": "all"
   }
 }

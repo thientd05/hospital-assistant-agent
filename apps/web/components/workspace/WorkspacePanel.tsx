@@ -8,6 +8,7 @@ import { LabResults } from "./LabResults";
 import { Appointments, type AppointmentRow } from "./Appointments";
 import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
 import { SkillContent, type SkillData } from "./SkillContent";
+import { SkillsList, type SkillsListData } from "./SkillsList";
 import { PatientList, type PatientListData } from "./PatientList";
 
 const MIN_WIDTH = 380;
@@ -22,6 +23,7 @@ type Props = {
   appointmentsData: AppointmentRow[] | null;
   customerStatsData: CustomerStatsData | null;
   skillData: SkillData | null;
+  skillsListData: SkillsListData | null;
   patientListData: PatientListData | null;
   role: string | null;
   onClose: () => void;
@@ -37,6 +39,7 @@ const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
   { key: "appointments", label: "Lịch hẹn" },
   { key: "stats", label: "Thống kê" },
   { key: "skill", label: "Skill", expertOnly: true },
+  { key: "skills", label: "Thư viện skill", expertOnly: true },
 ];
 
 function hasTabData(
@@ -46,6 +49,7 @@ function hasTabData(
   appointmentsData: AppointmentRow[] | null,
   customerStatsData: CustomerStatsData | null,
   skillData: SkillData | null,
+  skillsListData: SkillsListData | null,
   patientListData: PatientListData | null
 ) {
   if (tab === "patient") return patientData !== null;
@@ -54,6 +58,7 @@ function hasTabData(
   if (tab === "appointments") return appointmentsData !== null;
   if (tab === "stats") return customerStatsData !== null;
   if (tab === "skill") return skillData !== null;
+  if (tab === "skills") return skillsListData !== null;
   return true;
 }
 
@@ -66,6 +71,7 @@ export function WorkspacePanel({
   appointmentsData,
   customerStatsData,
   skillData,
+  skillsListData,
   patientListData,
   role,
   onClose,
@@ -85,6 +91,7 @@ export function WorkspacePanel({
       appointmentsData,
       customerStatsData,
       skillData,
+      skillsListData,
       patientListData
     );
   });
@@ -197,6 +204,9 @@ export function WorkspacePanel({
           )}
           {activeTab === "skill" && skillData && (
             <SkillContent data={skillData} />
+          )}
+          {activeTab === "skills" && skillsListData && (
+            <SkillsList data={skillsListData} />
           )}
         </div>
       </div>

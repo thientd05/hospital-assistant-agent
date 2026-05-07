@@ -13,6 +13,7 @@ const TOOL_LABELS: Record<string, string> = {
   get_customer_stats: "Thống kê khách hàng",
   list_patients: "Danh sách bệnh nhân",
   read_skill: "Đọc skill",
+  delete_skill: "Xoá skill",
 };
 
 const SKILL_LABELS: Record<string, string> = {
@@ -57,7 +58,7 @@ const OPENABLE_TOOLS = new Set([
   "list_patients",
 ]);
 
-const EXPERT_OPENABLE_TOOLS = new Set(["read_skill"]);
+const EXPERT_OPENABLE_TOOLS = new Set(["read_skill", "delete_skill"]);
 
 function previewResult(name: string, raw: string | undefined): string {
   if (!raw) return "";
@@ -101,6 +102,13 @@ function previewResult(name: string, raw: string | undefined): string {
     }
     if (name === "read_skill" && parsed?.skill) {
       return parsed.skill as string;
+    }
+    if (
+      name === "delete_skill" &&
+      typeof parsed?.deleted === "string" &&
+      Array.isArray(parsed?.skills)
+    ) {
+      return `Đã xoá ${parsed.deleted} · còn ${parsed.skills.length} skill`;
     }
     return raw.slice(0, 80).replace(/\s+/g, " ");
   } catch {

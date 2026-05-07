@@ -40,6 +40,8 @@ import { definition as listSkillsDef } from "./tools/list_skills/definitions.ts"
 import { handleListSkills } from "./tools/list_skills/handlers.ts";
 import { definition as writeSkillDef } from "./tools/write_skill/definitions.ts";
 import { handleWriteSkill } from "./tools/write_skill/handlers.ts";
+import { definition as deleteSkillDef } from "./tools/delete_skill/definitions.ts";
+import { handleDeleteSkill } from "./tools/delete_skill/handlers.ts";
 
 const tools: Anthropic.Tool[] = [
   findPatientsDef,
@@ -59,6 +61,7 @@ const tools: Anthropic.Tool[] = [
   updateMemoryDef,
   listSkillsDef,
   writeSkillDef,
+  deleteSkillDef,
 ];
 
 const AGENT_DIR = import.meta.dirname;
@@ -201,6 +204,8 @@ async function dispatchTool(
       return handleListSkills();
     case "write_skill":
       return handleWriteSkill(String(input.name ?? ""), String(input.content ?? ""));
+    case "delete_skill":
+      return handleDeleteSkill(String(input.name ?? ""));
     case "read_memory":
       return handleReadMemory(doctorId, String(input.file ?? ""));
     case "update_user_profile":
