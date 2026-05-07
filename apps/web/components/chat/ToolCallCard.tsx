@@ -13,6 +13,7 @@ const TOOL_LABELS: Record<string, string> = {
   get_customer_stats: "Thống kê khách hàng",
   list_patients: "Danh sách bệnh nhân",
   read_skill: "Đọc skill",
+  write_skill: "Lưu skill",
   delete_skill: "Xoá skill",
   list_skills: "Liệt kê skill",
 };
@@ -61,6 +62,7 @@ const OPENABLE_TOOLS = new Set([
 
 const EXPERT_OPENABLE_TOOLS = new Set([
   "read_skill",
+  "write_skill",
   "delete_skill",
   "list_skills",
 ]);
@@ -107,6 +109,9 @@ function previewResult(name: string, raw: string | undefined): string {
     }
     if (name === "read_skill" && parsed?.skill) {
       return parsed.skill as string;
+    }
+    if (name === "write_skill" && parsed?.skill) {
+      return `Đã lưu ${parsed.skill}`;
     }
     if (
       name === "delete_skill" &&

@@ -24,6 +24,7 @@ export default function ChatPage() {
           name === "list_patients" ||
           name === "delete_patient" ||
           (name === "read_skill" && role === "expert") ||
+          (name === "write_skill" && role === "expert") ||
           (name === "delete_skill" && role === "expert") ||
           (name === "list_skills" && role === "expert")) &&
         result

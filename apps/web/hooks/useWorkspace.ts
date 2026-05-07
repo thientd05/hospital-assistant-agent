@@ -75,7 +75,7 @@ export function useWorkspace() {
           setPatientListData(parsed as PatientListData);
           setActiveTab("patients");
           setIsOpen(true);
-        } else if (toolName === "read_skill") {
+        } else if (toolName === "read_skill" || toolName === "write_skill") {
           if (parsed?.error || !parsed?.skill || !parsed?.content) return;
           setSkillData({ name: parsed.skill as string, content: parsed.content as string });
           setActiveTab("skill");
