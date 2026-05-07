@@ -108,3 +108,11 @@ body {
   border-top: 1px solid #e5e7eb;
   margin: 1em 0;
 }
+
+.workspace-tabs-scroll {
+  scrollbar-width: none;
+  overflow-y: hidden;
+}
+.workspace-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}

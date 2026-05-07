@@ -1,16 +1,27 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { LabResult, Patient } from "@pr_hospitalagent/types";
+import type {
+  DoctorPublic,
+  ExpertPublic,
+  LabResult,
+  Patient,
+} from "@pr_hospitalagent/types";
 import type { AppointmentRow } from "@/components/workspace/Appointments";
 import type { CustomerStatsData } from "@/components/workspace/CustomerStats";
 import type { SkillData } from "@/components/workspace/SkillContent";
 import type { SkillsListData } from "@/components/workspace/SkillsList";
 import type { PatientListData } from "@/components/workspace/PatientList";
+import type { DoctorListData } from "@/components/workspace/DoctorList";
+import type { ExpertListData } from "@/components/workspace/ExpertList";
 
 export type WorkspaceTab =
   | "patient"
   | "patients"
+  | "doctors"
+  | "experts"
+  | "doctor"
+  | "expert"
   | "lab"
   | "appointments"
   | "stats"
@@ -33,6 +44,12 @@ export function useWorkspace() {
     useState<SkillsListData | null>(null);
   const [patientListData, setPatientListData] =
     useState<PatientListData | null>(null);
+  const [doctorListData, setDoctorListData] =
+    useState<DoctorListData | null>(null);
+  const [expertListData, setExpertListData] =
+    useState<ExpertListData | null>(null);
+  const [doctorData, setDoctorData] = useState<DoctorPublic | null>(null);
+  const [expertData, setExpertData] = useState<ExpertPublic | null>(null);
 
   const openWorkspace = useCallback(
     (toolName: string, rawResult: string) => {
@@ -74,6 +91,26 @@ export function useWorkspace() {
           if (parsed?.error || !Array.isArray(parsed?.patients)) return;
           setPatientListData(parsed as PatientListData);
           setActiveTab("patients");
+          setIsOpen(true);
+        } else if (toolName === "list_doctors") {
+          if (parsed?.error || !Array.isArray(parsed?.doctors)) return;
+          setDoctorListData(parsed as DoctorListData);
+          setActiveTab("doctors");
+          setIsOpen(true);
+        } else if (toolName === "list_experts") {
+          if (parsed?.error || !Array.isArray(parsed?.experts)) return;
+          setExpertListData(parsed as ExpertListData);
+          setActiveTab("experts");
+          setIsOpen(true);
+        } else if (toolName === "get_doctor") {
+          if (parsed?.error || !parsed?.id) return;
+          setDoctorData(parsed as DoctorPublic);
+          setActiveTab("doctor");
+          setIsOpen(true);
+        } else if (toolName === "get_expert") {
+          if (parsed?.error || !parsed?.id) return;
+          setExpertData(parsed as ExpertPublic);
+          setActiveTab("expert");
           setIsOpen(true);
         } else if (toolName === "read_skill" || toolName === "write_skill") {
           if (parsed?.error || !parsed?.skill || !parsed?.content) return;
@@ -122,6 +159,10 @@ export function useWorkspace() {
     skillData,
     skillsListData,
     patientListData,
+    doctorListData,
+    expertListData,
+    doctorData,
+    expertData,
     openWorkspace,
     closeWorkspace,
     setTab,

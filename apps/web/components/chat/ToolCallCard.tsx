@@ -12,6 +12,10 @@ const TOOL_LABELS: Record<string, string> = {
   get_appointments: "Lịch hẹn",
   get_customer_stats: "Thống kê khách hàng",
   list_patients: "Danh sách bệnh nhân",
+  list_doctors: "Danh sách bác sĩ",
+  list_experts: "Danh sách chuyên gia",
+  get_doctor: "Chi tiết bác sĩ",
+  get_expert: "Chi tiết chuyên gia",
   read_skill: "Đọc skill",
   write_skill: "Lưu skill",
   delete_skill: "Xoá skill",
@@ -58,6 +62,10 @@ const OPENABLE_TOOLS = new Set([
   "get_appointments",
   "get_customer_stats",
   "list_patients",
+  "list_doctors",
+  "list_experts",
+  "get_doctor",
+  "get_expert",
 ]);
 
 const EXPERT_OPENABLE_TOOLS = new Set([
@@ -94,6 +102,18 @@ function previewResult(name: string, raw: string | undefined): string {
     }
     if (name === "list_patients" && typeof parsed?.count === "number") {
       return `${parsed.count} bệnh nhân`;
+    }
+    if (name === "list_doctors" && typeof parsed?.count === "number") {
+      return `${parsed.count} bác sĩ`;
+    }
+    if (name === "list_experts" && typeof parsed?.count === "number") {
+      return `${parsed.count} chuyên gia`;
+    }
+    if (name === "get_doctor" && parsed?.fullName) {
+      return `${parsed.fullName}${parsed.department ? ` — ${parsed.department}` : ""}`.trim();
+    }
+    if (name === "get_expert" && parsed?.fullName) {
+      return `${parsed.fullName}${parsed.expertise ? ` — ${parsed.expertise}` : ""}`.trim();
     }
     if (name === "delete_patient" && typeof parsed?.count === "number") {
       const deleted = Array.isArray(parsed?.deletedIds)

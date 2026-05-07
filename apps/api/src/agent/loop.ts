@@ -10,6 +10,14 @@ import { definition as findPatientsDef } from "./tools/find_patients/definitions
 import { handleFindPatients } from "./tools/find_patients/handlers.ts";
 import { definition as listPatientsDef } from "./tools/list_patients/definitions.ts";
 import { handleListPatients } from "./tools/list_patients/handlers.ts";
+import { definition as listDoctorsDef } from "./tools/list_doctors/definitions.ts";
+import { handleListDoctors } from "./tools/list_doctors/handlers.ts";
+import { definition as listExpertsDef } from "./tools/list_experts/definitions.ts";
+import { handleListExperts } from "./tools/list_experts/handlers.ts";
+import { definition as getDoctorDef } from "./tools/get_doctor/definitions.ts";
+import { handleGetDoctor } from "./tools/get_doctor/handlers.ts";
+import { definition as getExpertDef } from "./tools/get_expert/definitions.ts";
+import { handleGetExpert } from "./tools/get_expert/handlers.ts";
 import { definition as getPatientRecordDef } from "./tools/get_patient_record/definitions.ts";
 import { handleGetPatientRecord } from "./tools/get_patient_record/handlers.ts";
 import { definition as getLabResultsDef } from "./tools/get_lab_results/definitions.ts";
@@ -46,6 +54,10 @@ import { handleDeleteSkill } from "./tools/delete_skill/handlers.ts";
 const tools: Anthropic.Tool[] = [
   findPatientsDef,
   listPatientsDef,
+  listDoctorsDef,
+  listExpertsDef,
+  getDoctorDef,
+  getExpertDef,
   getPatientRecordDef,
   getLabResultsDef,
   getAppointmentsDef,
@@ -170,6 +182,14 @@ async function dispatchTool(
       return handleFindPatients(input);
     case "list_patients":
       return handleListPatients();
+    case "list_doctors":
+      return handleListDoctors();
+    case "list_experts":
+      return handleListExperts();
+    case "get_doctor":
+      return handleGetDoctor(String(input.doctor_id ?? ""));
+    case "get_expert":
+      return handleGetExpert(String(input.expert_id ?? ""));
     case "get_patient_record":
       return handleGetPatientRecord(String(input.patient_id));
     case "get_lab_results":

@@ -22,6 +22,10 @@ export default function ChatPage() {
           name === "get_appointments" ||
           name === "get_customer_stats" ||
           name === "list_patients" ||
+          name === "list_doctors" ||
+          name === "list_experts" ||
+          name === "get_doctor" ||
+          name === "get_expert" ||
           name === "delete_patient" ||
           (name === "read_skill" && role === "expert") ||
           (name === "write_skill" && role === "expert") ||
@@ -82,6 +86,10 @@ export default function ChatPage() {
         skillData={workspace.skillData}
         skillsListData={workspace.skillsListData}
         patientListData={workspace.patientListData}
+        doctorListData={workspace.doctorListData}
+        expertListData={workspace.expertListData}
+        doctorData={workspace.doctorData}
+        expertData={workspace.expertData}
         role={role}
         onClose={workspace.closeWorkspace}
         onTabChange={workspace.setTab}

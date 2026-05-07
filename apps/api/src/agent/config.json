@@ -21,6 +21,10 @@
   "manager": {
     "tools": [
       "list_patients",
+      "list_doctors",
+      "list_experts",
+      "get_doctor",
+      "get_expert",
       "get_customer_stats",
       "read_skill",
       "read_memory",

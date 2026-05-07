@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { LabResult, Patient } from "@pr_hospitalagent/types";
+import type {
+  DoctorPublic,
+  ExpertPublic,
+  LabResult,
+  Patient,
+} from "@pr_hospitalagent/types";
 import type { WorkspaceTab } from "@/hooks/useWorkspace";
 import { PatientRecord } from "./PatientRecord";
 import { LabResults } from "./LabResults";
@@ -10,6 +15,10 @@ import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
 import { SkillContent, type SkillData } from "./SkillContent";
 import { SkillsList, type SkillsListData } from "./SkillsList";
 import { PatientList, type PatientListData } from "./PatientList";
+import { DoctorList, type DoctorListData } from "./DoctorList";
+import { ExpertList, type ExpertListData } from "./ExpertList";
+import { DoctorRecord } from "./DoctorRecord";
+import { ExpertRecord } from "./ExpertRecord";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = MIN_WIDTH * 2;
@@ -25,6 +34,10 @@ type Props = {
   skillData: SkillData | null;
   skillsListData: SkillsListData | null;
   patientListData: PatientListData | null;
+  doctorListData: DoctorListData | null;
+  expertListData: ExpertListData | null;
+  doctorData: DoctorPublic | null;
+  expertData: ExpertPublic | null;
   role: string | null;
   onClose: () => void;
   onTabChange: (tab: WorkspaceTab) => void;
@@ -35,6 +48,10 @@ type Props = {
 const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
   { key: "patient", label: "Hồ sơ" },
   { key: "patients", label: "Bệnh nhân" },
+  { key: "doctors", label: "Bác sĩ" },
+  { key: "doctor", label: "Bác sĩ (chi tiết)" },
+  { key: "experts", label: "Chuyên gia" },
+  { key: "expert", label: "Chuyên gia (chi tiết)" },
   { key: "lab", label: "Lab" },
   { key: "appointments", label: "Lịch hẹn" },
   { key: "stats", label: "Thống kê" },
@@ -50,10 +67,18 @@ function hasTabData(
   customerStatsData: CustomerStatsData | null,
   skillData: SkillData | null,
   skillsListData: SkillsListData | null,
-  patientListData: PatientListData | null
+  patientListData: PatientListData | null,
+  doctorListData: DoctorListData | null,
+  expertListData: ExpertListData | null,
+  doctorData: DoctorPublic | null,
+  expertData: ExpertPublic | null
 ) {
   if (tab === "patient") return patientData !== null;
   if (tab === "patients") return patientListData !== null;
+  if (tab === "doctors") return doctorListData !== null;
+  if (tab === "experts") return expertListData !== null;
+  if (tab === "doctor") return doctorData !== null;
+  if (tab === "expert") return expertData !== null;
   if (tab === "lab") return labData !== null;
   if (tab === "appointments") return appointmentsData !== null;
   if (tab === "stats") return customerStatsData !== null;
@@ -73,6 +98,10 @@ export function WorkspacePanel({
   skillData,
   skillsListData,
   patientListData,
+  doctorListData,
+  expertListData,
+  doctorData,
+  expertData,
   role,
   onClose,
   onTabChange,
@@ -92,7 +121,11 @@ export function WorkspacePanel({
       customerStatsData,
       skillData,
       skillsListData,
-      patientListData
+      patientListData,
+      doctorListData,
+      expertListData,
+      doctorData,
+      expertData
     );
   });
 
@@ -142,8 +175,15 @@ export function WorkspacePanel({
         />
       )}
       <div className="h-full flex flex-col" style={{ width }}>
-        <header className="flex items-center justify-between px-4 pt-3 pb-0 border-b border-gray-200">
-          <div className="flex gap-1">
+        <header className="flex items-center gap-2 px-4 pt-3 pb-0 border-b border-gray-200">
+          <div
+            className="flex gap-1 min-w-0 flex-1 overflow-x-auto workspace-tabs-scroll"
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && e.deltaX === 0) {
+                e.currentTarget.scrollLeft += e.deltaY;
+              }
+            }}
+          >
             {visibleTabs.map((t) => {
               const active = t.key === activeTab;
               return (
@@ -151,7 +191,7 @@ export function WorkspacePanel({
                   key={t.key}
                   type="button"
                   onClick={() => onTabChange(t.key)}
-                  className={`text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
+                  className={`shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
                     active
                       ? "border-purple-500 text-gray-900 font-medium"
                       : "border-transparent text-gray-400 hover:text-gray-600"
@@ -166,7 +206,7 @@ export function WorkspacePanel({
             type="button"
             onClick={onClose}
             aria-label="Đóng"
-            className="w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 text-lg leading-none"
+            className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 text-lg leading-none"
           >
             ×
           </button>
@@ -184,6 +224,30 @@ export function WorkspacePanel({
               }
               disabled={isStreaming}
             />
+          )}
+          {activeTab === "doctors" && (
+            <DoctorList
+              data={doctorListData}
+              onViewDetail={(id) =>
+                onSendMessage(`Xem chi tiết bác sĩ ${id}`)
+              }
+              disabled={isStreaming}
+            />
+          )}
+          {activeTab === "experts" && (
+            <ExpertList
+              data={expertListData}
+              onViewDetail={(id) =>
+                onSendMessage(`Xem chi tiết chuyên gia ${id}`)
+              }
+              disabled={isStreaming}
+            />
+          )}
+          {activeTab === "doctor" && doctorData && (
+            <DoctorRecord doctor={doctorData} />
+          )}
+          {activeTab === "expert" && expertData && (
+            <ExpertRecord expert={expertData} />
           )}
           {activeTab === "lab" && labData && (
             <LabResults
