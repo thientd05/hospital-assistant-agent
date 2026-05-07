@@ -89,6 +89,7 @@ export function ChatWindow({
         disabled={isStreaming}
         model={model}
         onModelChange={onModelChange}
+        role={role}
       />
     </div>
   );

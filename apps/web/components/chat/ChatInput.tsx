@@ -8,7 +8,22 @@ type Props = {
   disabled: boolean;
   model: ModelKey;
   onModelChange: (m: ModelKey) => void;
+  role?: string | null;
 };
+
+function placeholderByRole(role?: string | null): string {
+  switch (role) {
+    case "manager":
+      return "Hỏi về thống kê, bác sĩ, chuyên gia của phòng khám...";
+    case "patient":
+      return "Hỏi về sức khoẻ, triệu chứng, lời khuyên y tế...";
+    case "expert":
+      return "Hỏi về kỹ năng, hồ sơ cá nhân hoặc ghi nhớ của trợ lý...";
+    case "doctor":
+    default:
+      return "Hỏi về bệnh nhân, thuốc, kết quả xét nghiệm...";
+  }
+}
 
 const MAX_ROWS = 5;
 const LINE_HEIGHT = 22;
@@ -26,7 +41,7 @@ const MODEL_DESCRIPTIONS: Record<ModelKey, string> = {
 
 const MODEL_OPTIONS: ModelKey[] = ["haiku", "sonnet"];
 
-export function ChatInput({ onSend, disabled, model, onModelChange }: Props) {
+export function ChatInput({ onSend, disabled, model, onModelChange, role }: Props) {
   const [value, setValue] = useState("");
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +81,7 @@ export function ChatInput({ onSend, disabled, model, onModelChange }: Props) {
             onKeyDown={handleKey}
             disabled={disabled}
             rows={1}
-            placeholder="Hỏi về bệnh nhân, thuốc, kết quả xét nghiệm..."
+            placeholder={placeholderByRole(role)}
             className="w-full resize-none outline-none bg-transparent text-sm leading-[22px] py-[8px] disabled:opacity-50"
           />
 

@@ -10,6 +10,20 @@ type Props = {
   onOpenWorkspace?: (name: string, result: string) => void;
 };
 
+function emptyStateByRole(role?: string | null): string {
+  switch (role) {
+    case "manager":
+      return "Bắt đầu hỏi để xem thống kê bệnh nhân, danh sách bác sĩ hoặc chuyên gia của phòng khám.";
+    case "patient":
+      return "Bắt đầu hỏi để được tư vấn về sức khoẻ chung, triệu chứng hoặc lời khuyên y tế.";
+    case "expert":
+      return "Bắt đầu hỏi để cập nhật hồ sơ cá nhân, ghi nhớ hoặc quản lý kỹ năng (skill) của trợ lý.";
+    case "doctor":
+    default:
+      return "Bắt đầu hỏi để được hỗ trợ tra cứu bệnh nhân, kết quả xét nghiệm hoặc tương tác thuốc.";
+  }
+}
+
 export function MessageList({ messages, role, onOpenWorkspace }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -19,9 +33,8 @@ export function MessageList({ messages, role, onOpenWorkspace }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-        Bắt đầu hỏi để được hỗ trợ tra cứu bệnh nhân, kết quả xét nghiệm hoặc
-        tương tác thuốc.
+      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm text-center px-6">
+        {emptyStateByRole(role)}
       </div>
     );
   }
