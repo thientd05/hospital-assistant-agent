@@ -89,6 +89,13 @@ export function useWorkspace() {
           });
           setActiveTab("skills");
           setIsOpen(true);
+        } else if (toolName === "list_skills") {
+          if (parsed?.error || !Array.isArray(parsed?.skills)) return;
+          setSkillsListData({
+            skills: parsed.skills as SkillsListData["skills"],
+          });
+          setActiveTab("skills");
+          setIsOpen(true);
         }
       } catch {
         // ignore non-JSON results

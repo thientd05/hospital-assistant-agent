@@ -14,6 +14,7 @@ const TOOL_LABELS: Record<string, string> = {
   list_patients: "Danh sách bệnh nhân",
   read_skill: "Đọc skill",
   delete_skill: "Xoá skill",
+  list_skills: "Liệt kê skill",
 };
 
 const SKILL_LABELS: Record<string, string> = {
@@ -58,7 +59,11 @@ const OPENABLE_TOOLS = new Set([
   "list_patients",
 ]);
 
-const EXPERT_OPENABLE_TOOLS = new Set(["read_skill", "delete_skill"]);
+const EXPERT_OPENABLE_TOOLS = new Set([
+  "read_skill",
+  "delete_skill",
+  "list_skills",
+]);
 
 function previewResult(name: string, raw: string | undefined): string {
   if (!raw) return "";
@@ -109,6 +114,9 @@ function previewResult(name: string, raw: string | undefined): string {
       Array.isArray(parsed?.skills)
     ) {
       return `Đã xoá ${parsed.deleted} · còn ${parsed.skills.length} skill`;
+    }
+    if (name === "list_skills" && Array.isArray(parsed?.skills)) {
+      return `${parsed.skills.length} skill`;
     }
     return raw.slice(0, 80).replace(/\s+/g, " ");
   } catch {
