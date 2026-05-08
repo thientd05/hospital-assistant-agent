@@ -242,7 +242,7 @@ export function Sidebar({
               aria-label="Mở cài đặt"
               className="flex items-center gap-3 flex-1 min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-white/70 transition-colors text-left"
             >
-              <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-semibold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center text-xs font-semibold shrink-0">
                 {profileName !== "—" ? initials(profileName) : "?"}
               </div>
               <div className="flex flex-col leading-tight flex-1 min-w-0">
