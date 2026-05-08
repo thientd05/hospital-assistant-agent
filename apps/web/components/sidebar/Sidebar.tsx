@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "./ConfirmModal";
+import claudeAvt from "@/public/claude_avt.png";
 import { ConversationItem } from "./ConversationItem";
+import { SettingsModal } from "./SettingsModal";
 import type { ConversationListItem } from "@/hooks/useConversations";
 import { useAuth } from "@/app/providers/AuthProvider";
 
@@ -57,6 +60,7 @@ export function Sidebar({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -126,7 +130,17 @@ export function Sidebar({
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-[14px]">
-            <span className="font-semibold text-gray-900">Hospital AI</span>
+            <span className="flex items-center gap-2 font-semibold text-gray-900">
+              <Image
+                src={claudeAvt}
+                alt="AI Gia Đình"
+                width={24}
+                height={24}
+                className="shrink-0"
+                priority
+              />
+              AI Gia Đình
+            </span>
             <button
               type="button"
               onClick={() => setCollapsed(true)}
@@ -208,18 +222,26 @@ export function Sidebar({
           </div>
 
           {/* Profile */}
-          <div className="border-t border-gray-200 px-3 py-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-semibold shrink-0">
-              {profileName !== "—" ? initials(profileName) : "?"}
-            </div>
-            <div className="flex flex-col leading-tight flex-1 min-w-0">
-              <span className="text-sm font-medium text-gray-900 truncate">
-                {profileName}
-              </span>
-              <span className="text-xs text-gray-500 truncate">
-                {profileSubtitle}
-              </span>
-            </div>
+          <div className="border-t border-gray-200 px-3 py-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              title="Mở cài đặt"
+              aria-label="Mở cài đặt"
+              className="flex items-center gap-3 flex-1 min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-white/70 transition-colors text-left"
+            >
+              <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-semibold shrink-0">
+                {profileName !== "—" ? initials(profileName) : "?"}
+              </div>
+              <div className="flex flex-col leading-tight flex-1 min-w-0">
+                <span className="text-sm font-medium text-gray-900 truncate">
+                  {profileName}
+                </span>
+                <span className="text-xs text-gray-500 truncate">
+                  {profileSubtitle}
+                </span>
+              </div>
+            </button>
             <button
               type="button"
               onClick={handleLogout}
@@ -253,6 +275,11 @@ export function Sidebar({
         busy={deleting}
         onCancel={() => setPendingDeleteId(null)}
         onConfirm={handleConfirm}
+      />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </>
   );

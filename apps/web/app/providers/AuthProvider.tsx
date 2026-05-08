@@ -32,6 +32,7 @@ type AuthState = {
   isLoading: boolean;
   login: (token: string, account: AuthAccount) => void;
   logout: () => void;
+  updateAccount: (next: AuthAccount) => void;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -119,6 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const updateAccount = useCallback((next: AuthAccount) => {
+    localStorage.setItem(ACCOUNT_KEY, JSON.stringify(next));
+    setAccount(next);
+  }, []);
+
   const doctor = account?.role === "doctor" ? account.doctor : null;
   const manager = account?.role === "manager" ? account.manager : null;
   const patient = account?.role === "patient" ? account.patient : null;
@@ -138,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout: clearAuth,
+        updateAccount,
       }}
     >
       {children}

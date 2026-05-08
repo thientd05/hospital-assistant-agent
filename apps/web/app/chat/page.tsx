@@ -7,38 +7,83 @@ import { WorkspacePanel } from "@/components/workspace/WorkspacePanel";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useChat } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
-import { useWorkspace } from "@/hooks/useWorkspace";
+import {
+  useWorkspace,
+  ROLE_TABS,
+  type PatientFormValues,
+} from "@/hooks/useWorkspace";
 
 export default function ChatPage() {
   const { role } = useAuth();
   const workspace = useWorkspace();
-  const handleToolDone = useCallback(
-    (name: string, result: string | undefined) => {
-      if (
-        (name === "get_patient_record" ||
-          name === "create_patient" ||
-          name === "update_patient" ||
-          name === "get_lab_results" ||
-          name === "get_appointments" ||
-          name === "get_customer_stats" ||
-          name === "list_patients" ||
-          name === "list_doctors" ||
-          name === "list_experts" ||
-          name === "get_doctor" ||
-          name === "get_expert" ||
-          name === "delete_patient" ||
-          (name === "read_skill" && role === "expert") ||
-          (name === "write_skill" && role === "expert") ||
-          (name === "delete_skill" && role === "expert") ||
-          (name === "list_skills" && role === "expert")) &&
-        result
-      ) {
-        workspace.openWorkspace(name, result);
+  const {
+    openPanel,
+    setTab,
+    openPatientForm,
+    submitPatientForm,
+  } = workspace;
+
+  const executeToolCommand = useCallback(
+    async (command: string, rawArgs: unknown): Promise<unknown> => {
+      const args = (rawArgs ?? {}) as Record<string, unknown>;
+      if (command === "open_patient_form") {
+        const partial: Partial<PatientFormValues> = {};
+        if (typeof args.name === "string") partial.name = args.name;
+        if (args.age !== undefined && args.age !== null) {
+          partial.age = String(args.age);
+        }
+        if (args.gender === "Nam" || args.gender === "Nữ") {
+          partial.gender = args.gender;
+        }
+        if (typeof args.ward === "string") partial.ward = args.ward;
+        if (typeof args.medications === "string")
+          partial.medications = args.medications;
+        if (args.spO2 !== undefined && args.spO2 !== null) {
+          partial.spO2 = String(args.spO2);
+        }
+        if (args.heartRate !== undefined && args.heartRate !== null) {
+          partial.heartRate = String(args.heartRate);
+        }
+        if (typeof args.bloodPressure === "string") {
+          partial.bloodPressure = args.bloodPressure;
+        }
+        if (args.temperature !== undefined && args.temperature !== null) {
+          partial.temperature = String(args.temperature);
+        }
+        openPanel();
+        setTab("patients");
+        const filled = openPatientForm(partial);
+        return {
+          opened: true,
+          fields: filled,
+          note: "Form đã mở. Có thể gọi open_patient_form lần nữa để cập nhật từng field, sau đó submit_patient_form để lưu.",
+        };
       }
+      if (command === "submit_patient_form") {
+        const result = await submitPatientForm();
+        if (result.ok) {
+          return {
+            ok: true,
+            patient: {
+              id: result.patient.id,
+              name: result.patient.name,
+              age: result.patient.age,
+              gender: result.patient.gender,
+              ward: result.patient.ward,
+            },
+          };
+        }
+        return { ok: false, error: result.error };
+      }
+      return { error: `Unknown tool command: ${command}` };
     },
-    [workspace, role]
+    [openPanel, setTab, openPatientForm, submitPatientForm]
   );
-  const chat = useChat({ onToolDone: handleToolDone });
+
+  const chat = useChat({
+    onToolRefresh: workspace.handleToolRefresh,
+    onToolCommand: executeToolCommand,
+  });
   const list = useConversations();
 
   useEffect(() => {
@@ -55,6 +100,8 @@ export default function ChatPage() {
     [chat, list]
   );
 
+  const hasPanel = Boolean(role && (ROLE_TABS[role] ?? []).length > 0);
+
   return (
     <>
       <Sidebar
@@ -69,32 +116,34 @@ export default function ChatPage() {
         messages={chat.messages}
         isStreaming={chat.isStreaming}
         onSend={chat.sendMessage}
-        onOpenWorkspace={workspace.openWorkspace}
         isPanelOpen={workspace.isOpen}
-        onTogglePanel={workspace.togglePanel}
+        onTogglePanel={hasPanel ? workspace.togglePanel : undefined}
         model={chat.model}
         onModelChange={chat.setModel}
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}
         activeTab={workspace.activeTab}
-        patientData={workspace.patientData}
-        labData={workspace.labData}
-        labPatientId={workspace.labPatientId}
-        appointmentsData={workspace.appointmentsData}
-        customerStatsData={workspace.customerStatsData}
-        skillData={workspace.skillData}
-        skillsListData={workspace.skillsListData}
-        patientListData={workspace.patientListData}
-        doctorListData={workspace.doctorListData}
-        expertListData={workspace.expertListData}
-        doctorData={workspace.doctorData}
-        expertData={workspace.expertData}
+        versions={workspace.versions}
+        selectedPatientId={workspace.selectedPatientId}
         role={role}
-        onClose={workspace.closeWorkspace}
+        onClose={workspace.closePanel}
         onTabChange={workspace.setTab}
-        onSendMessage={chat.sendMessage}
-        isStreaming={chat.isStreaming}
+        onSelectPatient={workspace.selectPatient}
+        bumpTab={workspace.bumpTab}
+        patientFormControl={
+          role === "doctor"
+            ? {
+                open: workspace.patientFormOpen,
+                values: workspace.patientFormValues,
+                submitting: workspace.patientFormSubmitting,
+                onOpen: workspace.openPatientForm,
+                onClose: workspace.closePatientForm,
+                onChange: workspace.setPatientFormField,
+                onSubmit: workspace.submitPatientForm,
+              }
+            : undefined
+        }
       />
     </>
   );

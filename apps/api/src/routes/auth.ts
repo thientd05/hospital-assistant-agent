@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Doctor, Expert, Manager, Patient } from "@pr_hospitalagent/types";
 import { connectDB } from "../db/client.ts";
-import { verifyPassword } from "../auth/password.ts";
+import { hashPassword, verifyPassword } from "../auth/password.ts";
 import { verifyAuth } from "../auth/middleware.ts";
 import {
   ensureDoctorWorkspace,
@@ -198,4 +198,206 @@ export async function authRoutes(app: FastifyInstance) {
   app.post("/auth/logout", { preHandler: verifyAuth }, async () => ({
     ok: true,
   }));
+
+  const DoctorProfileSchema = z
+    .object({
+      fullName: z.string().min(1).optional(),
+      title: z.string().min(1).optional(),
+      department: z.string().min(1).optional(),
+      specialty: z.string().min(1).optional(),
+      phone: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      address: z.string().min(1).optional(),
+    })
+    .strict();
+
+  const ManagerProfileSchema = z
+    .object({
+      fullName: z.string().min(1).optional(),
+      title: z.string().min(1).optional(),
+      clinicName: z.string().min(1).optional(),
+      phone: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      address: z.string().min(1).optional(),
+    })
+    .strict();
+
+  const ExpertProfileSchema = z
+    .object({
+      fullName: z.string().min(1).optional(),
+      title: z.string().min(1).optional(),
+      expertise: z.string().min(1).optional(),
+      phone: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      address: z.string().min(1).optional(),
+    })
+    .strict();
+
+  const PatientProfileSchema = z
+    .object({
+      name: z.string().min(1).optional(),
+      ward: z.string().min(1).optional(),
+    })
+    .strict();
+
+  app.patch(
+    "/auth/me/profile",
+    { preHandler: verifyAuth },
+    async (req, reply) => {
+      const db = await connectDB();
+
+      if (req.authRole === "doctor" && req.doctor) {
+        const parsed = DoctorProfileSchema.safeParse(req.body);
+        if (!parsed.success) {
+          reply.code(400).send({ error: "Invalid body", details: parsed.error });
+          return;
+        }
+        const $set = parsed.data;
+        if (Object.keys($set).length === 0) {
+          reply.code(400).send({ error: "Không có trường nào để cập nhật." });
+          return;
+        }
+        await db
+          .collection<Doctor>("doctors")
+          .updateOne({ id: req.doctor.id }, { $set });
+        const updated = await db
+          .collection<Doctor>("doctors")
+          .findOne(
+            { id: req.doctor.id },
+            { projection: { _id: 0, passwordHash: 0 } }
+          );
+        return { role: "doctor" as const, doctor: updated };
+      }
+
+      if (req.authRole === "manager" && req.manager) {
+        const parsed = ManagerProfileSchema.safeParse(req.body);
+        if (!parsed.success) {
+          reply.code(400).send({ error: "Invalid body", details: parsed.error });
+          return;
+        }
+        const $set = parsed.data;
+        if (Object.keys($set).length === 0) {
+          reply.code(400).send({ error: "Không có trường nào để cập nhật." });
+          return;
+        }
+        await db
+          .collection<Manager>("managers")
+          .updateOne({ id: req.manager.id }, { $set });
+        const updated = await db
+          .collection<Manager>("managers")
+          .findOne(
+            { id: req.manager.id },
+            { projection: { _id: 0, passwordHash: 0 } }
+          );
+        return { role: "manager" as const, manager: updated };
+      }
+
+      if (req.authRole === "expert" && req.expert) {
+        const parsed = ExpertProfileSchema.safeParse(req.body);
+        if (!parsed.success) {
+          reply.code(400).send({ error: "Invalid body", details: parsed.error });
+          return;
+        }
+        const $set = parsed.data;
+        if (Object.keys($set).length === 0) {
+          reply.code(400).send({ error: "Không có trường nào để cập nhật." });
+          return;
+        }
+        await db
+          .collection<Expert>("experts")
+          .updateOne({ id: req.expert.id }, { $set });
+        const updated = await db
+          .collection<Expert>("experts")
+          .findOne(
+            { id: req.expert.id },
+            { projection: { _id: 0, passwordHash: 0 } }
+          );
+        return { role: "expert" as const, expert: updated };
+      }
+
+      if (req.authRole === "patient" && req.patient) {
+        const parsed = PatientProfileSchema.safeParse(req.body);
+        if (!parsed.success) {
+          reply.code(400).send({ error: "Invalid body", details: parsed.error });
+          return;
+        }
+        const $set = parsed.data;
+        if (Object.keys($set).length === 0) {
+          reply.code(400).send({ error: "Không có trường nào để cập nhật." });
+          return;
+        }
+        await db
+          .collection<Patient>("patients")
+          .updateOne({ id: req.patient.id }, { $set });
+        const updated = await db
+          .collection<Patient>("patients")
+          .findOne(
+            { id: req.patient.id },
+            { projection: { _id: 0, passwordHash: 0 } }
+          );
+        return { role: "patient" as const, patient: updated };
+      }
+
+      reply.code(401).send({ error: "Unauthorized" });
+    }
+  );
+
+  const PasswordChangeSchema = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(6, "Mật khẩu mới phải có ít nhất 6 ký tự."),
+  });
+
+  app.post(
+    "/auth/me/password",
+    { preHandler: verifyAuth },
+    async (req, reply) => {
+      const parsed = PasswordChangeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        reply.code(400).send({
+          error: parsed.error.issues[0]?.message ?? "Invalid body",
+        });
+        return;
+      }
+      const { currentPassword, newPassword } = parsed.data;
+      const db = await connectDB();
+
+      const collectionName =
+        req.authRole === "doctor"
+          ? "doctors"
+          : req.authRole === "manager"
+          ? "managers"
+          : req.authRole === "expert"
+          ? "experts"
+          : req.authRole === "patient"
+          ? "patients"
+          : null;
+      const id =
+        req.doctor?.id ??
+        req.manager?.id ??
+        req.expert?.id ??
+        req.patient?.id ??
+        null;
+
+      if (!collectionName || !id) {
+        reply.code(401).send({ error: "Unauthorized" });
+        return;
+      }
+
+      const account = await db
+        .collection<{ id: string; passwordHash: string }>(collectionName)
+        .findOne({ id });
+      if (!account) {
+        reply.code(404).send({ error: "Tài khoản không tồn tại." });
+        return;
+      }
+      if (!verifyPassword(currentPassword, account.passwordHash)) {
+        reply.code(400).send({ error: "Mật khẩu hiện tại không đúng." });
+        return;
+      }
+      await db
+        .collection(collectionName)
+        .updateOne({ id }, { $set: { passwordHash: hashPassword(newPassword) } });
+      return { ok: true };
+    }
+  );
 }

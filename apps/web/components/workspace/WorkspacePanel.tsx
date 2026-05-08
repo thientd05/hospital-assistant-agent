@@ -1,133 +1,79 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type {
-  DoctorPublic,
-  ExpertPublic,
-  LabResult,
-  Patient,
-} from "@pr_hospitalagent/types";
-import type { WorkspaceTab } from "@/hooks/useWorkspace";
-import { PatientRecord } from "./PatientRecord";
-import { LabResults } from "./LabResults";
-import { Appointments, type AppointmentRow } from "./Appointments";
-import { CustomerStats, type CustomerStatsData } from "./CustomerStats";
-import { SkillContent, type SkillData } from "./SkillContent";
-import { SkillsList, type SkillsListData } from "./SkillsList";
-import { PatientList, type PatientListData } from "./PatientList";
-import { DoctorList, type DoctorListData } from "./DoctorList";
-import { ExpertList, type ExpertListData } from "./ExpertList";
-import { DoctorRecord } from "./DoctorRecord";
-import { ExpertRecord } from "./ExpertRecord";
+import {
+  ROLE_TABS,
+  type PatientFormValues,
+  type SubmitPatientResult,
+  type WorkspaceTab,
+} from "@/hooks/useWorkspace";
+import { PatientsTab } from "./tabs/PatientsTab";
+import { PatientDetailTab } from "./tabs/PatientDetailTab";
+import { LabsTab } from "./tabs/LabsTab";
+import { AppointmentsTab } from "./tabs/AppointmentsTab";
+import { DrugCheckTab } from "./tabs/DrugCheckTab";
+import { StatsTab } from "./tabs/StatsTab";
+import { DoctorsTab } from "./tabs/DoctorsTab";
+import { ExpertsTab } from "./tabs/ExpertsTab";
+import { SkillsTab } from "./tabs/SkillsTab";
 
 const MIN_WIDTH = 380;
 const MAX_WIDTH = MIN_WIDTH * 2;
 
+const TAB_LABELS: Record<WorkspaceTab, string> = {
+  patients: "Bệnh nhân",
+  patient: "Hồ sơ",
+  lab: "Lab",
+  appointments: "Lịch hẹn",
+  "drug-check": "Tương tác thuốc",
+  stats: "Thống kê",
+  doctors: "Bác sĩ",
+  experts: "Chuyên gia",
+  skills: "Skill",
+};
+
+type PatientFormControl = {
+  open: boolean;
+  values: PatientFormValues;
+  submitting: boolean;
+  onOpen: (partial?: Partial<PatientFormValues>) => void;
+  onClose: () => void;
+  onChange: <K extends keyof PatientFormValues>(
+    key: K,
+    value: PatientFormValues[K]
+  ) => void;
+  onSubmit: () => Promise<SubmitPatientResult>;
+};
+
 type Props = {
   isOpen: boolean;
   activeTab: WorkspaceTab;
-  patientData: Patient | null;
-  labData: LabResult[] | null;
-  labPatientId?: string | null;
-  appointmentsData: AppointmentRow[] | null;
-  customerStatsData: CustomerStatsData | null;
-  skillData: SkillData | null;
-  skillsListData: SkillsListData | null;
-  patientListData: PatientListData | null;
-  doctorListData: DoctorListData | null;
-  expertListData: ExpertListData | null;
-  doctorData: DoctorPublic | null;
-  expertData: ExpertPublic | null;
+  versions: Record<WorkspaceTab, number>;
+  selectedPatientId: string | null;
   role: string | null;
   onClose: () => void;
   onTabChange: (tab: WorkspaceTab) => void;
-  onSendMessage: (text: string) => void;
-  isStreaming: boolean;
+  onSelectPatient: (id: string | null) => void;
+  bumpTab: (tab: WorkspaceTab) => void;
+  patientFormControl?: PatientFormControl;
 };
-
-const TABS: { key: WorkspaceTab; label: string; expertOnly?: boolean }[] = [
-  { key: "patient", label: "Hồ sơ" },
-  { key: "patients", label: "Bệnh nhân" },
-  { key: "doctors", label: "Bác sĩ" },
-  { key: "doctor", label: "Bác sĩ (chi tiết)" },
-  { key: "experts", label: "Chuyên gia" },
-  { key: "expert", label: "Chuyên gia (chi tiết)" },
-  { key: "lab", label: "Lab" },
-  { key: "appointments", label: "Lịch hẹn" },
-  { key: "stats", label: "Thống kê" },
-  { key: "skill", label: "Skill", expertOnly: true },
-  { key: "skills", label: "Thư viện skill", expertOnly: true },
-];
-
-function hasTabData(
-  tab: WorkspaceTab,
-  patientData: Patient | null,
-  labData: LabResult[] | null,
-  appointmentsData: AppointmentRow[] | null,
-  customerStatsData: CustomerStatsData | null,
-  skillData: SkillData | null,
-  skillsListData: SkillsListData | null,
-  patientListData: PatientListData | null,
-  doctorListData: DoctorListData | null,
-  expertListData: ExpertListData | null,
-  doctorData: DoctorPublic | null,
-  expertData: ExpertPublic | null
-) {
-  if (tab === "patient") return patientData !== null;
-  if (tab === "patients") return patientListData !== null;
-  if (tab === "doctors") return doctorListData !== null;
-  if (tab === "experts") return expertListData !== null;
-  if (tab === "doctor") return doctorData !== null;
-  if (tab === "expert") return expertData !== null;
-  if (tab === "lab") return labData !== null;
-  if (tab === "appointments") return appointmentsData !== null;
-  if (tab === "stats") return customerStatsData !== null;
-  if (tab === "skill") return skillData !== null;
-  if (tab === "skills") return skillsListData !== null;
-  return true;
-}
 
 export function WorkspacePanel({
   isOpen,
   activeTab,
-  patientData,
-  labData,
-  labPatientId,
-  appointmentsData,
-  customerStatsData,
-  skillData,
-  skillsListData,
-  patientListData,
-  doctorListData,
-  expertListData,
-  doctorData,
-  expertData,
+  versions,
+  selectedPatientId,
   role,
   onClose,
   onTabChange,
-  onSendMessage,
-  isStreaming,
+  onSelectPatient,
+  bumpTab,
+  patientFormControl,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
 
-  const visibleTabs = TABS.filter((t) => {
-    if (t.expertOnly && role !== "expert") return false;
-    return hasTabData(
-      t.key,
-      patientData,
-      labData,
-      appointmentsData,
-      customerStatsData,
-      skillData,
-      skillsListData,
-      patientListData,
-      doctorListData,
-      expertListData,
-      doctorData,
-      expertData
-    );
-  });
+  const tabs = role && ROLE_TABS[role] ? ROLE_TABS[role] : [];
 
   const startResize = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -154,6 +100,39 @@ export function WorkspacePanel({
       document.body.style.userSelect = prevSelect;
     };
   }, [isResizing]);
+
+  // Ensure activeTab is valid for the current role
+  useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.includes(activeTab)) {
+      onTabChange(tabs[0]!);
+    }
+  }, [tabs, activeTab, onTabChange]);
+
+  // Wrap onSelectPatient so doctor list can switch to detail tab
+  const handleSelectPatient = useCallback(
+    (id: string) => {
+      onSelectPatient(id);
+      onTabChange("patient");
+    },
+    [onSelectPatient, onTabChange]
+  );
+
+  // Cross-tab refresh helper after a tab's mutation: refetch dependent tabs too.
+  const onChanged = useCallback(() => {
+    if (role === "doctor") {
+      bumpTab("patients");
+      bumpTab("patient");
+      bumpTab("lab");
+    } else if (role === "manager") {
+      bumpTab("doctors");
+      bumpTab("experts");
+      bumpTab("patients");
+      bumpTab("stats");
+    }
+  }, [bumpTab, role]);
+
+  if (tabs.length === 0) return null;
 
   return (
     <aside
@@ -184,20 +163,20 @@ export function WorkspacePanel({
               }
             }}
           >
-            {visibleTabs.map((t) => {
-              const active = t.key === activeTab;
+            {tabs.map((tab) => {
+              const isActive = tab === activeTab;
               return (
                 <button
-                  key={t.key}
+                  key={tab}
                   type="button"
-                  onClick={() => onTabChange(t.key)}
+                  onClick={() => onTabChange(tab)}
                   className={`shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
-                    active
+                    isActive
                       ? "border-purple-500 text-gray-900 font-medium"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  {t.label}
+                  {TAB_LABELS[tab]}
                 </button>
               );
             })}
@@ -213,64 +192,88 @@ export function WorkspacePanel({
         </header>
 
         <div className="flex-1 overflow-y-auto">
-          {activeTab === "patient" && patientData && (
-            <PatientRecord patient={patientData} />
-          )}
-          {activeTab === "patients" && (
-            <PatientList
-              data={patientListData}
-              onViewDetail={(id) =>
-                onSendMessage(`Xem hồ sơ bệnh nhân ${id}`)
-              }
-              disabled={isStreaming}
-            />
-          )}
-          {activeTab === "doctors" && (
-            <DoctorList
-              data={doctorListData}
-              onViewDetail={(id) =>
-                onSendMessage(`Xem chi tiết bác sĩ ${id}`)
-              }
-              disabled={isStreaming}
-            />
-          )}
-          {activeTab === "experts" && (
-            <ExpertList
-              data={expertListData}
-              onViewDetail={(id) =>
-                onSendMessage(`Xem chi tiết chuyên gia ${id}`)
-              }
-              disabled={isStreaming}
-            />
-          )}
-          {activeTab === "doctor" && doctorData && (
-            <DoctorRecord doctor={doctorData} />
-          )}
-          {activeTab === "expert" && expertData && (
-            <ExpertRecord expert={expertData} />
-          )}
-          {activeTab === "lab" && labData && (
-            <LabResults
-              results={labData}
-              patientId={labPatientId}
-              patientName={
-                patientData && patientData.id === labPatientId
-                  ? patientData.name
-                  : null
+          {role === "doctor" && activeTab === "patients" && (
+            <PatientsTab
+              role="doctor"
+              version={versions.patients}
+              active={isOpen && activeTab === "patients"}
+              onSelect={handleSelectPatient}
+              onChanged={onChanged}
+              createForm={
+                patientFormControl
+                  ? {
+                      open: patientFormControl.open,
+                      values: patientFormControl.values,
+                      submitting: patientFormControl.submitting,
+                      onOpen: () => patientFormControl.onOpen(),
+                      onClose: patientFormControl.onClose,
+                      onChange: patientFormControl.onChange,
+                      onSubmit: patientFormControl.onSubmit,
+                    }
+                  : undefined
               }
             />
           )}
-          {activeTab === "appointments" && (
-            <Appointments data={appointmentsData} />
+          {role === "doctor" && activeTab === "patient" && (
+            <PatientDetailTab
+              patientId={selectedPatientId}
+              version={versions.patient}
+              active={isOpen && activeTab === "patient"}
+              onChanged={onChanged}
+            />
           )}
-          {activeTab === "stats" && (
-            <CustomerStats data={customerStatsData} />
+          {role === "doctor" && activeTab === "lab" && (
+            <LabsTab
+              patientId={selectedPatientId}
+              version={versions.lab}
+              active={isOpen && activeTab === "lab"}
+              onChanged={onChanged}
+            />
           )}
-          {activeTab === "skill" && skillData && (
-            <SkillContent data={skillData} />
+          {role === "doctor" && activeTab === "appointments" && (
+            <AppointmentsTab
+              version={versions.appointments}
+              active={isOpen && activeTab === "appointments"}
+              onChanged={onChanged}
+            />
           )}
-          {activeTab === "skills" && skillsListData && (
-            <SkillsList data={skillsListData} />
+          {role === "doctor" && activeTab === "drug-check" && <DrugCheckTab />}
+
+          {role === "manager" && activeTab === "stats" && (
+            <StatsTab
+              version={versions.stats}
+              active={isOpen && activeTab === "stats"}
+            />
+          )}
+          {role === "manager" && activeTab === "patients" && (
+            <PatientsTab
+              role="manager"
+              version={versions.patients}
+              active={isOpen && activeTab === "patients"}
+              onChanged={onChanged}
+            />
+          )}
+          {role === "manager" && activeTab === "doctors" && (
+            <DoctorsTab
+              version={versions.doctors}
+              active={isOpen && activeTab === "doctors"}
+              onChanged={onChanged}
+            />
+          )}
+          {role === "manager" && activeTab === "experts" && (
+            <ExpertsTab
+              version={versions.experts}
+              active={isOpen && activeTab === "experts"}
+              onChanged={onChanged}
+            />
+          )}
+
+          {role === "expert" && activeTab === "skills" && (
+            <SkillsTab
+              version={versions.skills}
+              active={isOpen && activeTab === "skills"}
+              onChanged={onChanged}
+            />
           )}
         </div>
       </div>

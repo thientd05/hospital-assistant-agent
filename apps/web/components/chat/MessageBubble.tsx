@@ -7,8 +7,6 @@ import { ToolCallCard } from "./ToolCallCard";
 
 type Props = {
   message: Message;
-  role?: string | null;
-  onOpenWorkspace?: (name: string, result: string) => void;
 };
 
 function Avatar({ kind }: { kind: "user" | "assistant" }) {
@@ -26,7 +24,7 @@ function Avatar({ kind }: { kind: "user" | "assistant" }) {
   );
 }
 
-export function MessageBubble({ message, role, onOpenWorkspace }: Props) {
+export function MessageBubble({ message }: Props) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -45,12 +43,7 @@ export function MessageBubble({ message, role, onOpenWorkspace }: Props) {
       <Avatar kind="assistant" />
       <div className="max-w-[85%] flex-1 min-w-0">
         {(message.toolCalls ?? []).map((tc) => (
-          <ToolCallCard
-            key={tc.id}
-            toolCall={tc}
-            role={role}
-            onOpenWorkspace={onOpenWorkspace}
-          />
+          <ToolCallCard key={tc.id} toolCall={tc} />
         ))}
         {message.content && (
           <div className="text-gray-900 break-words leading-relaxed markdown-body">

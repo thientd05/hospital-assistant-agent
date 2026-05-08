@@ -1,60 +1,23 @@
 {
   "doctor": {
     "tools": [
-      "find_patients",
-      "list_patients",
-      "get_patient_record",
-      "get_lab_results",
-      "get_appointments",
-      "check_drug_interaction",
-      "create_patient",
-      "update_patient",
-      "delete_patient",
-      "read_skill",
-      "read_memory",
-      "update_user_profile",
-      "update_working_style",
-      "update_memory"
+      "tool_example",
+      "open_patient_form",
+      "submit_patient_form",
+      "read_skill"
     ],
-    "skills": ["patient-intake", "lab-result-entry", "write-user-md", "write-soul-md"]
+    "skills": ["patient-intake"]
   },
   "manager": {
-    "tools": [
-      "list_patients",
-      "list_doctors",
-      "list_experts",
-      "get_doctor",
-      "get_expert",
-      "get_customer_stats",
-      "read_skill",
-      "read_memory",
-      "update_user_profile",
-      "update_working_style",
-      "update_memory"
-    ],
-    "skills": ["write-user-md", "write-soul-md"]
+    "tools": ["tool_example", "read_skill"],
+    "skills": []
   },
   "patient": {
-    "tools": [
-      "read_skill",
-      "read_memory",
-      "update_user_profile",
-      "update_working_style",
-      "update_memory"
-    ],
-    "skills": ["write-user-md", "write-soul-md"]
+    "tools": ["tool_example", "read_skill"],
+    "skills": []
   },
   "expert": {
-    "tools": [
-      "list_skills",
-      "read_skill",
-      "write_skill",
-      "delete_skill",
-      "read_memory",
-      "update_user_profile",
-      "update_working_style",
-      "update_memory"
-    ],
-    "skills": "all"
+    "tools": ["tool_example", "read_skill"],
+    "skills": []
   }
 }

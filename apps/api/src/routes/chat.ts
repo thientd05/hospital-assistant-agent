@@ -4,6 +4,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { connectDB } from "../db/client.ts";
 import { runAgentLoop } from "../agent/loop.ts";
 import { verifyAuth } from "../auth/middleware.ts";
+import { getRefreshTarget } from "../agent/tool-refresh-map.ts";
+import {
+  createPanelClient,
+  resolvePanelCommand,
+} from "../agent/panel-bridge.ts";
 
 const BodySchema = z.object({
   conversationId: z.string().nullish(),
@@ -69,6 +74,8 @@ export async function chatRoutes(app: FastifyInstance) {
     const userMsg: StoredMessage = { role: "user", content: message };
     const messages: StoredMessage[] = [...history, userMsg];
 
+    const panel = createPanelClient(ownerId, (frame) => sse(reply, frame));
+
     try {
       const finalMessages = await runAgentLoop(
         messages,
@@ -82,9 +89,11 @@ export async function chatRoutes(app: FastifyInstance) {
             input: tc.input,
             status: tc.status,
             result: tc.result,
+            refresh: tc.status === "done" ? getRefreshTarget(tc.name) : undefined,
           }),
         doctorId,
-        role
+        role,
+        panel
       );
 
       sse(reply, { type: "done", conversationId: convoId });
@@ -112,4 +121,34 @@ export async function chatRoutes(app: FastifyInstance) {
       reply.raw.end();
     }
   });
+
+  app.post<{ Params: { commandId: string } }>(
+    "/chat/tool-callback/:commandId",
+    { preHandler: verifyAuth },
+    async (req, reply) => {
+      const ownerId =
+        req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id;
+      if (!ownerId) {
+        reply.code(401).send({ error: "Unauthorized" });
+        return;
+      }
+      const body = (req.body ?? {}) as { result?: unknown };
+      const outcome = resolvePanelCommand(
+        req.params.commandId,
+        ownerId,
+        body.result
+      );
+      if (outcome === "not-found") {
+        reply
+          .code(404)
+          .send({ error: "Pending command không tồn tại hoặc đã hết hạn." });
+        return;
+      }
+      if (outcome === "wrong-owner") {
+        reply.code(403).send({ error: "Sai chủ sở hữu command." });
+        return;
+      }
+      return { ok: true };
+    }
+  );
 }

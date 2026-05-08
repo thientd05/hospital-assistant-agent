@@ -1,169 +1,82 @@
 ---
 name: patient-intake
-description: Dùng khi bác sĩ yêu cầu tiếp nhận / ghi chép / bổ sung / cập nhật thông tin bệnh nhân. Tạo bản ghi rỗng bằng `create_patient` rồi cập nhật từng phần qua nhiều lần `update_patient`, không ghi đè toàn bộ.
+description: Quy trình tiếp nhận bệnh nhân mới — mở form trước, hỏi thêm sau, không chặn bác sĩ.
 ---
 
-# Skill: patient-intake — Tiếp nhận & ghi chép thông tin bệnh nhân
+# Quy trình tiếp nhận bệnh nhân mới
 
-Hướng dẫn xử trí khi bác sĩ ghi chép thông tin bệnh nhân mới hoặc bổ sung thông tin cho bệnh nhân hiện có. Bác sĩ thường gửi thông tin RỜI RẠC qua nhiều tin nhắn — skill này dạy bạn duy trì một bản ghi duy nhất và cập nhật từng phần một, KHÔNG ghi đè toàn bộ.
+## Khi nào áp dụng
 
-## Khi nào dùng skill này
+Khi bác sĩ nói các câu hàm ý bắt đầu tiếp nhận một bệnh nhân chưa có trong hệ thống:
+- "Tiếp nhận bệnh nhân mới"
+- "Có bệnh nhân mới đến"
+- "Tạo hồ sơ bệnh nhân"
+- "Bắt đầu nhập bệnh nhân"
+- (hoặc tương đương)
 
-Kích hoạt khi bác sĩ nói (hoặc tương đương):
+## Nguyên tắc lõi: MỞ FORM TRƯỚC, HỎI SAU
 
-- "Bắt đầu ghi chép thông tin bệnh nhân mới"
-- "Tiếp nhận bệnh nhân BN0xx"
-- "Tạo hồ sơ cho bệnh nhân"
-- "Ghi triệu chứng ban đầu"
-- "Bổ sung thông tin cho BN0xx"
-- "Cập nhật vital của BN0xx"
+Bác sĩ thường vừa tiếp xúc bệnh nhân vừa yêu cầu bạn — họ cần thấy form xuất hiện NGAY để biết cấu trúc dữ liệu cần thu thập. Hỏi xong mới mở form là phá trải nghiệm.
 
-## Tools cần dùng
+- ❌ KHÔNG hỏi "Cho mình biết họ tên, tuổi, khoa…" rồi mới gọi `open_patient_form`.
+- ✅ ĐÚNG: gọi `open_patient_form` ngay (rỗng cũng được), rồi mới hỏi tiếp.
 
-- `create_patient` — tạo hồ sơ mới. Mã `id` do tool tự sinh (BN + số kế tiếp), bạn KHÔNG cần truyền.
-- `update_patient` — cập nhật từng phần lên hồ sơ đã có (theo `id`). Hỗ trợ scalar (`name`/`age`/`gender`/`ward`), `vitals` partial, và các phép `add_*`/`remove_*` cho mảng `diagnoses`/`medications`/`labResults`.
-- `get_patient_record` — đọc lại sau khi cập nhật quan trọng để xác nhận với bác sĩ.
+## Cấu trúc form
 
-KHÔNG còn `db_read`/`db_write`. KHÔNG cần (và không có cách) viết biểu thức Mongo trực tiếp.
+**Bắt buộc** (phải đủ trước khi submit, nếu thiếu backend sẽ trả lỗi):
+- `name` — họ tên (chuỗi không rỗng)
+- `age` — tuổi (số nguyên ≥ 0, truyền dạng chuỗi)
+- `ward` — khoa/phòng (chuỗi không rỗng)
 
-## Cấu trúc bản ghi `patients`
+**Tuỳ chọn** (có thì điền, không thì để trống):
+- `gender` — `"Nam"` hoặc `"Nữ"` (mặc định `"Nam"`)
+- `medications` — chuỗi, nhiều thuốc cách nhau bằng dấu phẩy
+- `spO2` — SpO2 % (chuỗi số, ví dụ `"98"`)
+- `heartRate` — nhịp tim bpm (chuỗi số, ví dụ `"72"`)
+- `bloodPressure` — huyết áp dạng chuỗi tự do, ví dụ `"120/80"`
+- `temperature` — nhiệt độ °C (chuỗi số thập phân, ví dụ `"36.7"`)
 
-```ts
-{
-  id: "BN012",                        // tool tự sinh, định dạng BN + số (zero-pad ≥3 chữ số)
-  name: "Nguyễn Văn A",
-  age: 58,
-  gender: "Nam" | "Nữ",
-  ward: "Nội Tim mạch",
-  diagnoses: ["Tăng huyết áp", ...],  // mảng chuỗi
-  vitals: {
-    spO2: 91,
-    heartRate: 102,
-    bloodPressure: "148/92",          // chuỗi tâm thu/tâm trương
-    temperature: 37.1,
-    recordedAt: ISODate                // server tự đặt mỗi lần vitals đổi
-  },
-  medications: ["Amlodipine 5mg", ...],
-  labResults: [
-    { name, value, unit, referenceRange, isAbnormal, recordedAt }
-  ]
-}
-```
+**KHÔNG có ở form tiếp nhận:**
+- Chẩn đoán. Chẩn đoán là kết quả CUỐI của lần khám, được nhập sau khi đã có hồ sơ thông qua form sửa hồ sơ — không thuộc bước tiếp nhận. Nếu bác sĩ nhắc trong câu đầu, chỉ ghi nhận để dùng sau; KHÔNG truyền vào `open_patient_form`.
 
-## Quy trình
+## Các bước
 
-### Bước 1 — Tạo hồ sơ NGAY khi bác sĩ yêu cầu
+### 1. Trích thông tin có sẵn từ câu của bác sĩ
 
-Gọi `create_patient` với những trường bác sĩ đã nói (có thể chưa có gì — tool sẽ fill placeholder). Mã `id` mới được tool sinh và trả về.
+Bác sĩ thường gửi kèm vài field trong câu đầu, ví dụ:
+- "Tiếp nhận bệnh nhân Nguyễn Văn A, 45 tuổi, khoa Nội"
+  → `name="Nguyễn Văn A"`, `age="45"`, `ward="Nội"`
+- "Có bệnh nhân nữ 30 tuổi vào khoa Sản, mạch 92, SpO2 96"
+  → `gender="Nữ"`, `age="30"`, `ward="Sản"`, `heartRate="92"`, `spO2="96"`
+- "Tiếp nhận bệnh nhân"
+  → trích được rỗng, vẫn sang bước 2.
 
-```json
-{ "name": "", "age": 0 }
-```
+### 2. Gọi `open_patient_form` NGAY
 
-(Nếu bác sĩ đã đọc luôn vài trường: gửi luôn — đỡ phải `update_patient` ngay sau đó.)
+- Có thông tin → truyền vào tool.
+- Không có gì → gọi rỗng `open_patient_form()`, form trống vẫn mở.
 
-```json
-{
-  "name": "Trần Thu Hà",
-  "age": 62,
-  "gender": "Nữ",
-  "ward": "Nội Thận"
-}
-```
+KHÔNG hỏi thêm trước bước này.
 
-Output: `{ ok: true, id: "BN011", patient: {...} }`. Đọc `id` trong kết quả rồi báo: "Đã tạo BN011, bác sĩ điền tiếp thông tin nhé."
+### 3. Phản hồi ngắn cho bác sĩ
 
-### Bước 2 — Cập nhật từng phần với `update_patient`
+Sau khi tool trả `fields`:
+- Báo gọn các field đã pre-fill (nếu có) — không lặp lại từng giá trị bác sĩ vừa nói.
+- Liệt kê field BẮT BUỘC còn thiếu (`name`, `age`, `ward`) và hỏi gọn.
+- Sinh hiệu/thuốc tuỳ chọn — chỉ hỏi khi bác sĩ ngụ ý muốn nhập, không tự ép.
 
-Mỗi tin nhắn của bác sĩ thường chỉ chứa 1–3 trường. Dùng `update_patient` với `id` + các trường tương ứng. Tool đảm bảo KHÔNG ghi đè cả mảng — bạn chỉ cần truyền đúng tên trường.
+### 4. Khi bác sĩ bổ sung
 
-**Trường vô hướng (`name`/`age`/`gender`/`ward`):**
-```json
-{
-  "id": "BN012",
-  "name": "Lê Văn Bình",
-  "age": 45,
-  "gender": "Nam"
-}
-```
+Gọi tiếp `open_patient_form` với CHỈ field mới — tool tự merge: field truyền vào ghi đè, field không truyền giữ nguyên.
 
-**Sinh hiệu — `vitals` partial (chỉ truyền field bác sĩ vừa đọc):**
-```json
-{
-  "id": "BN012",
-  "vitals": {
-    "spO2": 92,
-    "heartRate": 110,
-    "bloodPressure": "150/90"
-  }
-}
-```
-`vitals.recordedAt` server tự đặt = thời điểm hiện tại; không cần truyền.
+### 5. Submit
 
-**Thêm chẩn đoán (không trùng phần tử đã có):**
-```json
-{ "id": "BN012", "add_diagnoses": ["Đau ngực điển hình"] }
-```
+Khi bác sĩ ra hiệu lưu, hoặc đã đủ 3 field bắt buộc và bác sĩ không bổ sung gì thêm → gọi `submit_patient_form`. Báo lại mã BN mới (`BS00X`) hoặc lỗi nguyên văn.
 
-**Thêm nhiều thuốc cùng lúc:**
-```json
-{
-  "id": "BN012",
-  "add_medications": ["Aspirin 81mg", "Atorvastatin 20mg"]
-}
-```
+## Mẹo nhận diện
 
-**Gỡ một chẩn đoán nhập nhầm:**
-```json
-{ "id": "BN012", "remove_diagnoses": ["Cơn đau quặn mật"] }
-```
-
-**Thêm kết quả xét nghiệm** (chi tiết ở skill `lab-result-entry`):
-```json
-{
-  "id": "BN012",
-  "add_lab_results": [
-    {
-      "name": "Troponin I",
-      "value": 0.08,
-      "unit": "ng/mL",
-      "referenceRange": "<0.04",
-      "isAbnormal": true
-    }
-  ]
-}
-```
-`recordedAt` cho mỗi entry server tự đặt nếu bạn không truyền.
-
-### Bước 3 — Đọc lại để xác nhận sau cập nhật quan trọng
-
-Dùng `get_patient_record` với `patient_id`. Panel Hồ sơ ở UI tự bung — bác sĩ thấy ngay.
-
-Trình bày ngắn gọn cho bác sĩ những trường vừa thay đổi.
-
-## Quy tắc bắt buộc
-
-- **Một thao tác = một tool call.** Không gộp nhiều bệnh nhân vào một call.
-- **Không cố ghi đè cả mảng.** Cứ dùng `add_*` / `remove_*` — tool đã đảm bảo an toàn.
-- **Không truyền `vitals.recordedAt`** — server tự đặt mỗi lần `vitals` thay đổi.
-- **Sửa giá trị nhập sai**: `update_patient` với cùng tên trường vô hướng (sẽ ghi đè) hoặc `remove_*` rồi `add_*` cho mảng. KHÔNG có tool xoá hồ sơ — tránh rủi ro.
-- **Không tự suy diễn**: chỉ ghi những gì bác sĩ nói. Nếu không rõ, hỏi lại bằng câu ngắn.
-- **Không dịch / chuẩn hoá tên thuốc, chẩn đoán** sang tiếng Anh nếu bác sĩ ghi tiếng Việt — giữ nguyên cách bác sĩ nhập.
-- **Mã bệnh nhân**: KHÔNG tự đoán mã mới khi tạo. `create_patient` tự sinh. Khi cập nhật, dùng đúng `id` đã có (lấy từ kết quả `create_patient` trước đó hoặc bác sĩ cung cấp).
-
-## Mẫu hội thoại điển hình
-
-> BS: "Tiếp nhận bệnh nhân mới."
-> Agent: [`create_patient {}` → `{id: "BN011"}`] → "Đã tạo BN011, bác sĩ điền tiếp thông tin."
->
-> BS: "Tên Trần Thu Hà, 62 tuổi, nữ, khoa Nội Thận."
-> Agent: [`update_patient {id:"BN011", name:"Trần Thu Hà", age:62, gender:"Nữ", ward:"Nội Thận"}`] → "Đã ghi nhận. Còn sinh hiệu / chẩn đoán?"
->
-> BS: "Mạch 96, HA 170/100, SpO2 95, sốt 37.4."
-> Agent: [`update_patient {id:"BN011", vitals:{heartRate:96, bloodPressure:"170/100", spO2:95, temperature:37.4}}`] → "Vitals đã lưu. HA 170/100 (cao), nên theo dõi sát."
->
-> BS: "Thêm chẩn đoán tiền sản giật."
-> Agent: [`update_patient {id:"BN011", add_diagnoses:["Tiền sản giật"]}`] → "Đã thêm vào danh sách chẩn đoán."
->
-> BS: "Cho tôi xem lại toàn bộ."
-> Agent: [`get_patient_record {patient_id:"BN011"}`] → trình bày bản ghi gọn gàng (panel Hồ sơ tự bung).
+- **Tuổi**: "5 tuổi" → `age="5"`. "Khoảng 50" → `age="50"` (xấp xỉ chấp nhận; bác sĩ có thể chỉnh trên form).
+- **Giới tính**: từ đại từ — "anh/ông/chú" → `Nam`; "chị/bà/cô" → `Nữ`. Không rõ thì để mặc định, KHÔNG chặn bước 2.
+- **Khoa**: chấp nhận viết tắt ("Nội", "Sản", "Nhi", "Cấp cứu"). Form lưu nguyên văn.
+- **Thuốc**: nối nhiều thuốc bằng dấu phẩy, ví dụ `medications: "amlodipine 5mg, metformin 500mg"`.
+- **Sinh hiệu**: chỉ điền khi bác sĩ cung cấp số đo; nếu bác sĩ chỉ nói "ổn định" hay mô tả chung — KHÔNG suy diễn ra số. Hỏi lại nếu cần con số chính xác.

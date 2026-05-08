@@ -118,3 +118,96 @@ export type Appointment = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type ToolRefresh =
+  | "patients"
+  | "patient"
+  | "lab"
+  | "appointments"
+  | "stats"
+  | "doctors"
+  | "doctor"
+  | "experts"
+  | "expert"
+  | "skills"
+  | "skill"
+  | false;
+
+export type PatientCreateInput = {
+  id?: string;
+  name: string;
+  age: number;
+  gender: "Nam" | "Nữ";
+  ward: string;
+  diagnoses?: string[];
+  medications?: string[];
+  vitals?: Partial<Vital>;
+  labResults?: LabResult[];
+};
+
+export type PatientUpdateInput = Partial<
+  Omit<Patient, "id" | "username" | "passwordHash" | "vitals">
+> & { vitals?: Partial<Vital> };
+
+export type DoctorCreateInput = {
+  fullName: string;
+  title: string;
+  department: string;
+  specialty: string;
+  phone: string;
+  email: string;
+  address: string;
+  username?: string;
+  password?: string;
+};
+
+export type DoctorUpdateInput = Partial<
+  Omit<Doctor, "id" | "username" | "passwordHash" | "workspaceDir" | "createdAt">
+>;
+
+export type ExpertCreateInput = {
+  fullName: string;
+  title: string;
+  expertise: string;
+  phone: string;
+  email: string;
+  address: string;
+  username?: string;
+  password?: string;
+};
+
+export type ExpertUpdateInput = Partial<
+  Omit<Expert, "id" | "username" | "passwordHash" | "createdAt">
+>;
+
+export type AppointmentCreateInput = {
+  patientId: string;
+  doctorId?: string;
+  scheduledAt: string | Date;
+  reason: string;
+  status?: AppointmentStatus;
+};
+
+export type AppointmentUpdateInput = Partial<
+  Omit<Appointment, "id" | "createdAt" | "updatedAt">
+>;
+
+export type LabCreateInput = LabResult;
+
+export type SkillCreateInput = {
+  name: string;
+  content: string;
+};
+
+export type SkillUpdateInput = {
+  content: string;
+};
+
+export type DrugCheckInput = {
+  drugs: string[];
+};
+
+export type DrugCheckResult = {
+  interactions: string[];
+} | { message: string };
+

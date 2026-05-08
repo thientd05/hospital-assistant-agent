@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Message, ModelKey, ToolCall } from "@pr_hospitalagent/types";
+import type {
+  Message,
+  ModelKey,
+  ToolCall,
+  ToolRefresh,
+} from "@pr_hospitalagent/types";
 import { readSSEStream } from "@/lib/stream";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -15,6 +20,13 @@ type SSEEvent =
       input: Record<string, unknown>;
       status: "running" | "done";
       result?: string;
+      refresh?: ToolRefresh;
+    }
+  | {
+      type: "tool_command";
+      commandId: string;
+      command: string;
+      args: unknown;
     }
   | { type: "done"; conversationId: string }
   | { type: "error"; message: string };
@@ -24,7 +36,8 @@ function newId() {
 }
 
 type UseChatOptions = {
-  onToolDone?: (name: string, result: string | undefined) => void;
+  onToolRefresh?: (refresh: ToolRefresh | undefined) => void;
+  onToolCommand?: (command: string, args: unknown) => Promise<unknown>;
 };
 
 export function useChat(opts: UseChatOptions = {}) {
@@ -35,10 +48,15 @@ export function useChat(opts: UseChatOptions = {}) {
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [model, setModel] = useState<ModelKey>("haiku");
 
-  const onToolDoneRef = useRef(opts.onToolDone);
+  const onToolRefreshRef = useRef(opts.onToolRefresh);
   useEffect(() => {
-    onToolDoneRef.current = opts.onToolDone;
-  }, [opts.onToolDone]);
+    onToolRefreshRef.current = opts.onToolRefresh;
+  }, [opts.onToolRefresh]);
+
+  const onToolCommandRef = useRef(opts.onToolCommand);
+  useEffect(() => {
+    onToolCommandRef.current = opts.onToolCommand;
+  }, [opts.onToolCommand]);
 
   const selectConversation = useCallback(
     async (id: string | null) => {
@@ -152,7 +170,38 @@ export function useChat(opts: UseChatOptions = {}) {
                     : t
                 ),
               }));
-              onToolDoneRef.current?.(ev.name, ev.result);
+              onToolRefreshRef.current?.(ev.refresh);
+            }
+          } else if (ev.type === "tool_command") {
+            const handler = onToolCommandRef.current;
+            let result: unknown;
+            if (handler) {
+              try {
+                result = await handler(ev.command, ev.args);
+              } catch (e) {
+                result = {
+                  error: e instanceof Error ? e.message : String(e),
+                };
+              }
+            } else {
+              result = {
+                error: "Frontend chưa đăng ký handler cho tool command.",
+              };
+            }
+            try {
+              await fetch(
+                `${API_URL}/api/chat/tool-callback/${ev.commandId}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ result }),
+                }
+              );
+            } catch (e) {
+              console.error("Failed to POST tool-callback", e);
             }
           } else if (ev.type === "done") {
             setConversationId(ev.conversationId);

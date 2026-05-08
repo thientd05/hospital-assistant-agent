@@ -5,6 +5,14 @@ import { connectDB } from "./db/client.ts";
 import { chatRoutes } from "./routes/chat.ts";
 import { conversationsRoutes } from "./routes/conversations.ts";
 import { authRoutes } from "./routes/auth.ts";
+import { patientsRoutes } from "./routes/patients.ts";
+import { doctorsRoutes } from "./routes/doctors.ts";
+import { expertsRoutes } from "./routes/experts.ts";
+import { appointmentsRoutes } from "./routes/appointments.ts";
+import { statsRoutes } from "./routes/stats.ts";
+import { drugCheckRoutes } from "./routes/drug-check.ts";
+import { skillsRoutes } from "./routes/skills.ts";
+import { workspaceRoutes } from "./routes/workspace.ts";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
@@ -23,6 +31,14 @@ app.get("/health", async () => ({ status: "ok", db: "connected" }));
 await app.register(authRoutes, { prefix: "/api" });
 await app.register(chatRoutes, { prefix: "/api" });
 await app.register(conversationsRoutes, { prefix: "/api" });
+await app.register(patientsRoutes, { prefix: "/api" });
+await app.register(doctorsRoutes, { prefix: "/api" });
+await app.register(expertsRoutes, { prefix: "/api" });
+await app.register(appointmentsRoutes, { prefix: "/api" });
+await app.register(statsRoutes, { prefix: "/api" });
+await app.register(drugCheckRoutes, { prefix: "/api" });
+await app.register(skillsRoutes, { prefix: "/api" });
+await app.register(workspaceRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 3001);
 await app.listen({ port, host: "0.0.0.0" });

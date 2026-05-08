@@ -3,14 +3,15 @@ import Anthropic from "@anthropic-ai/sdk";
 export const definition: Anthropic.Tool = {
   name: "read_skill",
   description:
-    "Đọc nội dung đầy đủ của một kỹ năng trong thư viện skills. Truyền vào TÊN kỹ năng (đúng theo trường `name` trong frontmatter, ví dụ `patient-intake`, `lab-result-entry`). Tool sẽ tự đọc `skills/<tên>/SKILL.md`. Dùng tool này khi yêu cầu của bác sĩ phù hợp với mô tả ngắn của một kỹ năng trong danh sách kỹ năng ở system prompt.",
+    "Đọc nội dung chi tiết của một skill từ thư mục agent/skills/. " +
+    "System prompt chỉ liệt kê tên + mô tả ngắn của các skill khả dụng — khi tình huống match một skill, bạn PHẢI gọi tool này để đọc body đầy đủ trước khi hành động. " +
+    "Tool đọc thuần file (không động DB/panel/API). Trả về { name, content } hoặc { error }.",
   input_schema: {
     type: "object",
     properties: {
       name: {
         type: "string",
-        description:
-          "Tên kỹ năng (đúng theo `name` trong frontmatter), ví dụ `patient-intake`.",
+        description: "Tên skill — phải khớp tên trong index của system prompt.",
       },
     },
     required: ["name"],

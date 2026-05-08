@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import {
@@ -6,74 +6,21 @@ import {
   getAllowedTools,
   type AuthRole,
 } from "./access.ts";
-import { definition as findPatientsDef } from "./tools/find_patients/definitions.ts";
-import { handleFindPatients } from "./tools/find_patients/handlers.ts";
-import { definition as listPatientsDef } from "./tools/list_patients/definitions.ts";
-import { handleListPatients } from "./tools/list_patients/handlers.ts";
-import { definition as listDoctorsDef } from "./tools/list_doctors/definitions.ts";
-import { handleListDoctors } from "./tools/list_doctors/handlers.ts";
-import { definition as listExpertsDef } from "./tools/list_experts/definitions.ts";
-import { handleListExperts } from "./tools/list_experts/handlers.ts";
-import { definition as getDoctorDef } from "./tools/get_doctor/definitions.ts";
-import { handleGetDoctor } from "./tools/get_doctor/handlers.ts";
-import { definition as getExpertDef } from "./tools/get_expert/definitions.ts";
-import { handleGetExpert } from "./tools/get_expert/handlers.ts";
-import { definition as getPatientRecordDef } from "./tools/get_patient_record/definitions.ts";
-import { handleGetPatientRecord } from "./tools/get_patient_record/handlers.ts";
-import { definition as getLabResultsDef } from "./tools/get_lab_results/definitions.ts";
-import { handleGetLabResults } from "./tools/get_lab_results/handlers.ts";
-import { definition as getAppointmentsDef } from "./tools/get_appointments/definitions.ts";
-import { handleGetAppointments } from "./tools/get_appointments/handlers.ts";
-import { definition as getCustomerStatsDef } from "./tools/get_customer_stats/definitions.ts";
-import { handleGetCustomerStats } from "./tools/get_customer_stats/handlers.ts";
-import { definition as checkDrugInteractionDef } from "./tools/check_drug_interaction/definitions.ts";
-import { handleCheckDrugInteraction } from "./tools/check_drug_interaction/handlers.ts";
-import { definition as createPatientDef } from "./tools/create_patient/definitions.ts";
-import { handleCreatePatient } from "./tools/create_patient/handlers.ts";
-import { definition as updatePatientDef } from "./tools/update_patient/definitions.ts";
-import { handleUpdatePatient } from "./tools/update_patient/handlers.ts";
-import { definition as deletePatientDef } from "./tools/delete_patient/definitions.ts";
-import { handleDeletePatient } from "./tools/delete_patient/handlers.ts";
+import type { PanelClient } from "./panel-bridge.ts";
+import { definition as toolExampleDef } from "./tools/tool_example/definitions.ts";
+import { handleToolExample } from "./tools/tool_example/handlers.ts";
+import { definition as openPatientFormDef } from "./tools/open_patient_form/definitions.ts";
+import { handleOpenPatientForm } from "./tools/open_patient_form/handlers.ts";
+import { definition as submitPatientFormDef } from "./tools/submit_patient_form/definitions.ts";
+import { handleSubmitPatientForm } from "./tools/submit_patient_form/handlers.ts";
 import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
-import { definition as readMemoryDef } from "./tools/read_memory/definitions.ts";
-import { handleReadMemory } from "./tools/read_memory/handlers.ts";
-import { definition as updateUserProfileDef } from "./tools/update_user_profile/definitions.ts";
-import { handleUpdateUserProfile } from "./tools/update_user_profile/handlers.ts";
-import { definition as updateWorkingStyleDef } from "./tools/update_working_style/definitions.ts";
-import { handleUpdateWorkingStyle } from "./tools/update_working_style/handlers.ts";
-import { definition as updateMemoryDef } from "./tools/update_memory/definitions.ts";
-import { handleUpdateMemory } from "./tools/update_memory/handlers.ts";
-import { definition as listSkillsDef } from "./tools/list_skills/definitions.ts";
-import { handleListSkills } from "./tools/list_skills/handlers.ts";
-import { definition as writeSkillDef } from "./tools/write_skill/definitions.ts";
-import { handleWriteSkill } from "./tools/write_skill/handlers.ts";
-import { definition as deleteSkillDef } from "./tools/delete_skill/definitions.ts";
-import { handleDeleteSkill } from "./tools/delete_skill/handlers.ts";
 
 const tools: Anthropic.Tool[] = [
-  findPatientsDef,
-  listPatientsDef,
-  listDoctorsDef,
-  listExpertsDef,
-  getDoctorDef,
-  getExpertDef,
-  getPatientRecordDef,
-  getLabResultsDef,
-  getAppointmentsDef,
-  getCustomerStatsDef,
-  checkDrugInteractionDef,
-  createPatientDef,
-  updatePatientDef,
-  deletePatientDef,
+  toolExampleDef,
+  openPatientFormDef,
+  submitPatientFormDef,
   readSkillDef,
-  readMemoryDef,
-  updateUserProfileDef,
-  updateWorkingStyleDef,
-  updateMemoryDef,
-  listSkillsDef,
-  writeSkillDef,
-  deleteSkillDef,
 ];
 
 const AGENT_DIR = import.meta.dirname;
@@ -84,6 +31,46 @@ function loadAgentPrompt(role: AuthRole): string {
   return readFileSync(join(BOOTS_DIR, role, "AGENT.md"), "utf8");
 }
 
+function loadSkillFrontmatter(
+  skillName: string
+): { name: string; description: string } | null {
+  const path = join(SKILLS_DIR, skillName, "SKILL.md");
+  if (!existsSync(path)) return null;
+  const content = readFileSync(path, "utf8");
+  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return null;
+  let description = "";
+  let name = skillName;
+  for (const line of m[1]!.split(/\r?\n/)) {
+    const idx = line.indexOf(":");
+    if (idx > 0) {
+      const key = line.slice(0, idx).trim();
+      const value = line.slice(idx + 1).trim();
+      if (key === "description") description = value;
+      else if (key === "name") name = value;
+    }
+  }
+  return { name, description };
+}
+
+function buildSkillIndex(role: AuthRole): string | null {
+  const allowed = getAllowedSkills(role);
+  if (allowed.length === 0) return null;
+  const lines: string[] = [
+    "# Skill khả dụng",
+    "Khi tình huống match một skill bên dưới, bạn PHẢI gọi `read_skill(name)` để đọc body đầy đủ trước khi hành động. Mô tả ở đây chỉ là gợi nhớ, không đủ để theo đúng quy trình.",
+    "",
+  ];
+  let added = 0;
+  for (const skillName of allowed) {
+    const fm = loadSkillFrontmatter(skillName);
+    if (!fm) continue;
+    lines.push(`- **${fm.name}** — ${fm.description}`);
+    added += 1;
+  }
+  return added > 0 ? lines.join("\n") : null;
+}
+
 function readWorkspaceFile(doctorId: string, name: string): string | null {
   const path = join(AGENT_DIR, "workspaces", doctorId, name);
   if (!existsSync(path)) return null;
@@ -91,60 +78,14 @@ function readWorkspaceFile(doctorId: string, name: string): string | null {
   return content || null;
 }
 
-type SkillEntry = { name: string; description: string };
-
-function parseFrontmatter(content: string): Record<string, string> {
-  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
-  const out: Record<string, string> = {};
-  for (const line of m[1]!.split(/\r?\n/)) {
-    const idx = line.indexOf(":");
-    if (idx > 0) out[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
-  }
-  return out;
-}
-
-function loadSkillIndex(role: AuthRole): SkillEntry[] {
-  if (!existsSync(SKILLS_DIR)) return [];
-  const allowed = getAllowedSkills(role);
-  const out: SkillEntry[] = [];
-  for (const entry of readdirSync(SKILLS_DIR, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    if (!allowed.has(entry.name)) continue;
-    const skillPath = join(SKILLS_DIR, entry.name, "SKILL.md");
-    if (!existsSync(skillPath)) continue;
-    const content = readFileSync(skillPath, "utf8");
-    const fm = parseFrontmatter(content);
-    out.push({
-      name: entry.name,
-      description: fm.description ?? "(không có mô tả)",
-    });
-  }
-  return out;
-}
-
-function formatSkillIndex(skills: SkillEntry[]): string {
-  if (skills.length === 0) return "";
-  const items = skills
-    .map((s) => `- \`${s.name}\` — ${s.description}`)
-    .join("\n");
-  return [
-    "# Kỹ năng có sẵn",
-    "",
-    "Bạn có một thư viện kỹ năng. Mỗi kỹ năng là một quy trình chi tiết được lưu thành file markdown riêng — KHÔNG nạp sẵn vào ngữ cảnh để tiết kiệm token. Khi nhận thấy yêu cầu của bác sĩ phù hợp với mô tả ngắn của một kỹ năng, hãy gọi tool `read_skill` với TÊN kỹ năng (ví dụ `{ name: \"patient-intake\" }`) để đọc hướng dẫn đầy đủ TRƯỚC khi thực hiện. Sau khi đọc, làm theo từng bước trong file.",
-    "",
-    items,
-  ].join("\n");
-}
-
 function buildSystemPrompt(doctorId: string, role: AuthRole): string {
   const parts = [loadAgentPrompt(role).trim()];
+  const skillIndex = buildSkillIndex(role);
+  if (skillIndex) parts.push(skillIndex);
   const user = readWorkspaceFile(doctorId, "USER.md");
   const soul = readWorkspaceFile(doctorId, "SOUL.md");
   if (user) parts.push(user);
   if (soul) parts.push(soul);
-  const index = formatSkillIndex(loadSkillIndex(role));
-  if (index) parts.push(index);
   return parts.join("\n\n---\n\n");
 }
 
@@ -169,73 +110,32 @@ export type OnToolCall = (toolCall: {
 async function dispatchTool(
   name: string,
   input: Record<string, unknown>,
-  doctorId: string,
-  role: AuthRole
+  _doctorId: string,
+  role: AuthRole,
+  panel: PanelClient
 ): Promise<string> {
   if (!getAllowedTools(role).has(name)) {
     return JSON.stringify({
       error: `Tool "${name}" không khả dụng cho vai trò "${role}". Yêu cầu bị từ chối ở tầng dispatch.`,
     });
   }
-  switch (name) {
-    case "find_patients":
-      return handleFindPatients(input);
-    case "list_patients":
-      return handleListPatients();
-    case "list_doctors":
-      return handleListDoctors();
-    case "list_experts":
-      return handleListExperts();
-    case "get_doctor":
-      return handleGetDoctor(String(input.doctor_id ?? ""));
-    case "get_expert":
-      return handleGetExpert(String(input.expert_id ?? ""));
-    case "get_patient_record":
-      return handleGetPatientRecord(String(input.patient_id));
-    case "get_lab_results":
-      return handleGetLabResults(
-        String(input.patient_id),
-        typeof input.limit === "number" ? input.limit : 10
-      );
-    case "check_drug_interaction":
-      return handleCheckDrugInteraction(
-        Array.isArray(input.drugs) ? (input.drugs as string[]) : []
-      );
-    case "get_appointments":
-      return handleGetAppointments(doctorId);
-    case "get_customer_stats":
-      return handleGetCustomerStats(input);
-    case "create_patient":
-      return handleCreatePatient(input);
-    case "update_patient":
-      return handleUpdatePatient(input);
-    case "delete_patient":
-      return handleDeletePatient(input);
-    case "read_skill": {
-      const skillName = String(input.name ?? "");
-      if (!getAllowedSkills(role).has(skillName)) {
-        return JSON.stringify({
-          error: `Kỹ năng "${skillName}" không khả dụng cho vai trò "${role}". Yêu cầu bị từ chối ở tầng dispatch.`,
-        });
-      }
-      return handleReadSkill(skillName);
+  try {
+    switch (name) {
+      case "tool_example":
+        return await handleToolExample(input);
+      case "open_patient_form":
+        return await handleOpenPatientForm(input, panel);
+      case "submit_patient_form":
+        return await handleSubmitPatientForm(input, panel);
+      case "read_skill":
+        return await handleReadSkill(input, role);
+      default:
+        return JSON.stringify({ error: `Unknown tool: ${name}` });
     }
-    case "list_skills":
-      return handleListSkills();
-    case "write_skill":
-      return handleWriteSkill(String(input.name ?? ""), String(input.content ?? ""));
-    case "delete_skill":
-      return handleDeleteSkill(String(input.name ?? ""));
-    case "read_memory":
-      return handleReadMemory(doctorId, String(input.file ?? ""));
-    case "update_user_profile":
-      return handleUpdateUserProfile(doctorId, String(input.content ?? ""));
-    case "update_working_style":
-      return handleUpdateWorkingStyle(doctorId, String(input.content ?? ""));
-    case "update_memory":
-      return handleUpdateMemory(doctorId, String(input.entry ?? ""));
-    default:
-      return JSON.stringify({ error: `Unknown tool: ${name}` });
+  } catch (err) {
+    return JSON.stringify({
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -276,7 +176,8 @@ export async function runAgentLoop(
   onChunk: OnChunk,
   onToolCall: OnToolCall,
   doctorId: string,
-  role: AuthRole
+  role: AuthRole,
+  panel: PanelClient
 ): Promise<Anthropic.MessageParam[]> {
   let working = [...messages];
   const modelId = MODEL_IDS[modelKey];
@@ -319,7 +220,8 @@ export async function runAgentLoop(
         tu.name,
         tu.input as Record<string, unknown>,
         doctorId,
-        role
+        role,
+        panel
       );
       onToolCall({
         id: tu.id,

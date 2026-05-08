@@ -2,166 +2,23 @@
 
 import type { ToolCall } from "@pr_hospitalagent/types";
 
-const TOOL_LABELS: Record<string, string> = {
-  get_patient_record: "Hồ sơ bệnh nhân",
-  create_patient: "Tạo bệnh nhân",
-  update_patient: "Cập nhật bệnh nhân",
-  delete_patient: "Xoá bệnh nhân",
-  get_lab_results: "Kết quả xét nghiệm",
-  check_drug_interaction: "Kiểm tra tương tác thuốc",
-  get_appointments: "Lịch hẹn",
-  get_customer_stats: "Thống kê khách hàng",
-  list_patients: "Danh sách bệnh nhân",
-  list_doctors: "Danh sách bác sĩ",
-  list_experts: "Danh sách chuyên gia",
-  get_doctor: "Chi tiết bác sĩ",
-  get_expert: "Chi tiết chuyên gia",
-  read_skill: "Đọc skill",
-  write_skill: "Lưu skill",
-  delete_skill: "Xoá skill",
-  list_skills: "Liệt kê skill",
-};
-
-const SKILL_LABELS: Record<string, string> = {
-  "patient-intake": "quy trình tiếp nhận bệnh nhân",
-  "lab-result-entry": "quy trình nhập kết quả xét nghiệm",
-  "write-user-md": "quy trình cập nhật hồ sơ người dùng",
-  "write-soul-md": "quy trình cập nhật phong cách làm việc",
-  "create-skill": "quy trình tạo skill mới",
-};
-
-function readSkillSlug(toolCall: ToolCall): string | null {
-  const fromInput = toolCall.input?.name;
-  if (typeof fromInput === "string" && fromInput) return fromInput;
-  if (toolCall.result) {
-    try {
-      const parsed = JSON.parse(toolCall.result);
-      if (typeof parsed?.skill === "string") return parsed.skill;
-    } catch {
-      // ignore
-    }
-  }
-  return null;
-}
-
-function toolLabel(toolCall: ToolCall): string {
-  if (toolCall.name === "read_skill") {
-    const slug = readSkillSlug(toolCall);
-    const skillLabel = slug ? SKILL_LABELS[slug] : null;
-    if (skillLabel) return `Đọc ${skillLabel}`;
-  }
-  return TOOL_LABELS[toolCall.name] ?? toolCall.name;
-}
-
-const OPENABLE_TOOLS = new Set([
-  "get_patient_record",
-  "create_patient",
-  "update_patient",
-  "delete_patient",
-  "get_lab_results",
-  "get_appointments",
-  "get_customer_stats",
-  "list_patients",
-  "list_doctors",
-  "list_experts",
-  "get_doctor",
-  "get_expert",
-]);
-
-const EXPERT_OPENABLE_TOOLS = new Set([
-  "read_skill",
-  "write_skill",
-  "delete_skill",
-  "list_skills",
-]);
-
-function previewResult(name: string, raw: string | undefined): string {
+function previewResult(raw: string | undefined): string {
   if (!raw) return "";
   try {
     const parsed = JSON.parse(raw);
     if (parsed?.error) return String(parsed.error);
-    if (
-      (name === "get_patient_record" ||
-        name === "create_patient" ||
-        name === "update_patient") &&
-      parsed?.name
-    ) {
-      return `${parsed.name} — ${parsed.ward ?? ""}`.trim();
-    }
-    if (name === "get_lab_results" && Array.isArray(parsed?.labResults)) {
-      return `${parsed.labResults.length} kết quả`;
-    }
-    if (name === "get_appointments" && Array.isArray(parsed)) {
-      return `${parsed.length} cuộc hẹn`;
-    }
-    if (
-      name === "get_customer_stats" &&
-      parsed?.patients?.total !== undefined
-    ) {
-      return `${parsed.patients.total} BN · ${parsed.appointments?.total ?? 0} cuộc hẹn`;
-    }
-    if (name === "list_patients" && typeof parsed?.count === "number") {
-      return `${parsed.count} bệnh nhân`;
-    }
-    if (name === "list_doctors" && typeof parsed?.count === "number") {
-      return `${parsed.count} bác sĩ`;
-    }
-    if (name === "list_experts" && typeof parsed?.count === "number") {
-      return `${parsed.count} chuyên gia`;
-    }
-    if (name === "get_doctor" && parsed?.fullName) {
-      return `${parsed.fullName}${parsed.department ? ` — ${parsed.department}` : ""}`.trim();
-    }
-    if (name === "get_expert" && parsed?.fullName) {
-      return `${parsed.fullName}${parsed.expertise ? ` — ${parsed.expertise}` : ""}`.trim();
-    }
-    if (name === "delete_patient" && typeof parsed?.count === "number") {
-      const deleted = Array.isArray(parsed?.deletedIds)
-        ? parsed.deletedIds.length
-        : 0;
-      const notFound = Array.isArray(parsed?.notFoundIds)
-        ? parsed.notFoundIds.length
-        : 0;
-      const parts = [`Đã xoá ${deleted}`];
-      if (notFound > 0) parts.push(`${notFound} không tìm thấy`);
-      parts.push(`còn ${parsed.count} bệnh nhân`);
-      return parts.join(" · ");
-    }
-    if (name === "read_skill" && parsed?.skill) {
-      return parsed.skill as string;
-    }
-    if (name === "write_skill" && parsed?.skill) {
-      return `Đã lưu ${parsed.skill}`;
-    }
-    if (
-      name === "delete_skill" &&
-      typeof parsed?.deleted === "string" &&
-      Array.isArray(parsed?.skills)
-    ) {
-      return `Đã xoá ${parsed.deleted} · còn ${parsed.skills.length} skill`;
-    }
-    if (name === "list_skills" && Array.isArray(parsed?.skills)) {
-      return `${parsed.skills.length} skill`;
-    }
-    return raw.slice(0, 80).replace(/\s+/g, " ");
   } catch {
-    return raw.slice(0, 80);
+    // ignore — fall through to raw slice
   }
+  return raw.slice(0, 80).replace(/\s+/g, " ");
 }
 
 type Props = {
   toolCall: ToolCall;
-  role?: string | null;
-  onOpenWorkspace?: (name: string, result: string) => void;
 };
 
-export function ToolCallCard({ toolCall, role, onOpenWorkspace }: Props) {
-  const label = toolLabel(toolCall);
-  const canOpen =
-    toolCall.status === "done" &&
-    !!toolCall.result &&
-    (OPENABLE_TOOLS.has(toolCall.name) ||
-      (role === "expert" && EXPERT_OPENABLE_TOOLS.has(toolCall.name)));
+export function ToolCallCard({ toolCall }: Props) {
+  const label = toolCall.name;
 
   return (
     <div
@@ -193,7 +50,7 @@ export function ToolCallCard({ toolCall, role, onOpenWorkspace }: Props) {
               strokeLinecap="round"
             />
           </svg>
-          <span>Đang tra cứu {label.toLowerCase()}...</span>
+          <span>Đang chạy {label}...</span>
         </div>
       )}
 
@@ -216,19 +73,8 @@ export function ToolCallCard({ toolCall, role, onOpenWorkspace }: Props) {
           <div className="flex-1 min-w-0">
             <div className="font-medium text-gray-800">{label}</div>
             <div className="text-gray-500 text-xs truncate">
-              {previewResult(toolCall.name, toolCall.result)}
+              {previewResult(toolCall.result)}
             </div>
-            {canOpen && onOpenWorkspace && toolCall.result && (
-              <button
-                type="button"
-                onClick={() =>
-                  onOpenWorkspace(toolCall.name, toolCall.result as string)
-                }
-                className="mt-1 text-xs text-purple-700 underline cursor-pointer hover:text-purple-900"
-              >
-                Xem chi tiết →
-              </button>
-            )}
           </div>
         </div>
       )}
