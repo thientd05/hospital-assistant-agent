@@ -17,8 +17,8 @@ import { DoctorsTab } from "./tabs/DoctorsTab";
 import { ExpertsTab } from "./tabs/ExpertsTab";
 import { SkillsTab } from "./tabs/SkillsTab";
 
-const MIN_WIDTH = 380;
-const MAX_WIDTH = MIN_WIDTH * 2;
+const MIN_WIDTH = 400;
+const MAX_WIDTH = MIN_WIDTH * 1.5;
 
 const TAB_LABELS: Record<WorkspaceTab, string> = {
   patients: "Bệnh nhân",

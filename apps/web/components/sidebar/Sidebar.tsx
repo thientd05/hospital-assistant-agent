@@ -34,7 +34,7 @@ type Props = {
   onChatModeChange?: (mode: "ai" | "patient") => void;
 };
 
-const EXPANDED_WIDTH = 220;
+const EXPANDED_WIDTH = 288;
 const COLLAPSED_WIDTH = 52;
 
 export function Sidebar({
