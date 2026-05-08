@@ -270,7 +270,7 @@ export function PatientDetailTab({
                 onChange={(e) => updateDraft("spO2", e.target.value)}
                 className="edit-input w-24 text-right"
               />
-              <span className="text-xs text-gray-500">%</span>
+              <span className="text-xs text-gray-500 w-10 shrink-0">%</span>
             </div>
           </EditRow>
           <EditRow label="Nhịp tim">
@@ -281,7 +281,7 @@ export function PatientDetailTab({
                 onChange={(e) => updateDraft("heartRate", e.target.value)}
                 className="edit-input w-24 text-right"
               />
-              <span className="text-xs text-gray-500">bpm</span>
+              <span className="text-xs text-gray-500 w-10 shrink-0">bpm</span>
             </div>
           </EditRow>
           <EditRow label="Huyết áp">
@@ -292,7 +292,7 @@ export function PatientDetailTab({
                 placeholder="120/80"
                 className="edit-input w-24 text-right"
               />
-              <span className="text-xs text-gray-500">mmHg</span>
+              <span className="text-xs text-gray-500 w-10 shrink-0">mmHg</span>
             </div>
           </EditRow>
           <EditRow label="Nhiệt độ">
@@ -304,7 +304,7 @@ export function PatientDetailTab({
                 onChange={(e) => updateDraft("temperature", e.target.value)}
                 className="edit-input w-24 text-right"
               />
-              <span className="text-xs text-gray-500">°C</span>
+              <span className="text-xs text-gray-500 w-10 shrink-0">°C</span>
             </div>
           </EditRow>
         </>

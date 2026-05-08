@@ -186,7 +186,10 @@ function AppointmentForm({
   onSaved: () => void;
 }) {
   const [patientId, setPatientId] = useState("");
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+  const [time, setTime] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,15 +197,52 @@ function AppointmentForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!patientId.trim() || !scheduledAt || !reason.trim()) {
+    if (
+      !patientId.trim() ||
+      !day ||
+      !month ||
+      !year ||
+      !time ||
+      !reason.trim()
+    ) {
       setError("Cần nhập đủ thông tin.");
+      return;
+    }
+    const d = Number(day);
+    const m = Number(month);
+    const y = Number(year);
+    const [hh, mm] = time.split(":").map(Number);
+    if (
+      !Number.isInteger(d) ||
+      d < 1 ||
+      d > 31 ||
+      !Number.isInteger(m) ||
+      m < 1 ||
+      m > 12 ||
+      !Number.isInteger(y) ||
+      y < 1900 ||
+      y > 9999 ||
+      !Number.isInteger(hh) ||
+      !Number.isInteger(mm)
+    ) {
+      setError("Ngày/tháng/năm/giờ không hợp lệ.");
+      return;
+    }
+    const scheduled = new Date(y, m - 1, d, hh, mm);
+    if (
+      Number.isNaN(scheduled.getTime()) ||
+      scheduled.getDate() !== d ||
+      scheduled.getMonth() !== m - 1 ||
+      scheduled.getFullYear() !== y
+    ) {
+      setError("Ngày tháng không tồn tại.");
       return;
     }
     setSubmitting(true);
     try {
       await appointmentsApi.create({
         patientId: patientId.trim(),
-        scheduledAt: new Date(scheduledAt).toISOString(),
+        scheduledAt: scheduled.toISOString(),
         reason: reason.trim(),
       });
       onSaved();
@@ -229,16 +269,60 @@ function AppointmentForm({
           required
         />
       </label>
-      <label className="block">
+      <div>
         <span className="block text-xs text-gray-500 mb-0.5">Thời gian</span>
-        <input
-          type="datetime-local"
-          value={scheduledAt}
-          onChange={(e) => setScheduledAt(e.target.value)}
-          className="input"
-          required
-        />
-      </label>
+        <div className="grid grid-cols-4 gap-2">
+          <label className="block">
+            <span className="block text-[11px] text-gray-400 mb-0.5">Ngày</span>
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
+              placeholder="DD"
+              className="input"
+              required
+            />
+          </label>
+          <label className="block">
+            <span className="block text-[11px] text-gray-400 mb-0.5">Tháng</span>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+              placeholder="MM"
+              className="input"
+              required
+            />
+          </label>
+          <label className="block">
+            <span className="block text-[11px] text-gray-400 mb-0.5">Năm</span>
+            <input
+              type="number"
+              min={1900}
+              max={9999}
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="YYYY"
+              className="input"
+              required
+            />
+          </label>
+          <label className="block">
+            <span className="block text-[11px] text-gray-400 mb-0.5">Giờ</span>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="input"
+              required
+            />
+          </label>
+        </div>
+      </div>
       <label className="block">
         <span className="block text-xs text-gray-500 mb-0.5">Lý do</span>
         <textarea

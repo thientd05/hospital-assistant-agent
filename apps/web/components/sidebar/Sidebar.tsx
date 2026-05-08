@@ -30,6 +30,7 @@ type Props = {
   onNew: () => void;
   onDelete: (id: string) => Promise<void>;
   disabled?: boolean;
+  mode?: "ai" | "patient";
 };
 
 const EXPANDED_WIDTH = 220;
@@ -42,7 +43,9 @@ export function Sidebar({
   onNew,
   onDelete,
   disabled,
+  mode = "ai",
 }: Props) {
+  const isPatientMode = mode === "patient";
   const router = useRouter();
   const { doctor, manager, patient, expert, logout } = useAuth();
   const profileName =
@@ -163,40 +166,48 @@ export function Sidebar({
             </button>
           </div>
 
-          {/* New chat */}
-          <div className="px-2">
-            <button
-              type="button"
-              onClick={onNew}
-              disabled={disabled}
-              className="w-full text-left text-sm px-3 py-2 rounded-md flex items-center gap-2 text-gray-700 hover:bg-white/60 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg
-                viewBox="0 0 20 20"
-                className="w-4 h-4 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/* New chat (chỉ ở AI mode) */}
+          {!isPatientMode && (
+            <div className="px-2">
+              <button
+                type="button"
+                onClick={onNew}
+                disabled={disabled}
+                className="w-full text-left text-sm px-3 py-2 rounded-md flex items-center gap-2 text-gray-700 hover:bg-white/60 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <path d="M10 4v12" />
-                <path d="M4 10h12" />
-              </svg>
-              New chat
-            </button>
-          </div>
+                <svg
+                  viewBox="0 0 20 20"
+                  className="w-4 h-4 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M10 4v12" />
+                  <path d="M4 10h12" />
+                </svg>
+                New chat
+              </button>
+            </div>
+          )}
 
           {/* Conversations */}
           <div className="flex flex-col flex-1 min-h-0">
             <div className="px-4 pt-4 pb-1">
-              <span className="text-xs text-gray-400">Các đoạn chat gần đây</span>
+              <span className="text-xs text-gray-400">
+                {isPatientMode
+                  ? "Hội thoại bệnh nhân"
+                  : "Các đoạn chat gần đây"}
+              </span>
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
               {conversations.length === 0 ? (
                 <p className="text-xs text-gray-400 px-3 py-2">
-                  Chưa có hội thoại nào
+                  {isPatientMode
+                    ? "Chưa có hội thoại bệnh nhân nào"
+                    : "Chưa có hội thoại nào"}
                 </p>
               ) : (
                 conversations.map((c) => (
@@ -215,6 +226,7 @@ export function Sidebar({
                       setOpenMenuId(null);
                       setPendingDeleteId(c.id);
                     }}
+                    hideMenu={isPatientMode}
                   />
                 ))
               )}

@@ -93,8 +93,8 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
           <div className="col-span-4">Xét nghiệm</div>
           <div className="col-span-2">Kết quả</div>
           <div className="col-span-2">Đơn vị</div>
-          <div className="col-span-3">Tham chiếu</div>
-          <div className="col-span-1"></div>
+          <div className="col-span-2">Tham chiếu</div>
+          <div className="col-span-2"></div>
         </div>
       )}
       <div className="divide-y divide-gray-100">
@@ -116,18 +116,17 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
             <div className="col-span-2 text-gray-500 truncate">
               {r.unit || "—"}
             </div>
-            <div className="col-span-3 text-gray-500 text-xs truncate">
+            <div className="col-span-2 text-gray-500 text-xs truncate">
               {r.referenceRange}
             </div>
-            <div className="col-span-1 flex justify-end">
+            <div className="col-span-2 flex justify-end">
               <button
                 type="button"
                 onClick={() => setConfirmIdx(i)}
                 disabled={busy === i}
-                className="w-7 h-7 flex items-center justify-center text-base leading-none text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                aria-label="Xoá"
+                className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
               >
-                ×
+                {busy === i ? "Đang xoá…" : "Xoá"}
               </button>
             </div>
           </div>

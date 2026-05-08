@@ -9,20 +9,20 @@ type Props = {
   model: ModelKey;
   onModelChange: (m: ModelKey) => void;
   role?: string | null;
+  hideModel?: boolean;
+  placeholder?: string;
+};
+
+const ROLE_LABEL_VI: Record<string, string> = {
+  doctor: "bác sĩ",
+  manager: "quản lý",
+  expert: "chuyên gia",
+  patient: "bệnh nhân",
 };
 
 function placeholderByRole(role?: string | null): string {
-  switch (role) {
-    case "manager":
-      return "Hỏi về thống kê, bác sĩ, chuyên gia của phòng khám...";
-    case "patient":
-      return "Hỏi về sức khoẻ, triệu chứng, lời khuyên y tế...";
-    case "expert":
-      return "Hỏi về kỹ năng, hồ sơ cá nhân hoặc ghi nhớ của trợ lý...";
-    case "doctor":
-    default:
-      return "Hỏi về bệnh nhân, thuốc, kết quả xét nghiệm...";
-  }
+  const label = role ? ROLE_LABEL_VI[role] ?? "bạn" : "bạn";
+  return `Tôi có thể giúp gì cho ${label} hôm nay?`;
 }
 
 const MAX_ROWS = 5;
@@ -36,12 +36,20 @@ const MODEL_LABELS: Record<ModelKey, string> = {
 
 const MODEL_DESCRIPTIONS: Record<ModelKey, string> = {
   haiku: "Trả lời nhanh, phù hợp câu hỏi ngắn",
-  sonnet: "Suy luận sâu, phù hợp ca phức tạp",
+  sonnet: "Suy luận sâu, phù hợp câu hỏi phức tạp",
 };
 
 const MODEL_OPTIONS: ModelKey[] = ["haiku", "sonnet"];
 
-export function ChatInput({ onSend, disabled, model, onModelChange, role }: Props) {
+export function ChatInput({
+  onSend,
+  disabled,
+  model,
+  onModelChange,
+  role,
+  hideModel,
+  placeholder,
+}: Props) {
   const [value, setValue] = useState("");
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -81,7 +89,7 @@ export function ChatInput({ onSend, disabled, model, onModelChange, role }: Prop
             onKeyDown={handleKey}
             disabled={disabled}
             rows={1}
-            placeholder={placeholderByRole(role)}
+            placeholder={placeholder ?? placeholderByRole(role)}
             className="w-full resize-none outline-none bg-transparent text-sm leading-[22px] py-[8px] disabled:opacity-50"
           />
 
@@ -109,6 +117,7 @@ export function ChatInput({ onSend, disabled, model, onModelChange, role }: Prop
 
             <div className="flex-1" />
 
+            {!hideModel && (
             <div className="relative">
               <button
                 type="button"
@@ -188,6 +197,7 @@ export function ChatInput({ onSend, disabled, model, onModelChange, role }: Prop
                 </>
               )}
             </div>
+            )}
 
             <button
               type="button"

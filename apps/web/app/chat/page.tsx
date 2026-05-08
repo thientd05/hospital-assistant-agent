@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { WorkspacePanel } from "@/components/workspace/WorkspacePanel";
 import { useAuth } from "@/app/providers/AuthProvider";
-import { useChat } from "@/hooks/useChat";
+import { useChat, type ChatMode } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
+import { usePatientConversations } from "@/hooks/usePatientConversations";
 import {
   useWorkspace,
   ROLE_TABS,
@@ -22,6 +23,12 @@ export default function ChatPage() {
     openPatientForm,
     submitPatientForm,
   } = workspace;
+  const [chatMode, setChatMode] = useState<ChatMode>("ai");
+  const savedConvIdsRef = useRef<Record<ChatMode, string | null>>({
+    ai: null,
+    patient: null,
+  });
+  const isDoctor = role === "doctor";
 
   const executeToolCommand = useCallback(
     async (command: string, rawArgs: unknown): Promise<unknown> => {
@@ -81,36 +88,76 @@ export default function ChatPage() {
   );
 
   const chat = useChat({
+    mode: chatMode,
     onToolRefresh: workspace.handleToolRefresh,
     onToolCommand: executeToolCommand,
   });
-  const list = useConversations();
+  const aiList = useConversations();
+  const patientList = usePatientConversations({
+    enabled: isDoctor && chatMode === "patient",
+  });
 
   useEffect(() => {
-    if (!chat.isStreaming) list.refresh();
-  }, [chat.isStreaming, list.refresh]);
+    if (chatMode !== "ai") return;
+    if (!chat.isStreaming) aiList.refresh();
+  }, [chatMode, chat.isStreaming, aiList.refresh]);
+
+  const sidebarConversations = useMemo(() => {
+    if (chatMode === "patient") {
+      return patientList.conversations.map((c) => ({
+        id: c.id,
+        title: c.ownerName
+          ? `${c.ownerName} · ${c.title}`
+          : c.ownerId
+          ? `${c.ownerId} · ${c.title}`
+          : c.title,
+        updatedAt: c.updatedAt,
+      }));
+    }
+    return aiList.conversations;
+  }, [chatMode, patientList.conversations, aiList.conversations]);
 
   const handleDelete = useCallback(
     async (id: string) => {
+      if (chatMode !== "ai") return;
       if (chat.conversationId === id) {
         await chat.selectConversation(null);
       }
-      await list.deleteConversation(id);
+      await aiList.deleteConversation(id);
     },
-    [chat, list]
+    [chat, aiList, chatMode]
   );
+
+  const handleChatModeChange = useCallback(
+    (mode: ChatMode) => {
+      if (chat.isStreaming) return;
+      if (mode === chatMode) return;
+      // Lưu cuộc trò chuyện đang xem ở mode hiện tại trước khi rời đi.
+      savedConvIdsRef.current[chatMode] = chat.conversationId;
+      setChatMode(mode);
+    },
+    [chat.isStreaming, chat.conversationId, chatMode]
+  );
+
+  // Khi mode đổi, khôi phục cuộc trò chuyện đã lưu của mode đó.
+  useEffect(() => {
+    chat.selectConversation(savedConvIdsRef.current[chatMode]);
+    // chỉ chạy khi chatMode đổi; chat object đổi mỗi render nhưng không cần re-trigger ở đây.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMode]);
 
   const hasPanel = Boolean(role && (ROLE_TABS[role] ?? []).length > 0);
 
   return (
     <>
       <Sidebar
-        conversations={list.conversations}
+        conversations={sidebarConversations}
         activeId={chat.conversationId}
         onSelect={chat.selectConversation}
         onNew={() => chat.selectConversation(null)}
         onDelete={handleDelete}
         disabled={chat.isStreaming}
+        mode={chatMode}
       />
       <ChatWindow
         messages={chat.messages}
@@ -120,6 +167,8 @@ export default function ChatPage() {
         onTogglePanel={hasPanel ? workspace.togglePanel : undefined}
         model={chat.model}
         onModelChange={chat.setModel}
+        chatMode={chatMode}
+        onChatModeChange={isDoctor ? handleChatModeChange : undefined}
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}

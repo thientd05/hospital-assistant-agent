@@ -8,9 +8,10 @@ import claudeAvt from "@/public/claude_avt.png";
 
 type Props = {
   messages: Message[];
+  flipped?: boolean;
 };
 
-export function MessageList({ messages }: Props) {
+export function MessageList({ messages, flipped }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function MessageList({ messages }: Props) {
     <div className="flex-1 overflow-y-auto px-6 py-6">
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
+          <MessageBubble key={m.id} message={m} flipped={flipped} />
         ))}
         <div ref={endRef} />
       </div>

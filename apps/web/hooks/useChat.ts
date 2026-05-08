@@ -35,13 +35,17 @@ function newId() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export type ChatMode = "ai" | "patient";
+
 type UseChatOptions = {
+  mode?: ChatMode;
   onToolRefresh?: (refresh: ToolRefresh | undefined) => void;
   onToolCommand?: (command: string, args: unknown) => Promise<unknown>;
 };
 
 export function useChat(opts: UseChatOptions = {}) {
   const { token, logout } = useAuth();
+  const mode: ChatMode = opts.mode ?? "ai";
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -70,7 +74,11 @@ export function useChat(opts: UseChatOptions = {}) {
       setMessages([]);
       setConversationId(id);
       try {
-        const res = await fetch(`${API_URL}/api/conversations/${id}`, {
+        const path =
+          mode === "patient"
+            ? `/api/conversations/patients/${id}`
+            : `/api/conversations/${id}`;
+        const res = await fetch(`${API_URL}${path}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.status === 401) {
@@ -96,12 +104,62 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsLoadingConversation(false);
       }
     },
-    [isStreaming, token, logout]
+    [isStreaming, token, logout, mode]
   );
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isStreaming) return;
+
+      if (mode === "patient") {
+        if (!conversationId) return;
+        setIsStreaming(true);
+        const optimistic: Message = {
+          id: newId(),
+          role: "assistant",
+          content: text,
+          createdAt: new Date(),
+        };
+        setMessages((prev) => [...prev, optimistic]);
+        try {
+          const res = await fetch(
+            `${API_URL}/api/conversations/patients/${conversationId}/reply`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ message: text }),
+            }
+          );
+          if (res.status === 401) {
+            logout();
+            return;
+          }
+          if (!res.ok) {
+            throw new Error(`API ${res.status}: ${await res.text()}`);
+          }
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === optimistic.id
+                ? {
+                    ...m,
+                    content:
+                      m.content +
+                      (m.content ? "\n\n" : "") +
+                      `⚠ Không gửi được: ${errMsg}`,
+                  }
+                : m
+            )
+          );
+        } finally {
+          setIsStreaming(false);
+        }
+        return;
+      }
 
       const userMsg: Message = {
         id: newId(),
@@ -230,7 +288,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [conversationId, isStreaming, model, token, logout]
+    [conversationId, isStreaming, model, token, logout, mode]
   );
 
   return {

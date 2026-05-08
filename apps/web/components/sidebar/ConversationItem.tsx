@@ -9,6 +9,7 @@ type Props = {
   onToggleMenu: () => void;
   onCloseMenu: () => void;
   onRequestDelete: () => void;
+  hideMenu?: boolean;
 };
 
 export function ConversationItem({
@@ -19,6 +20,7 @@ export function ConversationItem({
   onToggleMenu,
   onCloseMenu,
   onRequestDelete,
+  hideMenu,
 }: Props) {
   const wrapperBase =
     "group relative w-full rounded-md transition-colors text-sm";
@@ -35,31 +37,35 @@ export function ConversationItem({
       <button
         type="button"
         onClick={onClick}
-        className="w-full text-left px-3 py-2 pr-8 truncate"
+        className={`w-full text-left px-3 py-2 truncate ${
+          hideMenu ? "" : "pr-8"
+        }`}
         title={title}
       >
         {title}
       </button>
 
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleMenu();
-        }}
-        aria-label="Tùy chọn hội thoại"
-        aria-haspopup="menu"
-        aria-expanded={menuOpen}
-        className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-opacity ${dotsVisibility}`}
-      >
-        <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
-          <circle cx="4" cy="10" r="1.6" />
-          <circle cx="10" cy="10" r="1.6" />
-          <circle cx="16" cy="10" r="1.6" />
-        </svg>
-      </button>
+      {!hideMenu && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleMenu();
+          }}
+          aria-label="Tùy chọn hội thoại"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-opacity ${dotsVisibility}`}
+        >
+          <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
+            <circle cx="4" cy="10" r="1.6" />
+            <circle cx="10" cy="10" r="1.6" />
+            <circle cx="16" cy="10" r="1.6" />
+          </svg>
+        </button>
+      )}
 
-      {menuOpen && (
+      {!hideMenu && menuOpen && (
         <>
           <div
             className="fixed inset-0 z-30"

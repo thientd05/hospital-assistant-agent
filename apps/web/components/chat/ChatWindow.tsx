@@ -4,6 +4,7 @@ import type { Message, ModelKey } from "@pr_hospitalagent/types";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { EmptyGreeting, MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
+import type { ChatMode } from "@/hooks/useChat";
 
 type Props = {
   messages: Message[];
@@ -13,6 +14,8 @@ type Props = {
   onTogglePanel?: () => void;
   model: ModelKey;
   onModelChange: (m: ModelKey) => void;
+  chatMode?: ChatMode;
+  onChatModeChange?: (mode: ChatMode) => void;
 };
 
 export function ChatWindow({
@@ -23,12 +26,39 @@ export function ChatWindow({
   onTogglePanel,
   model,
   onModelChange,
+  chatMode = "ai",
+  onChatModeChange,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
+  const isDoctor = role === "doctor";
+  const isPatientMode = chatMode === "patient";
   return (
     <div className="relative flex-1 min-w-0 flex flex-col h-full bg-white">
+      {isDoctor && onChatModeChange && (
+        <button
+          type="button"
+          onClick={() =>
+            onChatModeChange(chatMode === "ai" ? "patient" : "ai")
+          }
+          aria-pressed={chatMode === "patient"}
+          aria-label={
+            chatMode === "ai"
+              ? "Chuyển sang chat với bệnh nhân"
+              : "Chuyển sang chat với AI"
+          }
+          className="absolute top-4 left-6 z-10 h-8 w-16 rounded-full border border-gray-200 bg-gray-100 transition-colors hover:bg-gray-200"
+        >
+          <span
+            className={`absolute top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-gray-700 shadow transition-all duration-200 ${
+              chatMode === "ai" ? "left-0.5" : "left-[34px]"
+            }`}
+          >
+            {chatMode === "ai" ? "AI" : "BN"}
+          </span>
+        </button>
+      )}
       {onTogglePanel && (
         <button
           type="button"
@@ -58,28 +88,38 @@ export function ChatWindow({
 
       {messages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="w-full max-w-3xl flex flex-col items-center gap-8">
-            <EmptyGreeting role={role} userName={bareName} />
-            <div className="w-full">
-              <ChatInput
-                onSend={onSend}
-                disabled={isStreaming}
-                model={model}
-                onModelChange={onModelChange}
-                role={role}
-              />
+          {isPatientMode ? (
+            <p className="text-sm text-gray-500">
+              Chọn một cuộc trò chuyện ở thanh bên để xem nội dung.
+            </p>
+          ) : (
+            <div className="w-full max-w-3xl flex flex-col items-center gap-8">
+              <EmptyGreeting role={role} userName={bareName} />
+              <div className="w-full">
+                <ChatInput
+                  onSend={onSend}
+                  disabled={isStreaming}
+                  model={model}
+                  onModelChange={onModelChange}
+                  role={role}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <>
-          <MessageList messages={messages} />
+          <MessageList messages={messages} flipped={isPatientMode} />
           <ChatInput
             onSend={onSend}
             disabled={isStreaming}
             model={model}
             onModelChange={onModelChange}
             role={role}
+            hideModel={isPatientMode}
+            placeholder={
+              isPatientMode ? "Trả lời bệnh nhân…" : undefined
+            }
           />
         </>
       )}
