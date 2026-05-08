@@ -259,7 +259,7 @@ function TabButton({
       onClick={onClick}
       className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
         active
-          ? "bg-sky-100 text-sky-900 font-medium"
+          ? "bg-[#C8E7E9] text-[#087E8B] font-medium"
           : "text-gray-700 hover:bg-white"
       }`}
     >
@@ -341,7 +341,7 @@ function ProfilePanel({
               onChange={(e) =>
                 setValues((prev) => ({ ...prev, [f.key]: e.target.value }))
               }
-              className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+              className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
             />
           </label>
         ))}
@@ -374,7 +374,7 @@ function ProfilePanel({
         <button
           type="submit"
           disabled={!dirty || saving}
-          className="px-4 py-1.5 text-sm rounded-md bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50"
+          className="px-4 py-1.5 text-sm rounded-md bg-[#087E8B] hover:bg-[#066671] text-white disabled:opacity-50"
         >
           {saving ? "Đang lưu..." : "Lưu thay đổi"}
         </button>
@@ -437,7 +437,7 @@ function PasswordPanel() {
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           required
-          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -449,7 +449,7 @@ function PasswordPanel() {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           minLength={6}
-          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
@@ -461,7 +461,7 @@ function PasswordPanel() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           minLength={6}
-          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+          className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
         />
       </label>
 
@@ -480,7 +480,7 @@ function PasswordPanel() {
         <button
           type="submit"
           disabled={saving || !currentPassword || !newPassword || !confirmPassword}
-          className="px-4 py-1.5 text-sm rounded-md bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50"
+          className="px-4 py-1.5 text-sm rounded-md bg-[#087E8B] hover:bg-[#066671] text-white disabled:opacity-50"
         >
           {saving ? "Đang đổi..." : "Đổi mật khẩu"}
         </button>
@@ -587,7 +587,7 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || draft === content}
-                className="px-3 py-1.5 text-sm rounded-md bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50"
+                className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] hover:bg-[#066671] text-white disabled:opacity-50"
               >
                 {saving ? "Đang lưu..." : "Lưu"}
               </button>
@@ -615,7 +615,7 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             spellCheck={false}
-            className="w-full h-full resize-none border border-gray-200 rounded-md px-3 py-2 font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-300"
+            className="w-full h-full resize-none border border-gray-200 rounded-md px-3 py-2 font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
           />
         ) : content.trim() === "" ? (
           <p className="text-sm text-gray-400 italic">

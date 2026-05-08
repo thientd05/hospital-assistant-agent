@@ -24,8 +24,8 @@ export function ToolCallCard({ toolCall }: Props) {
     <div
       className="my-1.5 border-l-2 rounded-r-lg pl-3 pr-3 py-2 text-sm"
       style={{
-        borderLeftColor: "#7F77DD",
-        backgroundColor: "rgba(127, 119, 221, 0.06)",
+        borderLeftColor: "#087E8B",
+        backgroundColor: "rgba(8, 126, 139, 0.08)",
       }}
     >
       {toolCall.status === "running" && (

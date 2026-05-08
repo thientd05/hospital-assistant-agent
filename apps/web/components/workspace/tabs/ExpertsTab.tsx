@@ -53,7 +53,7 @@ export function ExpertsTab({ version, active, onChanged }: Props) {
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600"
+          className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
         >
           + Tạo
         </button>
@@ -89,7 +89,7 @@ export function ExpertsTab({ version, active, onChanged }: Props) {
               <button
                 type="button"
                 onClick={() => setSelectedId(e.id)}
-                className="text-[11px] px-2 py-1 rounded-md border border-purple-200 text-purple-700 hover:bg-purple-50"
+                className="text-[11px] px-2 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
               >
                 Chi tiết
               </button>
@@ -114,7 +114,7 @@ export function ExpertsTab({ version, active, onChanged }: Props) {
       </ul>
 
       {selectedId && detail.data && (
-        <div className="mt-2 rounded-lg border border-purple-200 bg-purple-50/40 px-3 py-2.5 text-sm">
+        <div className="mt-2 rounded-lg border border-[#C8E7E9] bg-[#C8E7E9]/40 px-3 py-2.5 text-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="text-base font-semibold text-gray-900">
               {detail.data.title} {detail.data.fullName}

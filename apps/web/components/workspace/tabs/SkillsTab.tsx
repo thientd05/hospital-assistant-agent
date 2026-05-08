@@ -125,7 +125,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
             <button
               type="button"
               onClick={startNew}
-              className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600"
+              className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
             >
               + Tạo
             </button>
@@ -171,7 +171,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
                       <button
                         type="button"
                         onClick={() => openSkill(s.name)}
-                        className="text-[11px] px-2 py-1 rounded-md border border-purple-200 text-purple-700 hover:bg-purple-50"
+                        className="text-[11px] px-2 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
                       >
                         Xem
                       </button>
@@ -208,7 +208,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
                 <button
                   type="button"
                   onClick={startEdit}
-                  className="text-xs px-2.5 py-1 rounded-md border border-purple-200 text-purple-700 hover:bg-purple-50"
+                  className="text-xs px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
                 >
                   Sửa
                 </button>
@@ -234,7 +234,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
                 placeholder="my-new-skill"
-                className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-purple-400 font-mono"
+                className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B] font-mono"
               />
             </label>
           )}
@@ -246,7 +246,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
               value={draftContent}
               onChange={(e) => setDraftContent(e.target.value)}
               rows={20}
-              className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-purple-400 font-mono"
+              className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B] font-mono"
             />
           </label>
           <div className="flex justify-end">
@@ -254,7 +254,7 @@ export function SkillsTab({ version, active, onChanged }: Props) {
               type="button"
               onClick={save}
               disabled={busy}
-              className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+              className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
             >
               {busy ? "Đang lưu…" : "Lưu"}
             </button>

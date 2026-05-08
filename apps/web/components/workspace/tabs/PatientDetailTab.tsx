@@ -189,7 +189,7 @@ export function PatientDetailTab({
               type="button"
               onClick={handleSave}
               disabled={submitting}
-              className="text-[11px] px-2.5 py-1 rounded-md bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+              className="text-[11px] px-2.5 py-1 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
             >
               {submitting ? "Đang lưu…" : "Lưu"}
             </button>
@@ -198,7 +198,7 @@ export function PatientDetailTab({
           <button
             type="button"
             onClick={startEdit}
-            className="text-[11px] px-2.5 py-1 rounded-md border border-purple-200 text-purple-700 hover:bg-purple-50"
+            className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
           >
             Sửa
           </button>
@@ -366,7 +366,7 @@ export function PatientDetailTab({
           {data.medications.map((m) => (
             <span
               key={m}
-              className="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-800"
+              className="text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B]"
             >
               {m}
             </span>

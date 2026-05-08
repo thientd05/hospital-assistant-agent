@@ -138,7 +138,7 @@ export function PatientCreateFormControlled({
         <button
           type="submit"
           disabled={submitting}
-          className="px-3 py-1.5 text-sm rounded-md bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
           {submitting ? "Đang lưu…" : "Tạo"}
         </button>

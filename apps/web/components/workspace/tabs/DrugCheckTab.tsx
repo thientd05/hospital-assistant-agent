@@ -47,14 +47,14 @@ export function DrugCheckTab() {
             onChange={(e) => setDrugs(e.target.value)}
             rows={4}
             placeholder="VD: warfarin, aspirin"
-            className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-purple-400"
+            className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B]"
           />
         </label>
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={submitting}
-            className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+            className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
           >
             {submitting ? "Đang kiểm tra…" : "Kiểm tra"}
           </button>

@@ -149,7 +149,7 @@ export function WorkspacePanel({
           aria-label="Kéo để thay đổi kích thước bảng làm việc"
           onMouseDown={startResize}
           className={`absolute top-0 left-0 h-full w-1 cursor-col-resize z-10 transition-colors ${
-            isResizing ? "bg-purple-400" : "bg-transparent hover:bg-purple-300"
+            isResizing ? "bg-[#087E8B]" : "bg-transparent hover:bg-[#C8E7E9]"
           }`}
         />
       )}
@@ -172,7 +172,7 @@ export function WorkspacePanel({
                   onClick={() => onTabChange(tab)}
                   className={`shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
                     isActive
-                      ? "border-purple-500 text-gray-900 font-medium"
+                      ? "border-[#087E8B] text-gray-900 font-medium"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >

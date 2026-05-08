@@ -91,7 +91,7 @@ export function PatientsTab({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Tìm theo tên, mã, khoa, chẩn đoán…"
-          className="flex-1 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-purple-400"
+          className="flex-1 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B]"
         />
         {role === "doctor" && createForm && !createForm.open && (
           <button
@@ -100,7 +100,7 @@ export function PatientsTab({
               setSubmitError(null);
               createForm.onOpen();
             }}
-            className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600"
+            className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
           >
             + Tạo
           </button>
@@ -156,7 +156,7 @@ export function PatientsTab({
                 {p.diagnoses.map((d) => (
                   <span
                     key={d}
-                    className="text-[11px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-800"
+                    className="text-[11px] px-2 py-0.5 rounded-full bg-[#C8E7E9] text-[#087E8B]"
                   >
                     {d}
                   </span>
@@ -168,7 +168,7 @@ export function PatientsTab({
                 <button
                   type="button"
                   onClick={() => onSelect(p.id)}
-                  className="text-[11px] px-2.5 py-1 rounded-md border border-purple-200 text-purple-700 hover:bg-purple-50"
+                  className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
                 >
                   Mở hồ sơ
                 </button>

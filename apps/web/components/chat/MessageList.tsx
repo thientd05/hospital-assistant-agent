@@ -19,7 +19,7 @@ export function MessageList({ messages, flipped }: Props) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6">
+    <div className="flex-1 overflow-y-auto thin-scrollbar px-6 py-6">
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} flipped={flipped} />

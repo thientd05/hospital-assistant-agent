@@ -45,7 +45,7 @@ function Bar({
         </span>
       </div>
       <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-        <div className="h-full bg-purple-400" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-[#087E8B]" style={{ width: `${pct}%` }} />
       </div>
     </li>
   );

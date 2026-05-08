@@ -15,7 +15,6 @@ type Props = {
   model: ModelKey;
   onModelChange: (m: ModelKey) => void;
   chatMode?: ChatMode;
-  onChatModeChange?: (mode: ChatMode) => void;
 };
 
 export function ChatWindow({
@@ -27,49 +26,19 @@ export function ChatWindow({
   model,
   onModelChange,
   chatMode = "ai",
-  onChatModeChange,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
-  const isDoctor = role === "doctor";
   const isPatientMode = chatMode === "patient";
   return (
-    <div className="relative flex-1 min-w-0 flex flex-col h-full bg-white">
-      {isDoctor && onChatModeChange && (
-        <button
-          type="button"
-          onClick={() =>
-            onChatModeChange(chatMode === "ai" ? "patient" : "ai")
-          }
-          aria-pressed={chatMode === "patient"}
-          aria-label={
-            chatMode === "ai"
-              ? "Chuyển sang chat với bệnh nhân"
-              : "Chuyển sang chat với AI"
-          }
-          className="absolute top-4 left-6 z-10 h-8 w-16 rounded-full border border-gray-200 bg-gray-100 transition-colors hover:bg-gray-200"
-        >
-          <span
-            className={`absolute top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-gray-700 shadow transition-all duration-200 ${
-              chatMode === "ai" ? "left-0.5" : "left-[34px]"
-            }`}
-          >
-            {chatMode === "ai" ? "AI" : "BN"}
-          </span>
-        </button>
-      )}
-      {onTogglePanel && (
+    <div className="relative flex-1 min-w-0 flex flex-col h-full bg-[#F8F9F6]">
+      {onTogglePanel && !isPanelOpen && (
         <button
           type="button"
           onClick={onTogglePanel}
-          aria-pressed={isPanelOpen}
-          aria-label={isPanelOpen ? "Đóng bảng làm việc" : "Mở bảng làm việc"}
-          className={`absolute top-4 right-6 z-10 w-8 h-8 rounded-md border flex items-center justify-center transition-colors ${
-            isPanelOpen
-              ? "border-purple-500 text-purple-600 bg-purple-50"
-              : "border-gray-200 text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700"
-          }`}
+          aria-label="Mở bảng làm việc"
+          className="absolute top-4 right-6 z-10 w-8 h-8 rounded-md border border-gray-200 text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
         >
           <svg
             className="w-4 h-4"

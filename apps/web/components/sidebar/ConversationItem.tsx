@@ -25,8 +25,8 @@ export function ConversationItem({
   const wrapperBase =
     "group relative w-full rounded-md transition-colors text-sm";
   const wrapperState = isActive
-    ? "bg-white border border-gray-200 text-gray-900 shadow-sm"
-    : "text-gray-500 hover:bg-white/60 hover:text-gray-800";
+    ? "bg-[#EFEFEB] border border-gray-200 text-gray-900"
+    : "text-gray-500 hover:bg-[#EFEFEB] hover:text-gray-800";
 
   const dotsVisibility = menuOpen
     ? "opacity-100"

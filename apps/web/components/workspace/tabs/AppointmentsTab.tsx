@@ -82,7 +82,7 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-sm px-3 py-1.5 rounded-md bg-purple-500 text-white hover:bg-purple-600"
+            className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
           >
             + Tạo
           </button>
@@ -350,7 +350,7 @@ function AppointmentForm({
         <button
           type="submit"
           disabled={submitting}
-          className="px-3 py-1.5 text-sm rounded-md bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
           {submitting ? "Đang lưu…" : "Tạo"}
         </button>
