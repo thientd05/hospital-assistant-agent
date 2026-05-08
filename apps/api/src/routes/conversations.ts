@@ -236,6 +236,11 @@ export async function conversationsRoutes(app: FastifyInstance) {
         reply.code(400).send({ error: "message phải là chuỗi không rỗng" });
         return;
       }
+      const doctor = req.doctor;
+      if (!doctor) {
+        reply.code(401).send({ error: "Unauthorized" });
+        return;
+      }
       const db = await connectDB();
       const conversations = db.collection<ConversationDoc>("conversations");
       const existing = await conversations.findOne({
@@ -246,8 +251,14 @@ export async function conversationsRoutes(app: FastifyInstance) {
         reply.code(404).send({ error: "Patient conversation not found" });
         return;
       }
+      // Đính kèm danh tính bác sĩ để cả bệnh nhân lẫn AI ở các lượt sau hiểu
+      // đây là tin nhắn do bác sĩ nhắn thay AI.
+      const finalText = `**Bác sĩ ${doctor.fullName} (nhắn thay AI)**: ${text}`;
       const now = new Date();
-      const newMsg: StoredMessage = { role: "assistant", content: text };
+      const newMsg: StoredMessage = {
+        role: "assistant",
+        content: finalText,
+      };
       const updatedMessages = [...(existing.messages ?? []), newMsg];
       await conversations.updateOne(
         { id: existing.id },
@@ -259,7 +270,7 @@ export async function conversationsRoutes(app: FastifyInstance) {
         message: {
           id: `msg_${updatedMessages.length - 1}`,
           role: "assistant" as const,
-          content: text,
+          content: finalText,
           createdAt: now,
         },
       };

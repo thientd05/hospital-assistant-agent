@@ -140,6 +140,18 @@ export function useChat(opts: UseChatOptions = {}) {
           if (!res.ok) {
             throw new Error(`API ${res.status}: ${await res.text()}`);
           }
+          const data = (await res.json()) as {
+            ok: boolean;
+            message?: { content?: string };
+          };
+          const finalContent = data.message?.content;
+          if (typeof finalContent === "string" && finalContent !== text) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === optimistic.id ? { ...m, content: finalContent } : m
+              )
+            );
+          }
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
           setMessages((prev) =>
