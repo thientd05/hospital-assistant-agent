@@ -12,8 +12,6 @@ import type {
 import { connectDB } from "../db/client.ts";
 import {
   ensureDoctorWorkspace,
-  ensureExpertWorkspace,
-  ensureManagerWorkspace,
   ensurePatientWorkspace,
 } from "../agent/workspace.ts";
 
@@ -88,26 +86,6 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
       reply.code(401).send({ error: "Unauthorized" });
       return reply;
     }
-
-    try {
-      const ensured = ensureManagerWorkspace(manager.id);
-      if (!ensured.alreadyComplete) {
-        req.log.info(
-          {
-            managerId: manager.id,
-            createdDir: ensured.createdDir,
-            createdFiles: ensured.createdFiles,
-          },
-          "Bootstrapped manager workspace"
-        );
-      }
-    } catch (err) {
-      req.log.error(
-        { err, managerId: manager.id },
-        "Failed to bootstrap manager workspace"
-      );
-    }
-
     req.manager = manager as ManagerPublic;
     req.authRole = "manager";
     return;
@@ -121,26 +99,6 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
       reply.code(401).send({ error: "Unauthorized" });
       return reply;
     }
-
-    try {
-      const ensured = ensureExpertWorkspace(expert.id);
-      if (!ensured.alreadyComplete) {
-        req.log.info(
-          {
-            expertId: expert.id,
-            createdDir: ensured.createdDir,
-            createdFiles: ensured.createdFiles,
-          },
-          "Bootstrapped expert workspace"
-        );
-      }
-    } catch (err) {
-      req.log.error(
-        { err, expertId: expert.id },
-        "Failed to bootstrap expert workspace"
-      );
-    }
-
     req.expert = expert as ExpertPublic;
     req.authRole = "expert";
     return;

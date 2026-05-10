@@ -3,6 +3,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { verifyAuth } from "../auth/middleware.ts";
+import { requireRole } from "../auth/role-guard.ts";
 
 const ALLOWED_FILES = ["MEMORY.md", "SOUL.md", "USER.md"] as const;
 type AllowedFile = (typeof ALLOWED_FILES)[number];
@@ -26,13 +27,7 @@ const ID_RE = /^[A-Za-z0-9_-]+$/;
 const MAX_READ_BYTES = 200_000;
 
 function ownerId(req: FastifyRequest): string | null {
-  return (
-    req.doctor?.id ??
-    req.manager?.id ??
-    req.patient?.id ??
-    req.expert?.id ??
-    null
-  );
+  return req.doctor?.id ?? req.patient?.id ?? null;
 }
 
 function resolveWorkspaceFile(
@@ -47,7 +42,7 @@ function resolveWorkspaceFile(
 export async function workspaceRoutes(app: FastifyInstance) {
   app.get<{ Params: { file: string } }>(
     "/workspace/files/:file",
-    { preHandler: verifyAuth },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req, reply) => {
       const id = ownerId(req);
       if (!id) {
@@ -87,7 +82,7 @@ export async function workspaceRoutes(app: FastifyInstance) {
 
   app.put<{ Params: { file: string } }>(
     "/workspace/files/:file",
-    { preHandler: verifyAuth },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req, reply) => {
       const id = ownerId(req);
       if (!id) {

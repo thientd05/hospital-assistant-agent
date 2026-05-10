@@ -31,7 +31,6 @@ type Props = {
   onDelete: (id: string) => Promise<void>;
   disabled?: boolean;
   mode?: "ai" | "patient";
-  onChatModeChange?: (mode: "ai" | "patient") => void;
 };
 
 const EXPANDED_WIDTH = 288;
@@ -45,21 +44,15 @@ export function Sidebar({
   onDelete,
   disabled,
   mode = "ai",
-  onChatModeChange,
 }: Props) {
   const isPatientMode = mode === "patient";
   const router = useRouter();
-  const { doctor, manager, patient, expert, logout } = useAuth();
-  const profileName =
-    doctor?.fullName ?? manager?.fullName ?? patient?.name ?? expert?.fullName ?? "—";
+  const { doctor, patient, logout } = useAuth();
+  const profileName = doctor?.fullName ?? patient?.name ?? "—";
   const profileSubtitle = doctor
     ? doctor.specialty || doctor.department || ""
-    : manager
-    ? manager.title || manager.clinicName || ""
     : patient
     ? "Bệnh nhân"
-    : expert
-    ? "Chuyên gia"
     : "";
   const [collapsed, setCollapsed] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -167,36 +160,6 @@ export function Sidebar({
               </svg>
             </button>
           </div>
-
-          {/* Toggle chế độ chat (AI / Bệnh nhân) — chỉ bác sĩ */}
-          {onChatModeChange && (
-            <div className="px-4 pb-2">
-              <div className="text-xs text-gray-400 mb-1">Chuyển chế độ</div>
-              <button
-                type="button"
-                onClick={() =>
-                  onChatModeChange(mode === "ai" ? "patient" : "ai")
-                }
-                disabled={disabled}
-                aria-pressed={mode === "patient"}
-                aria-label={
-                  mode === "ai"
-                    ? "Chuyển sang chat với bệnh nhân"
-                    : "Chuyển sang chat với AI"
-                }
-                className="relative h-8 w-16 rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span
-                  className={`absolute top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold shadow transition-all duration-200 ${
-                    mode === "ai" ? "left-0.5" : "left-[34px]"
-                  }`}
-                  style={{ backgroundColor: "#C8E7E9", color: "#087E8B" }}
-                >
-                  {mode === "ai" ? "AI" : "BN"}
-                </span>
-              </button>
-            </div>
-          )}
 
           {/* New chat (chỉ ở AI mode) */}
           {!isPatientMode && (

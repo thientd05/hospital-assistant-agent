@@ -28,8 +28,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (doctor || manager || patient || expert) router.replace("/chat");
-  }, [doctor, manager, patient, isLoading, router]);
+    if (manager) router.replace("/admin/manager");
+    else if (expert) router.replace("/admin/expert");
+    else if (doctor || patient) router.replace("/chat");
+  }, [doctor, manager, patient, expert, isLoading, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +54,17 @@ export default function LoginPage() {
       const data = (await res.json()) as LoginResponse;
       if (data.role === "manager") {
         login(data.token, { role: "manager", manager: data.manager });
+        router.replace("/admin/manager");
       } else if (data.role === "patient") {
         login(data.token, { role: "patient", patient: data.patient });
+        router.replace("/chat");
       } else if (data.role === "expert") {
         login(data.token, { role: "expert", expert: data.expert });
+        router.replace("/admin/expert");
       } else {
         login(data.token, { role: "doctor", doctor: data.doctor });
+        router.replace("/chat");
       }
-      router.replace("/chat");
     } catch {
       setError("Không kết nối được tới máy chủ");
     } finally {

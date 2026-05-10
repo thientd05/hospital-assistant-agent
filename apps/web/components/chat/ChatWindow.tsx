@@ -1,6 +1,6 @@
 "use client";
 
-import type { Message, ModelKey } from "@pr_hospitalagent/types";
+import type { Message } from "@pr_hospitalagent/types";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { EmptyGreeting, MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
@@ -12,9 +12,8 @@ type Props = {
   onSend: (text: string) => void;
   isPanelOpen?: boolean;
   onTogglePanel?: () => void;
-  model: ModelKey;
-  onModelChange: (m: ModelKey) => void;
   chatMode?: ChatMode;
+  onChatModeChange?: (mode: ChatMode) => void;
 };
 
 export function ChatWindow({
@@ -23,9 +22,8 @@ export function ChatWindow({
   onSend,
   isPanelOpen,
   onTogglePanel,
-  model,
-  onModelChange,
   chatMode = "ai",
+  onChatModeChange,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
@@ -33,6 +31,30 @@ export function ChatWindow({
   const isPatientMode = chatMode === "patient";
   return (
     <div className="relative flex-1 min-w-0 flex flex-col h-full bg-[#F8F9F6]">
+      {onChatModeChange && (
+        <button
+          type="button"
+          onClick={() =>
+            onChatModeChange(chatMode === "ai" ? "patient" : "ai")
+          }
+          disabled={isStreaming}
+          aria-pressed={chatMode === "patient"}
+          aria-label={
+            chatMode === "ai"
+              ? "Chuyển sang chat với bệnh nhân"
+              : "Chuyển sang chat với AI"
+          }
+          title={
+            chatMode === "ai"
+              ? "Chuyển sang chat với bệnh nhân"
+              : "Chuyển sang chat với AI"
+          }
+          className="absolute top-4 left-6 z-10 w-8 h-8 rounded-full border border-gray-200 text-[11px] font-semibold flex items-center justify-center shrink-0 transition-colors hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: "#C8E7E9", color: "#087E8B" }}
+        >
+          {chatMode === "ai" ? "AI" : "BN"}
+        </button>
+      )}
       {onTogglePanel && !isPanelOpen && (
         <button
           type="button"
@@ -68,8 +90,6 @@ export function ChatWindow({
                 <ChatInput
                   onSend={onSend}
                   disabled={isStreaming}
-                  model={model}
-                  onModelChange={onModelChange}
                   role={role}
                 />
               </div>
@@ -82,10 +102,7 @@ export function ChatWindow({
           <ChatInput
             onSend={onSend}
             disabled={isStreaming}
-            model={model}
-            onModelChange={onModelChange}
             role={role}
-            hideModel={isPatientMode}
             placeholder={
               isPatientMode ? "Trả lời bệnh nhân…" : undefined
             }

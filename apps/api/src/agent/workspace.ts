@@ -43,20 +43,8 @@ export function ensureDoctorWorkspace(doctorId: string): EnsureWorkspaceResult {
   return ensureWorkspace(doctorId);
 }
 
-export function ensureManagerWorkspace(
-  managerId: string
-): EnsureWorkspaceResult {
-  return ensureWorkspace(managerId);
-}
-
 export function ensurePatientWorkspace(
   patientId: string
 ): EnsureWorkspaceResult {
   return ensureWorkspace(patientId);
-}
-
-export function ensureExpertWorkspace(
-  expertId: string
-): EnsureWorkspaceResult {
-  return ensureWorkspace(expertId);
 }

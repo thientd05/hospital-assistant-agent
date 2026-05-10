@@ -91,12 +91,7 @@ function buildSystemPrompt(doctorId: string, role: AuthRole): string {
 
 const anthropic = new Anthropic();
 
-export const MODEL_IDS = {
-  haiku: "claude-haiku-4-5-20251001",
-  sonnet: "claude-sonnet-4-6",
-} as const;
-
-export type ModelKey = keyof typeof MODEL_IDS;
+const MODEL_ID = "claude-haiku-4-5-20251001";
 
 export type OnChunk = (text: string) => void;
 export type OnToolCall = (toolCall: {
@@ -172,7 +167,6 @@ function withMessagesCache(
 
 export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
-  modelKey: ModelKey,
   onChunk: OnChunk,
   onToolCall: OnToolCall,
   doctorId: string,
@@ -180,14 +174,13 @@ export async function runAgentLoop(
   panel: PanelClient
 ): Promise<Anthropic.MessageParam[]> {
   let working = [...messages];
-  const modelId = MODEL_IDS[modelKey];
   const systemPrompt = buildSystemPrompt(doctorId, role);
   const allowedToolNames = getAllowedTools(role);
   const allowedTools = tools.filter((t) => allowedToolNames.has(t.name));
 
   while (true) {
     const stream = anthropic.messages.stream({
-      model: modelId,
+      model: MODEL_ID,
       max_tokens: 8192,
       system: [{ type: "text", text: systemPrompt, cache_control: EPHEMERAL }],
       tools: withToolsCache(allowedTools),

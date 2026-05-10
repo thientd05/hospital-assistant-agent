@@ -27,7 +27,7 @@ export function MessageBubble({ message, flipped = false }: Props) {
     if (flipped) {
       return (
         <div className="flex items-start">
-          <div className="bg-gray-100 text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
+          <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
             {message.content}
           </div>
         </div>

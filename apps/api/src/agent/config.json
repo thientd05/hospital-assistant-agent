@@ -8,15 +8,7 @@
     ],
     "skills": ["patient-intake"]
   },
-  "manager": {
-    "tools": ["tool_example", "read_skill"],
-    "skills": []
-  },
   "patient": {
-    "tools": ["tool_example", "read_skill"],
-    "skills": []
-  },
-  "expert": {
     "tools": ["tool_example", "read_skill"],
     "skills": []
   }

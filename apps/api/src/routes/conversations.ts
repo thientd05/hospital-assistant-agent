@@ -18,7 +18,7 @@ type ConversationDoc = {
 };
 
 function ownerId(req: FastifyRequest): string | null {
-  return req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id ?? null;
+  return req.doctor?.id ?? req.patient?.id ?? null;
 }
 
 function unauthorized(reply: FastifyReply) {
@@ -128,7 +128,10 @@ function convertMessages(
 }
 
 export async function conversationsRoutes(app: FastifyInstance) {
-  app.get("/conversations", { preHandler: verifyAuth }, async (req, reply) => {
+  app.get(
+    "/conversations",
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
+    async (req, reply) => {
     const id = ownerId(req);
     if (!id) return unauthorized(reply);
     const db = await connectDB();
@@ -143,7 +146,8 @@ export async function conversationsRoutes(app: FastifyInstance) {
       .sort({ updatedAt: -1 })
       .toArray();
     return { conversations: docs };
-  });
+    }
+  );
 
   app.get(
     "/conversations/patients",
@@ -279,7 +283,7 @@ export async function conversationsRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { id: string } }>(
     "/conversations/:id",
-    { preHandler: verifyAuth },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req, reply) => {
       const owner = ownerId(req);
       if (!owner) return unauthorized(reply);
@@ -306,7 +310,7 @@ export async function conversationsRoutes(app: FastifyInstance) {
 
   app.delete<{ Params: { id: string } }>(
     "/conversations/:id",
-    { preHandler: verifyAuth },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req, reply) => {
       const owner = ownerId(req);
       if (!owner) return unauthorized(reply);

@@ -15,16 +15,10 @@ export type WorkspaceTab =
   | "patient"
   | "lab"
   | "appointments"
-  | "drug-check"
-  | "stats"
-  | "doctors"
-  | "experts"
-  | "skills";
+  | "drug-check";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
   doctor: ["patients", "patient", "lab", "appointments", "drug-check"],
-  manager: ["stats", "patients", "doctors", "experts"],
-  expert: ["skills"],
   patient: [],
 };
 
@@ -33,14 +27,6 @@ const REFRESH_TO_TAB: Partial<Record<Exclude<ToolRefresh, false>, WorkspaceTab>>
   patient: "patient",
   lab: "lab",
   appointments: "appointments",
-  stats: "stats",
-  doctors: "doctors",
-  // for manager-side detail bumps, still refresh the list
-  doctor: "doctors",
-  experts: "experts",
-  expert: "experts",
-  skills: "skills",
-  skill: "skills",
 };
 
 type Versions = Record<WorkspaceTab, number>;
@@ -51,10 +37,6 @@ const ZERO_VERSIONS: Versions = {
   lab: 0,
   appointments: 0,
   "drug-check": 0,
-  stats: 0,
-  doctors: 0,
-  experts: 0,
-  skills: 0,
 };
 
 export type PatientFormValues = {
@@ -91,11 +73,6 @@ export function useWorkspace() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null
   );
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
-  const [selectedExpertId, setSelectedExpertId] = useState<string | null>(null);
-  const [selectedSkillName, setSelectedSkillName] = useState<string | null>(
-    null
-  );
   const [versions, setVersions] = useState<Versions>(ZERO_VERSIONS);
 
   // Patient create-form state — controlled here so the agent (panel bridge)
@@ -128,15 +105,6 @@ export function useWorkspace() {
 
   const selectPatient = useCallback((id: string | null) => {
     setSelectedPatientId(id);
-  }, []);
-  const selectDoctor = useCallback((id: string | null) => {
-    setSelectedDoctorId(id);
-  }, []);
-  const selectExpert = useCallback((id: string | null) => {
-    setSelectedExpertId(id);
-  }, []);
-  const selectSkill = useCallback((name: string | null) => {
-    setSelectedSkillName(name);
   }, []);
 
   const openPatientForm = useCallback(
@@ -259,9 +227,6 @@ export function useWorkspace() {
     activeTab,
     versions,
     selectedPatientId,
-    selectedDoctorId,
-    selectedExpertId,
-    selectedSkillName,
     openPanel,
     closePanel,
     togglePanel,
@@ -269,9 +234,6 @@ export function useWorkspace() {
     bumpTab,
     handleToolRefresh,
     selectPatient,
-    selectDoctor,
-    selectExpert,
-    selectSkill,
     // patient create form
     patientFormOpen,
     patientFormValues,

@@ -12,10 +12,6 @@ import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { LabsTab } from "./tabs/LabsTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { DrugCheckTab } from "./tabs/DrugCheckTab";
-import { StatsTab } from "./tabs/StatsTab";
-import { DoctorsTab } from "./tabs/DoctorsTab";
-import { ExpertsTab } from "./tabs/ExpertsTab";
-import { SkillsTab } from "./tabs/SkillsTab";
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = MIN_WIDTH * 1.5;
@@ -26,10 +22,6 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   lab: "Lab",
   appointments: "Lịch hẹn",
   "drug-check": "Tương tác thuốc",
-  stats: "Thống kê",
-  doctors: "Bác sĩ",
-  experts: "Chuyên gia",
-  skills: "Skill",
 };
 
 type PatientFormControl = {
@@ -124,11 +116,6 @@ export function WorkspacePanel({
       bumpTab("patients");
       bumpTab("patient");
       bumpTab("lab");
-    } else if (role === "manager") {
-      bumpTab("doctors");
-      bumpTab("experts");
-      bumpTab("patients");
-      bumpTab("stats");
     }
   }, [bumpTab, role]);
 
@@ -238,43 +225,6 @@ export function WorkspacePanel({
             />
           )}
           {role === "doctor" && activeTab === "drug-check" && <DrugCheckTab />}
-
-          {role === "manager" && activeTab === "stats" && (
-            <StatsTab
-              version={versions.stats}
-              active={isOpen && activeTab === "stats"}
-            />
-          )}
-          {role === "manager" && activeTab === "patients" && (
-            <PatientsTab
-              role="manager"
-              version={versions.patients}
-              active={isOpen && activeTab === "patients"}
-              onChanged={onChanged}
-            />
-          )}
-          {role === "manager" && activeTab === "doctors" && (
-            <DoctorsTab
-              version={versions.doctors}
-              active={isOpen && activeTab === "doctors"}
-              onChanged={onChanged}
-            />
-          )}
-          {role === "manager" && activeTab === "experts" && (
-            <ExpertsTab
-              version={versions.experts}
-              active={isOpen && activeTab === "experts"}
-              onChanged={onChanged}
-            />
-          )}
-
-          {role === "expert" && activeTab === "skills" && (
-            <SkillsTab
-              version={versions.skills}
-              active={isOpen && activeTab === "skills"}
-              onChanged={onChanged}
-            />
-          )}
         </div>
       </div>
     </aside>

@@ -6,8 +6,6 @@ import { hashPassword, verifyPassword } from "../auth/password.ts";
 import { verifyAuth } from "../auth/middleware.ts";
 import {
   ensureDoctorWorkspace,
-  ensureExpertWorkspace,
-  ensureManagerWorkspace,
   ensurePatientWorkspace,
 } from "../agent/workspace.ts";
 
@@ -81,25 +79,6 @@ export async function authRoutes(app: FastifyInstance) {
       .collection<Manager>("managers")
       .findOne({ username });
     if (manager && verifyPassword(password, manager.passwordHash)) {
-      try {
-        const ensured = ensureManagerWorkspace(manager.id);
-        if (!ensured.alreadyComplete) {
-          app.log.info(
-            {
-              managerId: manager.id,
-              createdDir: ensured.createdDir,
-              createdFiles: ensured.createdFiles,
-            },
-            "Bootstrapped manager workspace"
-          );
-        }
-      } catch (err) {
-        app.log.error(
-          { err, managerId: manager.id },
-          "Failed to bootstrap manager workspace"
-        );
-      }
-
       const token = app.jwt.sign(
         { sub: manager.id, role: "manager" },
         { expiresIn: "24h" }
@@ -115,25 +94,6 @@ export async function authRoutes(app: FastifyInstance) {
       .collection<Expert>("experts")
       .findOne({ username });
     if (expert && verifyPassword(password, expert.passwordHash)) {
-      try {
-        const ensured = ensureExpertWorkspace(expert.id);
-        if (!ensured.alreadyComplete) {
-          app.log.info(
-            {
-              expertId: expert.id,
-              createdDir: ensured.createdDir,
-              createdFiles: ensured.createdFiles,
-            },
-            "Bootstrapped expert workspace"
-          );
-        }
-      } catch (err) {
-        app.log.error(
-          { err, expertId: expert.id },
-          "Failed to bootstrap expert workspace"
-        );
-      }
-
       const token = app.jwt.sign(
         { sub: expert.id, role: "expert" },
         { expiresIn: "24h" }

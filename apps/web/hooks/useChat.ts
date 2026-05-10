@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   Message,
-  ModelKey,
   ToolCall,
   ToolRefresh,
 } from "@pr_hospitalagent/types";
@@ -50,7 +49,6 @@ export function useChat(opts: UseChatOptions = {}) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
-  const [model, setModel] = useState<ModelKey>("haiku");
 
   const onToolRefreshRef = useRef(opts.onToolRefresh);
   useEffect(() => {
@@ -204,7 +202,7 @@ export function useChat(opts: UseChatOptions = {}) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ conversationId, message: text, model }),
+          body: JSON.stringify({ conversationId, message: text }),
         });
 
         if (res.status === 401) {
@@ -300,7 +298,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [conversationId, isStreaming, model, token, logout, mode]
+    [conversationId, isStreaming, token, logout, mode]
   );
 
   return {
@@ -308,8 +306,6 @@ export function useChat(opts: UseChatOptions = {}) {
     isStreaming,
     isLoadingConversation,
     conversationId,
-    model,
-    setModel,
     sendMessage,
     selectConversation,
   };

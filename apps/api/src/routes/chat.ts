@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { connectDB } from "../db/client.ts";
 import { runAgentLoop } from "../agent/loop.ts";
 import { verifyAuth } from "../auth/middleware.ts";
+import { requireRole } from "../auth/role-guard.ts";
 import { getRefreshTarget } from "../agent/tool-refresh-map.ts";
 import {
   createPanelClient,
@@ -13,7 +14,6 @@ import {
 const BodySchema = z.object({
   conversationId: z.string().nullish(),
   message: z.string().min(1),
-  model: z.enum(["haiku", "sonnet"]).optional().default("haiku"),
 });
 
 type StoredMessage = Anthropic.MessageParam;
@@ -33,15 +33,21 @@ function sse(reply: any, payload: unknown) {
 }
 
 export async function chatRoutes(app: FastifyInstance) {
-  app.post("/chat", { preHandler: verifyAuth }, async (req, reply) => {
+  app.post(
+    "/chat",
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
+    async (req, reply) => {
     const parsed = BodySchema.safeParse(req.body);
     if (!parsed.success) {
       reply.code(400).send({ error: "Invalid body", details: parsed.error });
       return;
     }
-    const { conversationId, message, model } = parsed.data;
-    const ownerId = req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id;
-    if (!ownerId || !req.authRole) {
+    const { conversationId, message } = parsed.data;
+    const ownerId = req.doctor?.id ?? req.patient?.id;
+    if (
+      !ownerId ||
+      (req.authRole !== "doctor" && req.authRole !== "patient")
+    ) {
       reply.code(401).send({ error: "Unauthorized" });
       return;
     }
@@ -79,7 +85,6 @@ export async function chatRoutes(app: FastifyInstance) {
     try {
       const finalMessages = await runAgentLoop(
         messages,
-        model,
         (text) => sse(reply, { type: "text", content: text }),
         (tc) =>
           sse(reply, {
@@ -120,14 +125,14 @@ export async function chatRoutes(app: FastifyInstance) {
     } finally {
       reply.raw.end();
     }
-  });
+    }
+  );
 
   app.post<{ Params: { commandId: string } }>(
     "/chat/tool-callback/:commandId",
-    { preHandler: verifyAuth },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req, reply) => {
-      const ownerId =
-        req.doctor?.id ?? req.manager?.id ?? req.patient?.id ?? req.expert?.id;
+      const ownerId = req.doctor?.id ?? req.patient?.id;
       if (!ownerId) {
         reply.code(401).send({ error: "Unauthorized" });
         return;

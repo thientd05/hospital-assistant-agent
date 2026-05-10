@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import type { ModelKey } from "@pr_hospitalagent/types";
 
 type Props = {
   onSend: (text: string) => void;
   disabled: boolean;
-  model: ModelKey;
-  onModelChange: (m: ModelKey) => void;
   role?: string | null;
-  hideModel?: boolean;
   placeholder?: string;
 };
 
@@ -29,29 +25,13 @@ const MAX_ROWS = 5;
 const LINE_HEIGHT = 22;
 const PADDING_Y = 8;
 
-const MODEL_LABELS: Record<ModelKey, string> = {
-  haiku: "Nhanh",
-  sonnet: "Thông minh",
-};
-
-const MODEL_DESCRIPTIONS: Record<ModelKey, string> = {
-  haiku: "Trả lời nhanh, phù hợp câu hỏi ngắn",
-  sonnet: "Suy luận sâu, phù hợp câu hỏi phức tạp",
-};
-
-const MODEL_OPTIONS: ModelKey[] = ["haiku", "sonnet"];
-
 export function ChatInput({
   onSend,
   disabled,
-  model,
-  onModelChange,
   role,
-  hideModel,
   placeholder,
 }: Props) {
   const [value, setValue] = useState("");
-  const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -116,88 +96,6 @@ export function ChatInput({
             </button>
 
             <div className="flex-1" />
-
-            {!hideModel && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setModelMenuOpen((o) => !o)}
-                disabled={disabled}
-                aria-haspopup="menu"
-                aria-expanded={modelMenuOpen}
-                className="text-xs px-2.5 py-1.5 rounded-md flex items-center gap-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {MODEL_LABELS[model]}
-                <svg
-                  viewBox="0 0 20 20"
-                  className="w-3 h-3 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="5 8 10 13 15 8" />
-                </svg>
-              </button>
-
-              {modelMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30"
-                    onClick={() => setModelMenuOpen(false)}
-                    aria-hidden
-                  />
-                  <div
-                    role="menu"
-                    className="absolute right-0 bottom-full mb-1 z-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-[200px]"
-                  >
-                    {MODEL_OPTIONS.map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={m === model}
-                        onClick={() => {
-                          onModelChange(m);
-                          setModelMenuOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 hover:bg-gray-50 flex items-start gap-2 ${
-                          m === model ? "text-gray-900" : "text-gray-700"
-                        }`}
-                      >
-                        <svg
-                          viewBox="0 0 20 20"
-                          className={`w-4 h-4 mt-0.5 shrink-0 ${
-                            m === model ? "text-gray-900" : "text-transparent"
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="4 10 8 14 16 6" />
-                        </svg>
-                        <div className="flex flex-col leading-tight">
-                          <span
-                            className={`text-sm ${
-                              m === model ? "font-medium" : ""
-                            }`}
-                          >
-                            {MODEL_LABELS[m]}
-                          </span>
-                          <span className="text-xs text-gray-500 mt-0.5">
-                            {MODEL_DESCRIPTIONS[m]}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-            )}
 
             <button
               type="button"

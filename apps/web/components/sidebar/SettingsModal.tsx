@@ -163,6 +163,9 @@ export function SettingsModal({ open, onClose }: Props) {
 
   if (!open || !account) return null;
 
+  const showWorkspaceFiles =
+    account.role === "doctor" || account.role === "patient";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -199,18 +202,22 @@ export function SettingsModal({ open, onClose }: Props) {
             >
               Đổi mật khẩu
             </TabButton>
-            <div className="pt-3 pb-1 px-3 text-xs uppercase tracking-wide text-gray-400">
-              Workspace
-            </div>
-            {WORKSPACE_FILES.map((f) => (
-              <TabButton
-                key={f.file}
-                active={tab.kind === "file" && tab.file === f.file}
-                onClick={() => setTab({ kind: "file", file: f.file })}
-              >
-                {f.label}
-              </TabButton>
-            ))}
+            {showWorkspaceFiles && (
+              <>
+                <div className="pt-3 pb-1 px-3 text-xs uppercase tracking-wide text-gray-400">
+                  Workspace
+                </div>
+                {WORKSPACE_FILES.map((f) => (
+                  <TabButton
+                    key={f.file}
+                    active={tab.kind === "file" && tab.file === f.file}
+                    onClick={() => setTab({ kind: "file", file: f.file })}
+                  >
+                    {f.label}
+                  </TabButton>
+                ))}
+              </>
+            )}
           </nav>
           <div className="p-3 border-t border-gray-200">
             <button

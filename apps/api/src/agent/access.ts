@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export type AuthRole = "doctor" | "manager" | "patient" | "expert";
+export type AuthRole = "doctor" | "patient";
 
 type RoleAccess = { tools: string[]; skills: string[] };
 type AccessConfig = Record<AuthRole, RoleAccess>;
@@ -14,7 +14,7 @@ function loadConfig(): AccessConfig {
   if (cached) return cached;
   const raw = readFileSync(CONFIG_PATH, "utf8");
   const parsed = JSON.parse(raw) as AccessConfig;
-  for (const role of ["doctor", "manager", "patient", "expert"] as const) {
+  for (const role of ["doctor", "patient"] as const) {
     const block = parsed[role];
     if (!block || !Array.isArray(block.tools) || !Array.isArray(block.skills)) {
       throw new Error(

@@ -13,6 +13,10 @@ import { statsRoutes } from "./routes/stats.ts";
 import { drugCheckRoutes } from "./routes/drug-check.ts";
 import { skillsRoutes } from "./routes/skills.ts";
 import { workspaceRoutes } from "./routes/workspace.ts";
+import { assetsRoutes } from "./routes/assets.ts";
+import { utilitiesRoutes } from "./routes/utilities.ts";
+import { payrollRoutes } from "./routes/payroll.ts";
+import { revenueRoutes } from "./routes/revenue.ts";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) {
@@ -39,6 +43,10 @@ await app.register(statsRoutes, { prefix: "/api" });
 await app.register(drugCheckRoutes, { prefix: "/api" });
 await app.register(skillsRoutes, { prefix: "/api" });
 await app.register(workspaceRoutes, { prefix: "/api" });
+await app.register(assetsRoutes, { prefix: "/api" });
+await app.register(utilitiesRoutes, { prefix: "/api" });
+await app.register(payrollRoutes, { prefix: "/api" });
+await app.register(revenueRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 3001);
 await app.listen({ port, host: "0.0.0.0" });

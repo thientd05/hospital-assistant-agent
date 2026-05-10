@@ -1,5 +1,6 @@
 "use client";
 
+import type { FinancialStatsData } from "@pr_hospitalagent/types";
 import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
 
@@ -22,6 +23,14 @@ export type CustomerStatsData = {
 export function useCustomerStats(version: number, enabled = true) {
   return useResource<CustomerStatsData>(
     () => http.get("/api/stats/customers"),
+    [version],
+    enabled
+  );
+}
+
+export function useFinancialStats(version: number, enabled = true) {
+  return useResource<FinancialStatsData>(
+    () => http.get("/api/stats/financial"),
     [version],
     enabled
   );
