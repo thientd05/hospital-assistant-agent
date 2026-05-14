@@ -1,5 +1,5 @@
-import { connectDB, client } from "./client.ts";
-import { hashPassword } from "../auth/password.ts";
+import { connectDB, client } from "@pr_hospitalagent/api-shared";
+import { hashPassword } from "@pr_hospitalagent/api-shared";
 import type { Manager } from "@pr_hospitalagent/types";
 
 const now = new Date();

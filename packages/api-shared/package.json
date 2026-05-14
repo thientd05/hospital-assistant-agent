@@ -1,0 +1,14 @@
+{
+  "name": "@pr_hospitalagent/api-shared",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@fastify/jwt": "^10.0.0",
+    "fastify": "^5",
+    "mongodb": "^6"
+  },
+  "devDependencies": {
+    "@pr_hospitalagent/types": "workspace:*"
+  }
+}

@@ -1,4 +1,4 @@
-import { connectDB, client } from "./client.ts";
+import { connectDB, client } from "@pr_hospitalagent/api-shared";
 import type {
   Doctor,
   Expert,

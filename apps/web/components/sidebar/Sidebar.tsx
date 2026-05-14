@@ -31,6 +31,7 @@ type Props = {
   onDelete: (id: string) => Promise<void>;
   disabled?: boolean;
   mode?: "ai" | "patient";
+  onModeChange?: (mode: "ai" | "patient") => void;
 };
 
 const EXPANDED_WIDTH = 288;
@@ -44,6 +45,7 @@ export function Sidebar({
   onDelete,
   disabled,
   mode = "ai",
+  onModeChange,
 }: Props) {
   const isPatientMode = mode === "patient";
   const router = useRouter();
@@ -127,18 +129,57 @@ export function Sidebar({
         >
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-[14px]">
-            <span className="flex items-center gap-2 font-semibold text-gray-900">
-              <Image
-                src={claudeAvt}
-                alt="AI Gia Đình"
-                width={24}
-                height={24}
-                className="shrink-0"
-                priority
-              />
-              AI Gia Đình
-            </span>
+          <div className="flex items-center justify-between px-4 py-[10px]">
+            {onModeChange ? (
+              <button
+                type="button"
+                onClick={() =>
+                  onModeChange(mode === "ai" ? "patient" : "ai")
+                }
+                disabled={disabled}
+                aria-pressed={isPatientMode}
+                aria-label={
+                  isPatientMode
+                    ? "Chuyển sang chat với AI"
+                    : "Chuyển sang chat với bệnh nhân"
+                }
+                className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-[#EFEFEB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
+              >
+                <Image
+                  src={claudeAvt}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="shrink-0"
+                  priority
+                />
+                {isPatientMode ? "Bệnh Nhân" : "AI Gia Đình"}
+                <svg
+                  viewBox="0 0 20 20"
+                  className="w-3.5 h-3.5 text-gray-400 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M5 8l5 5 5-5" />
+                </svg>
+              </button>
+            ) : (
+              <span className="flex items-center gap-2 font-semibold text-gray-900 py-1">
+                <Image
+                  src={claudeAvt}
+                  alt="AI Gia Đình"
+                  width={24}
+                  height={24}
+                  className="shrink-0"
+                  priority
+                />
+                AI Gia Đình
+              </span>
+            )}
             <button
               type="button"
               onClick={() => setCollapsed(true)}

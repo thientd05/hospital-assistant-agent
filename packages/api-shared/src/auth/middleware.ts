@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type {} from "@fastify/jwt";
 import type {
   Doctor,
   DoctorPublic,
@@ -10,10 +11,6 @@ import type {
   PatientPublic,
 } from "@pr_hospitalagent/types";
 import { connectDB } from "../db/client.ts";
-import {
-  ensureDoctorWorkspace,
-  ensurePatientWorkspace,
-} from "../agent/workspace.ts";
 
 export type AuthRole = "doctor" | "manager" | "patient" | "expert";
 
@@ -53,26 +50,6 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
       reply.code(401).send({ error: "Unauthorized" });
       return reply;
     }
-
-    try {
-      const ensured = ensurePatientWorkspace(patient.id);
-      if (!ensured.alreadyComplete) {
-        req.log.info(
-          {
-            patientId: patient.id,
-            createdDir: ensured.createdDir,
-            createdFiles: ensured.createdFiles,
-          },
-          "Bootstrapped patient workspace"
-        );
-      }
-    } catch (err) {
-      req.log.error(
-        { err, patientId: patient.id },
-        "Failed to bootstrap patient workspace"
-      );
-    }
-
     req.patient = patient as PatientPublic;
     req.authRole = "patient";
     return;
@@ -113,26 +90,6 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
     return reply;
   }
 
-  try {
-    const ensured = ensureDoctorWorkspace(doctor.id);
-    if (!ensured.alreadyComplete) {
-      req.log.info(
-        {
-          doctorId: doctor.id,
-          createdDir: ensured.createdDir,
-          createdFiles: ensured.createdFiles,
-        },
-        "Bootstrapped doctor workspace"
-      );
-    }
-  } catch (err) {
-    req.log.error(
-      { err, doctorId: doctor.id },
-      "Failed to bootstrap doctor workspace"
-    );
-  }
-
   req.doctor = doctor as DoctorPublic;
   req.authRole = "doctor";
 }
-

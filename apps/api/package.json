@@ -17,9 +17,9 @@
     "cleanup:legacy-conversations": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/cleanup-legacy-conversations.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "latest",
     "@fastify/cors": "^10",
     "@fastify/jwt": "^10.0.0",
+    "@pr_hospitalagent/api-shared": "workspace:*",
     "fastify": "^5",
     "mongodb": "^6",
     "zod": "^3"

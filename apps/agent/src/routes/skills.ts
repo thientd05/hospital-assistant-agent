@@ -10,8 +10,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
-import { verifyAuth } from "../auth/middleware.ts";
-import { requireRole } from "../auth/role-guard.ts";
+import { requireRole, verifyAuth } from "@pr_hospitalagent/api-shared";
 
 const NAME_RE = /^[A-Za-z0-9_-]+$/;
 const MAX_READ_BYTES = 200_000;

@@ -1,8 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import Anthropic from "@anthropic-ai/sdk";
-import { connectDB } from "../db/client.ts";
-import { verifyAuth } from "../auth/middleware.ts";
-import { requireRole } from "../auth/role-guard.ts";
+import {
+  connectDB,
+  requireRole,
+  verifyAuth,
+} from "@pr_hospitalagent/api-shared";
 import type { Message, ToolCall } from "@pr_hospitalagent/types";
 
 type StoredMessage = Anthropic.MessageParam;

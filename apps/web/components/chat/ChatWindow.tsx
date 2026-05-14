@@ -13,7 +13,6 @@ type Props = {
   isPanelOpen?: boolean;
   onTogglePanel?: () => void;
   chatMode?: ChatMode;
-  onChatModeChange?: (mode: ChatMode) => void;
 };
 
 export function ChatWindow({
@@ -23,7 +22,6 @@ export function ChatWindow({
   isPanelOpen,
   onTogglePanel,
   chatMode = "ai",
-  onChatModeChange,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
@@ -31,30 +29,6 @@ export function ChatWindow({
   const isPatientMode = chatMode === "patient";
   return (
     <div className="relative flex-1 min-w-0 flex flex-col h-full bg-[#F8F9F6]">
-      {onChatModeChange && (
-        <button
-          type="button"
-          onClick={() =>
-            onChatModeChange(chatMode === "ai" ? "patient" : "ai")
-          }
-          disabled={isStreaming}
-          aria-pressed={chatMode === "patient"}
-          aria-label={
-            chatMode === "ai"
-              ? "Chuyển sang chat với bệnh nhân"
-              : "Chuyển sang chat với AI"
-          }
-          title={
-            chatMode === "ai"
-              ? "Chuyển sang chat với bệnh nhân"
-              : "Chuyển sang chat với AI"
-          }
-          className="absolute top-4 left-6 z-10 w-8 h-8 rounded-full border border-gray-200 text-[11px] font-semibold flex items-center justify-center shrink-0 transition-colors hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: "#C8E7E9", color: "#087E8B" }}
-        >
-          {chatMode === "ai" ? "AI" : "BN"}
-        </button>
-      )}
       {onTogglePanel && !isPanelOpen && (
         <button
           type="button"

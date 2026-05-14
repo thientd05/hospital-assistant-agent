@@ -1,15 +1,18 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
-import { connectDB } from "../db/client.ts";
+import {
+  connectDB,
+  requireRole,
+  verifyAuth,
+} from "@pr_hospitalagent/api-shared";
 import { runAgentLoop } from "../agent/loop.ts";
-import { verifyAuth } from "../auth/middleware.ts";
-import { requireRole } from "../auth/role-guard.ts";
 import { getRefreshTarget } from "../agent/tool-refresh-map.ts";
 import {
   createPanelClient,
   resolvePanelCommand,
 } from "../agent/panel-bridge.ts";
+import { ensureAgentWorkspace } from "../middleware/ensure-workspace.ts";
 
 const BodySchema = z.object({
   conversationId: z.string().nullish(),
@@ -35,7 +38,13 @@ function sse(reply: any, payload: unknown) {
 export async function chatRoutes(app: FastifyInstance) {
   app.post(
     "/chat",
-    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
+    {
+      preHandler: [
+        verifyAuth,
+        ensureAgentWorkspace,
+        requireRole("doctor", "patient"),
+      ],
+    },
     async (req, reply) => {
     const parsed = BodySchema.safeParse(req.body);
     if (!parsed.success) {

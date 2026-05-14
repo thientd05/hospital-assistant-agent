@@ -253,6 +253,7 @@ export default function ChatPage() {
         onDelete={handleDelete}
         disabled={chat.isStreaming}
         mode={chatMode}
+        onModeChange={isDoctor ? handleChatModeChange : undefined}
       />
       <ChatWindow
         messages={chat.messages}
@@ -261,7 +262,6 @@ export default function ChatPage() {
         isPanelOpen={workspace.isOpen}
         onTogglePanel={hasPanel ? workspace.togglePanel : undefined}
         chatMode={chatMode}
-        onChatModeChange={isDoctor ? handleChatModeChange : undefined}
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}

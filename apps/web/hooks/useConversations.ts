@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { API_URL } from "@/lib/api";
+import { AGENT_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 
 export type ConversationListItem = {
@@ -20,7 +20,7 @@ export function useConversations() {
   const refresh = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/conversations`, {
+      const res = await fetch(`${AGENT_URL}/api/conversations`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401) {
@@ -40,7 +40,7 @@ export function useConversations() {
   const deleteConversation = useCallback(
     async (id: string) => {
       if (!token) return;
-      const res = await fetch(`${API_URL}/api/conversations/${id}`, {
+      const res = await fetch(`${AGENT_URL}/api/conversations/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
