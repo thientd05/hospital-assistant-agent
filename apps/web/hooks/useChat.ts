@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   Message,
+  MessagePart,
   ToolCall,
   ToolRefresh,
 } from "@pr_hospitalagent/types";
@@ -32,6 +33,22 @@ type SSEEvent =
 
 function newId() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Nối thêm text vào danh sách part, gộp vào text part cuối nếu có (giữ thứ tự
+// xen kẽ thật: text trước tool trong cùng turn, và xen kẽ giữa các turn).
+function appendTextPart(
+  parts: MessagePart[] | undefined,
+  text: string
+): MessagePart[] {
+  const next = [...(parts ?? [])];
+  const last = next[next.length - 1];
+  if (last && last.type === "text") {
+    next[next.length - 1] = { type: "text", text: last.text + text };
+  } else {
+    next.push({ type: "text", text });
+  }
+  return next;
 }
 
 export type ChatMode = "ai" | "patient";
@@ -183,6 +200,7 @@ export function useChat(opts: UseChatOptions = {}) {
         role: "assistant",
         content: "",
         toolCalls: [],
+        parts: [],
         createdAt: new Date(),
       };
 
@@ -216,7 +234,11 @@ export function useChat(opts: UseChatOptions = {}) {
         for await (const raw of readSSEStream(res)) {
           const ev = raw as SSEEvent;
           if (ev.type === "text") {
-            updateAssistant((m) => ({ ...m, content: m.content + ev.content }));
+            updateAssistant((m) => ({
+              ...m,
+              content: m.content + ev.content,
+              parts: appendTextPart(m.parts, ev.content),
+            }));
           } else if (ev.type === "tool_call") {
             if (ev.status === "running") {
               const tc: ToolCall = {
@@ -228,6 +250,7 @@ export function useChat(opts: UseChatOptions = {}) {
               updateAssistant((m) => ({
                 ...m,
                 toolCalls: [...(m.toolCalls ?? []), tc],
+                parts: [...(m.parts ?? []), { type: "tool", toolCall: tc }],
               }));
             } else {
               updateAssistant((m) => ({
@@ -236,6 +259,18 @@ export function useChat(opts: UseChatOptions = {}) {
                   t.id === ev.id
                     ? { ...t, status: "done", result: ev.result }
                     : t
+                ),
+                parts: (m.parts ?? []).map((p) =>
+                  p.type === "tool" && p.toolCall.id === ev.id
+                    ? {
+                        type: "tool",
+                        toolCall: {
+                          ...p.toolCall,
+                          status: "done",
+                          result: ev.result,
+                        },
+                      }
+                    : p
                 ),
               }));
               onToolRefreshRef.current?.(ev.refresh);
@@ -278,21 +313,26 @@ export function useChat(opts: UseChatOptions = {}) {
             updateAssistant((m) => ({
               ...m,
               content:
-                m.content +
-                (m.content ? "\n\n" : "") +
-                `⚠ Lỗi: ${ev.message}`,
+                m.content + (m.content ? "\n\n" : "") + `⚠ Lỗi: ${ev.message}`,
+              parts: appendTextPart(
+                m.parts,
+                (m.parts && m.parts.length ? "\n\n" : "") +
+                  `⚠ Lỗi: ${ev.message}`
+              ),
             }));
             setIsStreaming(false);
           }
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        const errText = `⚠ Không kết nối được tới máy chủ: ${msg}`;
         updateAssistant((m) => ({
           ...m,
-          content:
-            m.content +
-            (m.content ? "\n\n" : "") +
-            `⚠ Không kết nối được tới máy chủ: ${msg}`,
+          content: m.content + (m.content ? "\n\n" : "") + errText,
+          parts: appendTextPart(
+            m.parts,
+            (m.parts && m.parts.length ? "\n\n" : "") + errText
+          ),
         }));
       } finally {
         setIsStreaming(false);

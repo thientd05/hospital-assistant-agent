@@ -3,8 +3,16 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   toolCalls?: ToolCall[];
+  // Thứ tự xen kẽ thật giữa các đoạn text và tool trong một lượt assistant.
+  // Khi có, UI render theo đúng thứ tự này (text/tool nối tiếp như agent phát ra);
+  // content/toolCalls vẫn giữ làm fallback + dữ liệu cũ.
+  parts?: MessagePart[];
   createdAt: Date;
 };
+
+export type MessagePart =
+  | { type: "text"; text: string }
+  | { type: "tool"; toolCall: ToolCall };
 
 export type ToolCall = {
   id: string;

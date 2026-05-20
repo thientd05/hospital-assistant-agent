@@ -8,6 +8,7 @@ import {
   type AdminSection,
 } from "@/components/admin/AdminShell";
 import { SkillsTab } from "@/components/workspace/tabs/SkillsTab";
+import { ConversationAuditTab } from "@/components/workspace/tabs/ConversationAuditTab";
 
 export default function ExpertAdminPage() {
   const router = useRouter();
@@ -38,6 +39,13 @@ export default function ExpertAdminPage() {
       label: "Skill",
       render: ({ version, bump }) => (
         <SkillsTab version={version} active={true} onChanged={bump} />
+      ),
+    },
+    {
+      key: "conversations",
+      label: "Hội thoại chatbot",
+      render: ({ version }) => (
+        <ConversationAuditTab version={version} active={true} />
       ),
     },
   ];

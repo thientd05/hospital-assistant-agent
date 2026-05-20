@@ -5,7 +5,7 @@ import {
   requireRole,
   verifyAuth,
 } from "@pr_hospitalagent/api-shared";
-import type { Message, ToolCall } from "@pr_hospitalagent/types";
+import type { Message, MessagePart, ToolCall } from "@pr_hospitalagent/types";
 
 type StoredMessage = Anthropic.MessageParam;
 
@@ -96,24 +96,35 @@ function convertMessages(
       continue;
     }
 
-    // assistant
+    // assistant — giữ thứ tự xen kẽ thật giữa text và tool qua `parts`.
     let text = "";
     const toolCalls: ToolCall[] = [];
+    const parts: MessagePart[] = [];
+    const pushText = (t: string) => {
+      if (!t) return;
+      const last = parts[parts.length - 1];
+      if (last && last.type === "text") last.text += t;
+      else parts.push({ type: "text", text: t });
+    };
     if (typeof msg.content === "string") {
       text = msg.content;
+      pushText(msg.content);
     } else {
       for (const block of msg.content) {
         if (block.type === "text") {
           text += block.text;
+          pushText(block.text);
         } else if (block.type === "tool_use") {
           const result = results.get(block.id);
-          toolCalls.push({
+          const tc: ToolCall = {
             id: block.id,
             name: block.name,
             input: block.input as Record<string, unknown>,
             result,
             status: "done",
-          });
+          };
+          toolCalls.push(tc);
+          parts.push({ type: "tool", toolCall: tc });
         }
       }
     }
@@ -122,6 +133,7 @@ function convertMessages(
       role: "assistant",
       content: text,
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      parts: parts.length > 0 ? parts : undefined,
       createdAt: fallbackDate,
     });
   }
@@ -279,6 +291,99 @@ export async function conversationsRoutes(app: FastifyInstance) {
           content: finalText,
           createdAt: now,
         },
+      };
+    }
+  );
+
+  // === Audit (chuyên gia) — CHỈ ĐỌC ===
+  // Chuyên gia xem mọi hội thoại chatbot (với bác sĩ + bệnh nhân) để đánh giá
+  // chất lượng trả lời, từ đó điều chỉnh skill. Không sửa/xoá.
+  type OwnerRole = "doctor" | "patient" | "unknown";
+  const ownerRoleOf = (id?: string): OwnerRole =>
+    !id ? "unknown" : /^BS/i.test(id) ? "doctor" : /^BN/i.test(id) ? "patient" : "unknown";
+
+  app.get(
+    "/conversations/audit",
+    { preHandler: [verifyAuth, requireRole("expert")] },
+    async () => {
+      const db = await connectDB();
+      const conversations = db.collection<ConversationDoc>("conversations");
+      const docs = await conversations
+        .find(
+          { doctorId: { $regex: /^(BS|BN)\d+$/i } },
+          {
+            projection: { _id: 0, id: 1, title: 1, updatedAt: 1, doctorId: 1 },
+          }
+        )
+        .sort({ updatedAt: -1 })
+        .toArray();
+      const ids = Array.from(
+        new Set(docs.map((d) => d.doctorId).filter((x): x is string => !!x))
+      );
+      const doctorIds = ids.filter((id) => /^BS/i.test(id));
+      const patientIds = ids.filter((id) => /^BN/i.test(id));
+      const [doctors, patients] = await Promise.all([
+        doctorIds.length
+          ? db
+              .collection<{ id: string; name: string }>("doctors")
+              .find({ id: { $in: doctorIds } }, { projection: { _id: 0, id: 1, name: 1 } })
+              .toArray()
+          : [],
+        patientIds.length
+          ? db
+              .collection<{ id: string; name: string }>("patients")
+              .find({ id: { $in: patientIds } }, { projection: { _id: 0, id: 1, name: 1 } })
+              .toArray()
+          : [],
+      ]);
+      const nameById = new Map<string, string>();
+      for (const d of doctors) nameById.set(d.id, d.name);
+      for (const p of patients) nameById.set(p.id, p.name);
+      return {
+        conversations: docs.map((d) => ({
+          id: d.id,
+          title: d.title,
+          updatedAt: d.updatedAt,
+          ownerId: d.doctorId ?? null,
+          ownerName: d.doctorId ? nameById.get(d.doctorId) ?? null : null,
+          ownerRole: ownerRoleOf(d.doctorId),
+        })),
+      };
+    }
+  );
+
+  app.get<{ Params: { id: string } }>(
+    "/conversations/audit/:id",
+    { preHandler: [verifyAuth, requireRole("expert")] },
+    async (req, reply) => {
+      const db = await connectDB();
+      const conversations = db.collection<ConversationDoc>("conversations");
+      const doc = await conversations.findOne(
+        { id: req.params.id },
+        { projection: { _id: 0 } }
+      );
+      if (!doc) {
+        reply.code(404).send({ error: "Conversation not found" });
+        return;
+      }
+      const ownerRole = ownerRoleOf(doc.doctorId);
+      let ownerName: string | null = null;
+      if (doc.doctorId && ownerRole !== "unknown") {
+        const coll = ownerRole === "doctor" ? "doctors" : "patients";
+        const owner = await db
+          .collection<{ id: string; name: string }>(coll)
+          .findOne({ id: doc.doctorId }, { projection: { _id: 0, name: 1 } });
+        ownerName = owner?.name ?? null;
+      }
+      return {
+        id: doc.id,
+        title: doc.title,
+        ownerId: doc.doctorId ?? null,
+        ownerName,
+        ownerRole,
+        messages: convertMessages(doc.messages ?? [], doc.createdAt),
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
       };
     }
   );
