@@ -13,11 +13,12 @@ export type RefreshTarget =
   | false;
 
 export const TOOL_REFRESH_MAP: Record<string, RefreshTarget> = {
-  tool_example: false,
-  // Panel-control tools: panel tự bump tab khi tự xử lý xong, nên backend không
+  // Generic panel-control tools: agent thao tác DOM thật, click button thật chạy
+  // lại đúng handler có sẵn (validate + REST + refetch/bumpTab), nên backend KHÔNG
   // cần bắn refresh — để false tránh double-bump.
-  open_patient_form: false,
-  submit_patient_form: false,
+  open_panel: false,
+  read_panel: false,
+  act: false,
   // File-read tool: không động DB/panel.
   read_skill: false,
 };

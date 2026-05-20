@@ -48,12 +48,19 @@ export function DrugCheckTab() {
             rows={4}
             placeholder="VD: warfarin, aspirin"
             className="w-full text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B]"
+            data-agent-ref="drug-check:input"
+            data-agent-role="textbox"
+            data-agent-label="Danh sách thuốc"
           />
         </label>
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={submitting}
+            data-agent-ref="drug-check:submit"
+            data-agent-role="button"
+            data-agent-label="Kiểm tra tương tác thuốc"
+            data-agent-busy={submitting ? "true" : undefined}
             className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
           >
             {submitting ? "Đang kiểm tra…" : "Kiểm tra"}
@@ -61,7 +68,12 @@ export function DrugCheckTab() {
         </div>
       </form>
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          data-agent-ref="drug-check:error"
+          data-agent-role="alert"
+          data-agent-label="Lỗi kiểm tra thuốc"
+        >
           {error}
         </div>
       )}
@@ -72,6 +84,9 @@ export function DrugCheckTab() {
               ? "border-red-200 bg-red-50 text-red-800"
               : "border-emerald-200 bg-emerald-50 text-emerald-800"
           }`}
+          data-agent-ref="drug-check:result"
+          data-agent-role="alert"
+          data-agent-label="Kết quả tương tác thuốc"
         >
           <div className="font-medium mb-1">
             {result.hasInteraction

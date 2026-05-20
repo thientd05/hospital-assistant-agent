@@ -181,6 +181,9 @@ export function PatientDetailTab({
               type="button"
               onClick={cancelEdit}
               disabled={submitting}
+              data-agent-ref="patient-detail:cancel"
+              data-agent-role="button"
+              data-agent-label="Huỷ sửa hồ sơ"
               className="text-[11px] px-2.5 py-1 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Hủy
@@ -189,6 +192,10 @@ export function PatientDetailTab({
               type="button"
               onClick={handleSave}
               disabled={submitting}
+              data-agent-ref="patient-detail:save"
+              data-agent-role="button"
+              data-agent-label="Lưu hồ sơ"
+              data-agent-busy={submitting ? "true" : undefined}
               className="text-[11px] px-2.5 py-1 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
             >
               {submitting ? "Đang lưu…" : "Lưu"}
@@ -198,6 +205,9 @@ export function PatientDetailTab({
           <button
             type="button"
             onClick={startEdit}
+            data-agent-ref="patient-detail:edit"
+            data-agent-role="button"
+            data-agent-label="Sửa hồ sơ"
             className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
           >
             Sửa
@@ -213,6 +223,9 @@ export function PatientDetailTab({
               value={draft.name}
               onChange={(e) => updateDraft("name", e.target.value)}
               className="edit-input"
+              data-agent-ref="patient-detail:name"
+              data-agent-role="textbox"
+              data-agent-label="Họ tên"
             />
           </EditRow>
           <EditRow label="Tuổi">
@@ -222,6 +235,9 @@ export function PatientDetailTab({
               value={draft.age}
               onChange={(e) => updateDraft("age", e.target.value)}
               className="edit-input"
+              data-agent-ref="patient-detail:age"
+              data-agent-role="textbox"
+              data-agent-label="Tuổi"
             />
           </EditRow>
           <EditRow label="Giới tính">
@@ -231,6 +247,9 @@ export function PatientDetailTab({
                 updateDraft("gender", e.target.value as "Nam" | "Nữ")
               }
               className="edit-input"
+              data-agent-ref="patient-detail:gender"
+              data-agent-role="combobox"
+              data-agent-label="Giới tính"
             >
               <option value="Nam">Nam</option>
               <option value="Nữ">Nữ</option>
@@ -246,6 +265,9 @@ export function PatientDetailTab({
               value={draft.ward}
               onChange={(e) => updateDraft("ward", e.target.value)}
               className="edit-input"
+              data-agent-ref="patient-detail:ward"
+              data-agent-role="textbox"
+              data-agent-label="Khoa"
             />
           </EditRow>
         </>
@@ -269,6 +291,9 @@ export function PatientDetailTab({
                 value={draft.spO2}
                 onChange={(e) => updateDraft("spO2", e.target.value)}
                 className="edit-input w-24 text-right"
+                data-agent-ref="patient-detail:spO2"
+                data-agent-role="textbox"
+                data-agent-label="SpO2"
               />
               <span className="text-xs text-gray-500 w-10 shrink-0">%</span>
             </div>
@@ -280,6 +305,9 @@ export function PatientDetailTab({
                 value={draft.heartRate}
                 onChange={(e) => updateDraft("heartRate", e.target.value)}
                 className="edit-input w-24 text-right"
+                data-agent-ref="patient-detail:heartRate"
+                data-agent-role="textbox"
+                data-agent-label="Nhịp tim"
               />
               <span className="text-xs text-gray-500 w-10 shrink-0">bpm</span>
             </div>
@@ -291,6 +319,9 @@ export function PatientDetailTab({
                 onChange={(e) => updateDraft("bloodPressure", e.target.value)}
                 placeholder="120/80"
                 className="edit-input w-24 text-right"
+                data-agent-ref="patient-detail:bloodPressure"
+                data-agent-role="textbox"
+                data-agent-label="Huyết áp"
               />
               <span className="text-xs text-gray-500 w-10 shrink-0">mmHg</span>
             </div>
@@ -303,6 +334,9 @@ export function PatientDetailTab({
                 value={draft.temperature}
                 onChange={(e) => updateDraft("temperature", e.target.value)}
                 className="edit-input w-24 text-right"
+                data-agent-ref="patient-detail:temperature"
+                data-agent-role="textbox"
+                data-agent-label="Nhiệt độ"
               />
               <span className="text-xs text-gray-500 w-10 shrink-0">°C</span>
             </div>
@@ -338,6 +372,9 @@ export function PatientDetailTab({
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
           className="edit-input w-full"
+          data-agent-ref="patient-detail:diagnoses"
+          data-agent-role="textbox"
+          data-agent-label="Chẩn đoán"
         />
       ) : data.diagnoses.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa có chẩn đoán.</div>
@@ -358,6 +395,9 @@ export function PatientDetailTab({
           onChange={(e) => updateDraft("medications", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
           className="edit-input w-full"
+          data-agent-ref="patient-detail:medications"
+          data-agent-role="textbox"
+          data-agent-label="Thuốc"
         />
       ) : data.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
@@ -375,7 +415,12 @@ export function PatientDetailTab({
       )}
 
       {editing && editError && (
-        <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          data-agent-ref="patient-detail:error"
+          data-agent-role="alert"
+          data-agent-label="Lỗi sửa hồ sơ"
+        >
           {editError}
         </div>
       )}

@@ -140,7 +140,11 @@ export function WorkspacePanel({
           }`}
         />
       )}
-      <div className="h-full flex flex-col" style={{ width }}>
+      <div
+        className="h-full flex flex-col"
+        style={{ width }}
+        data-agent-panel-root={isOpen ? "" : undefined}
+      >
         <header className="flex items-center gap-2 px-4 pt-3 pb-0 border-b border-gray-200">
           <div
             className="flex gap-1 min-w-0 flex-1 overflow-x-auto workspace-tabs-scroll"
@@ -157,6 +161,10 @@ export function WorkspacePanel({
                   key={tab}
                   type="button"
                   onClick={() => onTabChange(tab)}
+                  data-agent-ref={`tab:${tab}`}
+                  data-agent-role="tab"
+                  data-agent-label={TAB_LABELS[tab]}
+                  data-agent-active={isActive ? "true" : undefined}
                   className={`shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
                     isActive
                       ? "border-[#087E8B] text-gray-900 font-medium"
@@ -172,6 +180,9 @@ export function WorkspacePanel({
             type="button"
             onClick={onClose}
             aria-label="Đóng"
+            data-agent-ref="panel:close"
+            data-agent-role="button"
+            data-agent-label="Đóng panel"
             className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 text-lg leading-none"
           >
             ×

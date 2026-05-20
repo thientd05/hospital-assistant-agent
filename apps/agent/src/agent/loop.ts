@@ -7,19 +7,19 @@ import {
   type AuthRole,
 } from "./access.ts";
 import type { PanelClient } from "./panel-bridge.ts";
-import { definition as toolExampleDef } from "./tools/tool_example/definitions.ts";
-import { handleToolExample } from "./tools/tool_example/handlers.ts";
-import { definition as openPatientFormDef } from "./tools/open_patient_form/definitions.ts";
-import { handleOpenPatientForm } from "./tools/open_patient_form/handlers.ts";
-import { definition as submitPatientFormDef } from "./tools/submit_patient_form/definitions.ts";
-import { handleSubmitPatientForm } from "./tools/submit_patient_form/handlers.ts";
+import { definition as openPanelDef } from "./tools/open_panel/definitions.ts";
+import { handleOpenPanel } from "./tools/open_panel/handlers.ts";
+import { definition as readPanelDef } from "./tools/read_panel/definitions.ts";
+import { handleReadPanel } from "./tools/read_panel/handlers.ts";
+import { definition as actDef } from "./tools/act/definitions.ts";
+import { handleAct } from "./tools/act/handlers.ts";
 import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
 
 const tools: Anthropic.Tool[] = [
-  toolExampleDef,
-  openPatientFormDef,
-  submitPatientFormDef,
+  openPanelDef,
+  readPanelDef,
+  actDef,
   readSkillDef,
 ];
 
@@ -116,12 +116,12 @@ async function dispatchTool(
   }
   try {
     switch (name) {
-      case "tool_example":
-        return await handleToolExample(input);
-      case "open_patient_form":
-        return await handleOpenPatientForm(input, panel);
-      case "submit_patient_form":
-        return await handleSubmitPatientForm(input, panel);
+      case "open_panel":
+        return await handleOpenPanel(input, panel);
+      case "read_panel":
+        return await handleReadPanel(input, panel);
+      case "act":
+        return await handleAct(input, panel);
       case "read_skill":
         return await handleReadSkill(input, role);
       default:

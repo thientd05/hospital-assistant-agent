@@ -38,6 +38,9 @@ export function PatientCreateFormControlled({
           value={values.name}
           onChange={(e) => onChange("name", e.target.value)}
           className="input"
+          data-agent-ref="patient-form:name"
+          data-agent-role="textbox"
+          data-agent-label="Họ tên"
         />
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -48,6 +51,9 @@ export function PatientCreateFormControlled({
             value={values.age}
             onChange={(e) => onChange("age", e.target.value)}
             className="input"
+            data-agent-ref="patient-form:age"
+            data-agent-role="textbox"
+            data-agent-label="Tuổi"
           />
         </Field>
         <Field label="Giới tính">
@@ -57,6 +63,9 @@ export function PatientCreateFormControlled({
               onChange("gender", e.target.value as "Nam" | "Nữ")
             }
             className="input"
+            data-agent-ref="patient-form:gender"
+            data-agent-role="combobox"
+            data-agent-label="Giới tính"
           >
             <option value="Nam">Nam</option>
             <option value="Nữ">Nữ</option>
@@ -68,6 +77,9 @@ export function PatientCreateFormControlled({
           value={values.ward}
           onChange={(e) => onChange("ward", e.target.value)}
           className="input"
+          data-agent-ref="patient-form:ward"
+          data-agent-role="textbox"
+          data-agent-label="Khoa / phòng"
         />
       </Field>
       <Field label="Thuốc (phân tách bằng dấu phẩy)">
@@ -75,6 +87,9 @@ export function PatientCreateFormControlled({
           value={values.medications}
           onChange={(e) => onChange("medications", e.target.value)}
           className="input"
+          data-agent-ref="patient-form:medications"
+          data-agent-role="textbox"
+          data-agent-label="Thuốc"
         />
       </Field>
 
@@ -89,6 +104,9 @@ export function PatientCreateFormControlled({
             value={values.spO2}
             onChange={(e) => onChange("spO2", e.target.value)}
             className="input"
+            data-agent-ref="patient-form:spO2"
+            data-agent-role="textbox"
+            data-agent-label="SpO2 (%)"
           />
         </Field>
         <Field label="Nhịp tim (bpm)">
@@ -98,6 +116,9 @@ export function PatientCreateFormControlled({
             value={values.heartRate}
             onChange={(e) => onChange("heartRate", e.target.value)}
             className="input"
+            data-agent-ref="patient-form:heartRate"
+            data-agent-role="textbox"
+            data-agent-label="Nhịp tim (bpm)"
           />
         </Field>
       </div>
@@ -108,6 +129,9 @@ export function PatientCreateFormControlled({
             onChange={(e) => onChange("bloodPressure", e.target.value)}
             placeholder="120/80"
             className="input"
+            data-agent-ref="patient-form:bloodPressure"
+            data-agent-role="textbox"
+            data-agent-label="Huyết áp (mmHg)"
           />
         </Field>
         <Field label="Nhiệt độ (°C)">
@@ -117,12 +141,20 @@ export function PatientCreateFormControlled({
             value={values.temperature}
             onChange={(e) => onChange("temperature", e.target.value)}
             className="input"
+            data-agent-ref="patient-form:temperature"
+            data-agent-role="textbox"
+            data-agent-label="Nhiệt độ (°C)"
           />
         </Field>
       </div>
 
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          data-agent-ref="patient-form:error"
+          data-agent-role="alert"
+          data-agent-label="Lỗi form bệnh nhân"
+        >
           {error}
         </div>
       )}
@@ -132,12 +164,19 @@ export function PatientCreateFormControlled({
           onClick={onClose}
           className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
           disabled={submitting}
+          data-agent-ref="patient-form:cancel"
+          data-agent-role="button"
+          data-agent-label="Huỷ"
         >
           Huỷ
         </button>
         <button
           type="submit"
           disabled={submitting}
+          data-agent-ref="patient-form:submit"
+          data-agent-role="button"
+          data-agent-label="Tạo bệnh nhân"
+          data-agent-busy={submitting ? "true" : undefined}
           className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
           {submitting ? "Đang lưu…" : "Tạo"}

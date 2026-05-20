@@ -1,6 +1,6 @@
 ---
 name: patient-intake
-description: Quy trình tiếp nhận bệnh nhân mới — mở form trước, hỏi thêm sau, không chặn bác sĩ.
+description: Quy trình tiếp nhận bệnh nhân mới — mở form trước, điền & lưu bằng một batch tool act, hỏi thêm sau, không chặn bác sĩ.
 ---
 
 # Quy trình tiếp nhận bệnh nhân mới
@@ -18,65 +18,76 @@ Khi bác sĩ nói các câu hàm ý bắt đầu tiếp nhận một bệnh nhâ
 
 Bác sĩ thường vừa tiếp xúc bệnh nhân vừa yêu cầu bạn — họ cần thấy form xuất hiện NGAY để biết cấu trúc dữ liệu cần thu thập. Hỏi xong mới mở form là phá trải nghiệm.
 
-- ❌ KHÔNG hỏi "Cho mình biết họ tên, tuổi, khoa…" rồi mới gọi `open_patient_form`.
-- ✅ ĐÚNG: gọi `open_patient_form` ngay (rỗng cũng được), rồi mới hỏi tiếp.
+- ❌ KHÔNG hỏi "Cho mình biết họ tên, tuổi, khoa…" rồi mới mở form.
+- ✅ ĐÚNG: mở panel + mở form ngay (kể cả khi chưa có dữ liệu), rồi mới hỏi tiếp.
 
-## Cấu trúc form
+## Các `ref` của form tạo bệnh nhân
 
-**Bắt buộc** (phải đủ trước khi submit, nếu thiếu backend sẽ trả lỗi):
-- `name` — họ tên (chuỗi không rỗng)
-- `age` — tuổi (số nguyên ≥ 0, truyền dạng chuỗi)
-- `ward` — khoa/phòng (chuỗi không rỗng)
+Nút mở form (ở tab Bệnh nhân): `patients:create`.
 
-**Tuỳ chọn** (có thì điền, không thì để trống):
-- `gender` — `"Nam"` hoặc `"Nữ"` (mặc định `"Nam"`)
-- `medications` — chuỗi, nhiều thuốc cách nhau bằng dấu phẩy
-- `spO2` — SpO2 % (chuỗi số, ví dụ `"98"`)
-- `heartRate` — nhịp tim bpm (chuỗi số, ví dụ `"72"`)
-- `bloodPressure` — huyết áp dạng chuỗi tự do, ví dụ `"120/80"`
-- `temperature` — nhiệt độ °C (chuỗi số thập phân, ví dụ `"36.7"`)
+Field trong form (dùng với action `type`, riêng giới tính dùng `select`):
+- `patient-form:name` — họ tên (**bắt buộc**)
+- `patient-form:age` — tuổi, số nguyên ≥ 0 (**bắt buộc**)
+- `patient-form:ward` — khoa/phòng (**bắt buộc**)
+- `patient-form:gender` — `select`, giá trị `"Nam"` hoặc `"Nữ"` (mặc định `"Nam"`)
+- `patient-form:medications` — nhiều thuốc cách nhau dấu phẩy
+- `patient-form:spO2` — SpO2 % (vd `"98"`)
+- `patient-form:heartRate` — nhịp tim bpm (vd `"72"`)
+- `patient-form:bloodPressure` — huyết áp (vd `"120/80"`)
+- `patient-form:temperature` — nhiệt độ °C (vd `"36.7"`)
+- `patient-form:submit` — nút "Tạo" (lưu)
+- `patient-form:cancel` — nút "Huỷ"
 
-**KHÔNG có ở form tiếp nhận:**
-- Chẩn đoán. Chẩn đoán là kết quả CUỐI của lần khám, được nhập sau khi đã có hồ sơ thông qua form sửa hồ sơ — không thuộc bước tiếp nhận. Nếu bác sĩ nhắc trong câu đầu, chỉ ghi nhận để dùng sau; KHÔNG truyền vào `open_patient_form`.
+> **KHÔNG có ở form tiếp nhận:** Chẩn đoán. Chẩn đoán là kết quả CUỐI của lần khám, nhập sau qua form sửa hồ sơ (tab Hồ sơ). Nếu bác sĩ nhắc trong câu đầu, chỉ ghi nhận để dùng sau.
 
 ## Các bước
 
 ### 1. Trích thông tin có sẵn từ câu của bác sĩ
+Ví dụ:
+- "Tiếp nhận bệnh nhân Nguyễn Văn A, 45 tuổi, khoa Nội" → name="Nguyễn Văn A", age="45", ward="Nội".
+- "Bệnh nhân nữ 30 tuổi vào khoa Sản, mạch 92, SpO2 96" → gender="Nữ", age="30", ward="Sản", heartRate="92", spO2="96".
+- "Tiếp nhận bệnh nhân" → trích được rỗng, vẫn sang bước 2.
 
-Bác sĩ thường gửi kèm vài field trong câu đầu, ví dụ:
-- "Tiếp nhận bệnh nhân Nguyễn Văn A, 45 tuổi, khoa Nội"
-  → `name="Nguyễn Văn A"`, `age="45"`, `ward="Nội"`
-- "Có bệnh nhân nữ 30 tuổi vào khoa Sản, mạch 92, SpO2 96"
-  → `gender="Nữ"`, `age="30"`, `ward="Sản"`, `heartRate="92"`, `spO2="96"`
-- "Tiếp nhận bệnh nhân"
-  → trích được rỗng, vẫn sang bước 2.
+### 2. Mở panel + mở form NGAY
+Gọi `open_panel({ tab: "patients" })`. Trong snapshot trả về sẽ có `patients:create`.
 
-### 2. Gọi `open_patient_form` NGAY
+### 3. Điền & lưu bằng MỘT batch `act`
+Gộp việc mở form + điền các field đã biết + bấm Tạo vào **một** lần `act` (frontend chờ form hiện ra rồi mới điền). Ví dụ khi đã đủ 3 field bắt buộc:
 
-- Có thông tin → truyền vào tool.
-- Không có gì → gọi rỗng `open_patient_form()`, form trống vẫn mở.
+```
+act({ actions: [
+  { action: "click",  ref: "patients:create" },
+  { action: "type",   ref: "patient-form:name",  value: "Nguyễn Văn A" },
+  { action: "type",   ref: "patient-form:age",   value: "45" },
+  { action: "select", ref: "patient-form:gender", value: "Nam" },
+  { action: "type",   ref: "patient-form:ward",  value: "Nội" },
+  { action: "click",  ref: "patient-form:submit" }
+]})
+```
 
-KHÔNG hỏi thêm trước bước này.
+Chỉ thêm các action sinh hiệu/thuốc khi bác sĩ có cung cấp số đo.
 
-### 3. Phản hồi ngắn cho bác sĩ
+### 4. Nếu CHƯA đủ field bắt buộc
+Mở form và điền những gì đã có, **đừng bấm submit**:
 
-Sau khi tool trả `fields`:
-- Báo gọn các field đã pre-fill (nếu có) — không lặp lại từng giá trị bác sĩ vừa nói.
-- Liệt kê field BẮT BUỘC còn thiếu (`name`, `age`, `ward`) và hỏi gọn.
-- Sinh hiệu/thuốc tuỳ chọn — chỉ hỏi khi bác sĩ ngụ ý muốn nhập, không tự ép.
+```
+act({ actions: [
+  { action: "click", ref: "patients:create" },
+  { action: "type",  ref: "patient-form:age",  value: "30" },
+  { action: "type",  ref: "patient-form:ward", value: "Sản" }
+]})
+```
 
-### 4. Khi bác sĩ bổ sung
+Rồi hỏi gọn field bắt buộc còn thiếu (ví dụ họ tên). Khi bác sĩ bổ sung, gọi `act` tiếp để `type` field mới rồi `click patient-form:submit`.
 
-Gọi tiếp `open_patient_form` với CHỈ field mới — tool tự merge: field truyền vào ghi đè, field không truyền giữ nguyên.
-
-### 5. Submit
-
-Khi bác sĩ ra hiệu lưu, hoặc đã đủ 3 field bắt buộc và bác sĩ không bổ sung gì thêm → gọi `submit_patient_form`. Báo lại mã BN mới (`BS00X`) hoặc lỗi nguyên văn.
+### 5. Xác nhận kết quả
+Đọc snapshot trong kết quả `act`:
+- **Thành công**: các `ref` `patient-form:*` biến mất (form đã đóng) → bệnh nhân đã được tạo. Báo gọn cho bác sĩ.
+- **Lỗi**: kết quả `{ ok: false, ... }` và/hoặc snapshot còn phần tử `role: "alert"` — đọc text alert (vd thiếu Họ tên/Khoa, tuổi không hợp lệ), sửa lại field tương ứng bằng `act` rồi submit lại, hoặc hỏi bác sĩ.
 
 ## Mẹo nhận diện
-
-- **Tuổi**: "5 tuổi" → `age="5"`. "Khoảng 50" → `age="50"` (xấp xỉ chấp nhận; bác sĩ có thể chỉnh trên form).
-- **Giới tính**: từ đại từ — "anh/ông/chú" → `Nam`; "chị/bà/cô" → `Nữ`. Không rõ thì để mặc định, KHÔNG chặn bước 2.
-- **Khoa**: chấp nhận viết tắt ("Nội", "Sản", "Nhi", "Cấp cứu"). Form lưu nguyên văn.
-- **Thuốc**: nối nhiều thuốc bằng dấu phẩy, ví dụ `medications: "amlodipine 5mg, metformin 500mg"`.
-- **Sinh hiệu**: chỉ điền khi bác sĩ cung cấp số đo; nếu bác sĩ chỉ nói "ổn định" hay mô tả chung — KHÔNG suy diễn ra số. Hỏi lại nếu cần con số chính xác.
+- **Tuổi**: "5 tuổi" → "5". "Khoảng 50" → "50" (xấp xỉ chấp nhận; bác sĩ chỉnh được trên form).
+- **Giới tính**: "anh/ông/chú" → Nam; "chị/bà/cô" → Nữ. Không rõ thì để mặc định, KHÔNG chặn bước mở form.
+- **Khoa**: chấp nhận viết tắt ("Nội", "Sản", "Nhi", "Cấp cứu"). Lưu nguyên văn.
+- **Thuốc**: nối bằng dấu phẩy, vd "amlodipine 5mg, metformin 500mg".
+- **Sinh hiệu**: chỉ điền khi bác sĩ cung cấp số đo; bác sĩ nói "ổn định" → KHÔNG suy diễn ra số.

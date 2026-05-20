@@ -63,6 +63,9 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
           <button
             type="button"
             onClick={() => setShowAdd(true)}
+            data-agent-ref="lab:add"
+            data-agent-role="button"
+            data-agent-label="Thêm xét nghiệm"
             className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
           >
             + Thêm
@@ -124,6 +127,9 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
                 type="button"
                 onClick={() => setConfirmIdx(i)}
                 disabled={busy === i}
+                data-agent-ref={`lab:${i}:delete`}
+                data-agent-role="button"
+                data-agent-label={`Xoá xét nghiệm ${r.name}`}
                 className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
               >
                 {busy === i ? "Đang xoá…" : "Xoá"}
@@ -213,6 +219,9 @@ function LabAddForm({
           onChange={(e) => setName(e.target.value)}
           className="input"
           required
+          data-agent-ref="lab-form:name"
+          data-agent-role="textbox"
+          data-agent-label="Tên xét nghiệm"
         />
       </Lbl>
       <div className="grid grid-cols-2 gap-3">
@@ -222,6 +231,9 @@ function LabAddForm({
             onChange={(e) => setValue(e.target.value)}
             className="input"
             required
+            data-agent-ref="lab-form:value"
+            data-agent-role="textbox"
+            data-agent-label="Kết quả"
           />
         </Lbl>
         <Lbl label="Đơn vị">
@@ -230,6 +242,9 @@ function LabAddForm({
             onChange={(e) => setUnit(e.target.value)}
             className="input"
             required
+            data-agent-ref="lab-form:unit"
+            data-agent-role="textbox"
+            data-agent-label="Đơn vị"
           />
         </Lbl>
       </div>
@@ -239,6 +254,9 @@ function LabAddForm({
           onChange={(e) => setReferenceRange(e.target.value)}
           className="input"
           required
+          data-agent-ref="lab-form:referenceRange"
+          data-agent-role="textbox"
+          data-agent-label="Khoảng tham chiếu"
         />
       </Lbl>
       <label className="flex items-center gap-2 text-sm">
@@ -246,11 +264,19 @@ function LabAddForm({
           type="checkbox"
           checked={isAbnormal}
           onChange={(e) => setIsAbnormal(e.target.checked)}
+          data-agent-ref="lab-form:isAbnormal"
+          data-agent-role="checkbox"
+          data-agent-label="Bất thường"
         />
         Bất thường
       </label>
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          data-agent-ref="lab-form:error"
+          data-agent-role="alert"
+          data-agent-label="Lỗi form xét nghiệm"
+        >
           {error}
         </div>
       )}
@@ -259,6 +285,9 @@ function LabAddForm({
           type="button"
           onClick={onClose}
           disabled={submitting}
+          data-agent-ref="lab-form:cancel"
+          data-agent-role="button"
+          data-agent-label="Huỷ"
           className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
         >
           Huỷ
@@ -266,6 +295,10 @@ function LabAddForm({
         <button
           type="submit"
           disabled={submitting}
+          data-agent-ref="lab-form:submit"
+          data-agent-role="button"
+          data-agent-label="Lưu xét nghiệm"
+          data-agent-busy={submitting ? "true" : undefined}
           className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
           {submitting ? "Đang lưu…" : "Lưu"}

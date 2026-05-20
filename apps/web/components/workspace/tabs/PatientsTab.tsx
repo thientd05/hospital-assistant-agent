@@ -92,6 +92,9 @@ export function PatientsTab({
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Tìm theo tên, mã, khoa, chẩn đoán…"
           className="flex-1 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B]"
+          data-agent-ref="patients:filter"
+          data-agent-role="textbox"
+          data-agent-label="Tìm bệnh nhân"
         />
         {role === "doctor" && createForm && !createForm.open && (
           <button
@@ -101,6 +104,9 @@ export function PatientsTab({
               createForm.onOpen();
             }}
             className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
+            data-agent-ref="patients:create"
+            data-agent-role="button"
+            data-agent-label="Tạo bệnh nhân mới"
           >
             + Tạo
           </button>
@@ -168,6 +174,9 @@ export function PatientsTab({
                 <button
                   type="button"
                   onClick={() => onSelect(p.id)}
+                  data-agent-ref={`patient:${p.id}:open`}
+                  data-agent-role="button"
+                  data-agent-label={`Mở hồ sơ ${p.name}`}
                   className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
                 >
                   Mở hồ sơ
@@ -178,6 +187,9 @@ export function PatientsTab({
                   type="button"
                   disabled={busy === p.id}
                   onClick={() => setConfirmId(p.id)}
+                  data-agent-ref={`patient:${p.id}:delete`}
+                  data-agent-role="button"
+                  data-agent-label={`Xoá ${p.name}`}
                   className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   {busy === p.id ? "Đang xoá…" : "Xoá"}

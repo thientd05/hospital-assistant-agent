@@ -63,6 +63,9 @@ export function ConfirmModal({
             type="button"
             onClick={onCancel}
             disabled={busy}
+            data-agent-ref="confirm:cancel"
+            data-agent-role="button"
+            data-agent-label={cancelLabel}
             className="px-3 py-1.5 text-sm rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 disabled:opacity-50"
           >
             {cancelLabel}
@@ -71,6 +74,10 @@ export function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={busy}
+            data-agent-ref="confirm:ok"
+            data-agent-role="button"
+            data-agent-label={confirmLabel}
+            data-agent-busy={busy ? "true" : undefined}
             className="px-3 py-1.5 text-sm rounded-md bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
           >
             {busy ? "Đang xóa..." : confirmLabel}

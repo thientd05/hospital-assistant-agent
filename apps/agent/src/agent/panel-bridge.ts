@@ -18,7 +18,9 @@ type Pending = {
   timer: NodeJS.Timeout;
 };
 
-const TIMEOUT_MS = 30_000;
+// 60s: một lần `act` có thể gồm nhiều bước + độ trễ quan sát giữa mỗi bước,
+// nên cần dài hơn các command đơn lẻ trước đây.
+const TIMEOUT_MS = 60_000;
 const pending = new Map<string, Pending>();
 
 export function createPanelClient(

@@ -1,15 +1,10 @@
 {
   "doctor": {
-    "tools": [
-      "tool_example",
-      "open_patient_form",
-      "submit_patient_form",
-      "read_skill"
-    ],
+    "tools": ["open_panel", "read_panel", "act", "read_skill"],
     "skills": ["patient-intake"]
   },
   "patient": {
-    "tools": ["tool_example", "read_skill"],
+    "tools": [],
     "skills": []
   }
 }

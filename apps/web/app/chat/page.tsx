@@ -12,8 +12,14 @@ import { usePatientConversations } from "@/hooks/usePatientConversations";
 import {
   useWorkspace,
   ROLE_TABS,
-  type PatientFormValues,
+  type WorkspaceTab,
 } from "@/hooks/useWorkspace";
+import {
+  buildSnapshot,
+  runActions,
+  waitForRoot,
+  type PanelAction,
+} from "@/lib/panel-agent";
 
 const CHAT_STATE_KEY_PREFIX = "chat:lastState:";
 
@@ -34,12 +40,7 @@ export default function ChatPage() {
   }, [role, authLoading, router]);
 
   const workspace = useWorkspace();
-  const {
-    openPanel,
-    setTab,
-    openPatientForm,
-    submitPatientForm,
-  } = workspace;
+  const { openPanel, setTab } = workspace;
   const [chatMode, setChatMode] = useState<ChatMode>("ai");
   const savedConvIdsRef = useRef<Record<ChatMode, string | null>>({
     ai: null,
@@ -50,58 +51,36 @@ export default function ChatPage() {
   const executeToolCommand = useCallback(
     async (command: string, rawArgs: unknown): Promise<unknown> => {
       const args = (rawArgs ?? {}) as Record<string, unknown>;
-      if (command === "open_patient_form") {
-        const partial: Partial<PatientFormValues> = {};
-        if (typeof args.name === "string") partial.name = args.name;
-        if (args.age !== undefined && args.age !== null) {
-          partial.age = String(args.age);
-        }
-        if (args.gender === "Nam" || args.gender === "Nữ") {
-          partial.gender = args.gender;
-        }
-        if (typeof args.ward === "string") partial.ward = args.ward;
-        if (typeof args.medications === "string")
-          partial.medications = args.medications;
-        if (args.spO2 !== undefined && args.spO2 !== null) {
-          partial.spO2 = String(args.spO2);
-        }
-        if (args.heartRate !== undefined && args.heartRate !== null) {
-          partial.heartRate = String(args.heartRate);
-        }
-        if (typeof args.bloodPressure === "string") {
-          partial.bloodPressure = args.bloodPressure;
-        }
-        if (args.temperature !== undefined && args.temperature !== null) {
-          partial.temperature = String(args.temperature);
-        }
+      if (command === "open_panel") {
         openPanel();
-        setTab("patients");
-        const filled = openPatientForm(partial);
-        return {
-          opened: true,
-          fields: filled,
-          note: "Form đã mở. Có thể gọi open_patient_form lần nữa để cập nhật từng field, sau đó submit_patient_form để lưu.",
-        };
-      }
-      if (command === "submit_patient_form") {
-        const result = await submitPatientForm();
-        if (result.ok) {
-          return {
-            ok: true,
-            patient: {
-              id: result.patient.id,
-              name: result.patient.name,
-              age: result.patient.age,
-              gender: result.patient.gender,
-              ward: result.patient.ward,
-            },
-          };
+        const tab = args.tab;
+        const validTabs = ROLE_TABS.doctor ?? [];
+        if (
+          typeof tab === "string" &&
+          validTabs.includes(tab as WorkspaceTab)
+        ) {
+          setTab(tab as WorkspaceTab);
         }
-        return { ok: false, error: result.error };
+        await waitForRoot();
+        // Cho React render xong nội dung tab vừa chuyển trước khi chụp snapshot.
+        await new Promise((r) => setTimeout(r, 200));
+        return buildSnapshot();
+      }
+      if (command === "read_panel") {
+        return buildSnapshot();
+      }
+      if (command === "act") {
+        const actions = Array.isArray(args.actions)
+          ? (args.actions as PanelAction[])
+          : [];
+        if (actions.length === 0) {
+          return { ok: false, error: "Mảng `actions` rỗng." };
+        }
+        return await runActions(actions);
       }
       return { error: `Unknown tool command: ${command}` };
     },
-    [openPanel, setTab, openPatientForm, submitPatientForm]
+    [openPanel, setTab]
   );
 
   const chat = useChat({

@@ -82,6 +82,9 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
+            data-agent-ref="appointment:create"
+            data-agent-role="button"
+            data-agent-label="Tạo lịch hẹn"
             className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
           >
             + Tạo
@@ -135,6 +138,9 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
                     type="button"
                     disabled={busy === a.id}
                     onClick={() => handleStatus(a.id, "Đã duyệt")}
+                    data-agent-ref={`appointment:${a.id}:approve`}
+                    data-agent-role="button"
+                    data-agent-label={`Duyệt lịch hẹn ${a.id}`}
                     className="text-[11px] px-2 py-1 rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
                   >
                     Duyệt
@@ -145,6 +151,9 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
                     type="button"
                     disabled={busy === a.id}
                     onClick={() => handleStatus(a.id, "Thành công")}
+                    data-agent-ref={`appointment:${a.id}:complete`}
+                    data-agent-role="button"
+                    data-agent-label={`Hoàn tất lịch hẹn ${a.id}`}
                     className="text-[11px] px-2 py-1 rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
                   >
                     Hoàn tất
@@ -154,6 +163,9 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
                   type="button"
                   disabled={busy === a.id}
                   onClick={() => setConfirmId(a.id)}
+                  data-agent-ref={`appointment:${a.id}:cancel`}
+                  data-agent-role="button"
+                  data-agent-label={`Huỷ lịch hẹn ${a.id}`}
                   className="text-[11px] px-2 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   Huỷ
@@ -267,6 +279,9 @@ function AppointmentForm({
           placeholder="BN001"
           className="input"
           required
+          data-agent-ref="appointment-form:patientId"
+          data-agent-role="textbox"
+          data-agent-label="Mã BN"
         />
       </label>
       <div>
@@ -283,6 +298,9 @@ function AppointmentForm({
               placeholder="DD"
               className="input"
               required
+              data-agent-ref="appointment-form:day"
+              data-agent-role="textbox"
+              data-agent-label="Ngày"
             />
           </label>
           <label className="block">
@@ -296,6 +314,9 @@ function AppointmentForm({
               placeholder="MM"
               className="input"
               required
+              data-agent-ref="appointment-form:month"
+              data-agent-role="textbox"
+              data-agent-label="Tháng"
             />
           </label>
           <label className="block">
@@ -309,6 +330,9 @@ function AppointmentForm({
               placeholder="YYYY"
               className="input"
               required
+              data-agent-ref="appointment-form:year"
+              data-agent-role="textbox"
+              data-agent-label="Năm"
             />
           </label>
           <label className="block">
@@ -319,6 +343,9 @@ function AppointmentForm({
               onChange={(e) => setTime(e.target.value)}
               className="input"
               required
+              data-agent-ref="appointment-form:time"
+              data-agent-role="textbox"
+              data-agent-label="Giờ"
             />
           </label>
         </div>
@@ -331,10 +358,18 @@ function AppointmentForm({
           className="input"
           rows={2}
           required
+          data-agent-ref="appointment-form:reason"
+          data-agent-role="textbox"
+          data-agent-label="Lý do"
         />
       </label>
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          data-agent-ref="appointment-form:error"
+          data-agent-role="alert"
+          data-agent-label="Lỗi form lịch hẹn"
+        >
           {error}
         </div>
       )}
@@ -343,6 +378,9 @@ function AppointmentForm({
           type="button"
           onClick={onClose}
           disabled={submitting}
+          data-agent-ref="appointment-form:cancel"
+          data-agent-role="button"
+          data-agent-label="Huỷ"
           className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
         >
           Huỷ
@@ -350,6 +388,10 @@ function AppointmentForm({
         <button
           type="submit"
           disabled={submitting}
+          data-agent-ref="appointment-form:submit"
+          data-agent-role="button"
+          data-agent-label="Tạo lịch hẹn"
+          data-agent-busy={submitting ? "true" : undefined}
           className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
           {submitting ? "Đang lưu…" : "Tạo"}
