@@ -1,7 +1,13 @@
 {
   "doctor": {
     "tools": ["open_panel", "read_panel", "act", "read_skill"],
-    "skills": ["patient-intake"]
+    "skills": [
+      "create-patient",
+      "add-lab-result",
+      "update-patient-record",
+      "create-appointment",
+      "check-drug-interaction"
+    ]
   },
   "patient": {
     "tools": [],

@@ -8,7 +8,7 @@ import type {
   ManagerPublic,
   PatientPublic,
 } from "@pr_hospitalagent/types";
-import { http, ApiError } from "@/lib/apiClient";
+import { http, httpAgent, ApiError } from "@/lib/apiClient";
 import { useAuth, type AuthAccount } from "@/app/providers/AuthProvider";
 
 type Props = {
@@ -513,7 +513,7 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
     setEditing(false);
     (async () => {
       try {
-        const data = await http.get<{ file: string; content: string }>(
+        const data = await httpAgent.get<{ file: string; content: string }>(
           `/api/workspace/files/${meta.file}`
         );
         if (cancelled) return;
@@ -538,7 +538,7 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
     setError(null);
     setInfo(null);
     try {
-      const data = await http.put<{ file: string; content: string }>(
+      const data = await httpAgent.put<{ file: string; content: string }>(
         `/api/workspace/files/${meta.file}`,
         { content: draft }
       );

@@ -1,16 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import type { ToolCall } from "@pr_hospitalagent/types";
 
-function previewResult(raw: string | undefined): string {
+// Tên tool hiển thị bằng tiếng Việt
+const TOOL_LABELS: Record<string, string> = {
+  read_skill: "Đọc kỹ năng",
+  open_panel: "Mở cửa sổ làm việc",
+  read_panel: "Đọc cửa sổ làm việc",
+  act: "Thao tác",
+};
+
+// Tên kỹ năng (read_skill) bằng tiếng Việt — hiển thị dưới tên tool
+const SKILL_LABELS: Record<string, string> = {
+  "create-patient": "Tạo bệnh nhân",
+  "add-lab-result": "Thêm kết quả xét nghiệm",
+  "update-patient-record": "Cập nhật hồ sơ bệnh nhân",
+  "create-appointment": "Tạo lịch hẹn",
+  "check-drug-interaction": "Kiểm tra tương tác thuốc",
+};
+
+// Dòng phụ dưới tên tool (chỉ read_skill hiển thị tên kỹ năng; còn lại để trống)
+function subtitleFor(toolCall: ToolCall): string {
+  if (toolCall.name === "read_skill") {
+    const name = toolCall.input?.name;
+    if (typeof name === "string") return SKILL_LABELS[name] ?? name;
+  }
+  return "";
+}
+
+function prettyResult(raw: string | undefined): string {
   if (!raw) return "";
   try {
-    const parsed = JSON.parse(raw);
-    if (parsed?.error) return String(parsed.error);
+    return JSON.stringify(JSON.parse(raw), null, 2);
   } catch {
-    // ignore — fall through to raw slice
+    return raw;
   }
-  return raw.slice(0, 80).replace(/\s+/g, " ");
 }
 
 type Props = {
@@ -18,7 +43,12 @@ type Props = {
 };
 
 export function ToolCallCard({ toolCall }: Props) {
-  const label = toolCall.name;
+  const label = TOOL_LABELS[toolCall.name] ?? toolCall.name;
+  const subtitle = subtitleFor(toolCall);
+  const [expanded, setExpanded] = useState(false);
+  const hasInput = Object.keys(toolCall.input ?? {}).length > 0;
+  const canExpand =
+    toolCall.status === "done" || toolCall.status === "error";
 
   return (
     <div
@@ -55,7 +85,11 @@ export function ToolCallCard({ toolCall }: Props) {
       )}
 
       {toolCall.status === "done" && (
-        <div className="flex items-start gap-2">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-start gap-2 w-full text-left"
+        >
           <svg
             className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0"
             viewBox="0 0 24 24"
@@ -72,16 +106,74 @@ export function ToolCallCard({ toolCall }: Props) {
           </svg>
           <div className="flex-1 min-w-0">
             <div className="font-medium text-gray-800">{label}</div>
-            <div className="text-gray-500 text-xs truncate">
-              {previewResult(toolCall.result)}
-            </div>
+            {!expanded && subtitle && (
+              <div className="text-gray-500 text-xs truncate">{subtitle}</div>
+            )}
           </div>
-        </div>
+          <Chevron expanded={expanded} />
+        </button>
       )}
 
       {toolCall.status === "error" && (
-        <div className="text-red-600">Lỗi khi gọi {label}</div>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-center gap-2 w-full text-left text-red-600"
+        >
+          <span className="flex-1">Lỗi khi gọi {label}</span>
+          <Chevron expanded={expanded} />
+        </button>
       )}
+
+      {canExpand && expanded && (
+        <div className="mt-2 space-y-2">
+          {hasInput && (
+            <DebugBlock
+              title="Tham số"
+              content={JSON.stringify(toolCall.input, null, 2)}
+            />
+          )}
+          {toolCall.result && (
+            <DebugBlock
+              title="Kết quả"
+              content={prettyResult(toolCall.result)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Chevron({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      className={`h-4 w-4 text-gray-400 mt-0.5 shrink-0 transition-transform ${
+        expanded ? "rotate-180" : ""
+      }`}
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function DebugBlock({ title, content }: { title: string; content: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-0.5">
+        {title}
+      </div>
+      <pre className="text-[11px] leading-snug whitespace-pre-wrap break-all max-h-72 overflow-auto bg-gray-900/90 text-gray-100 rounded-md px-2.5 py-2">
+        {content}
+      </pre>
     </div>
   );
 }
