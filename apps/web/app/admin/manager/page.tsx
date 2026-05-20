@@ -8,12 +8,8 @@ import {
   type AdminSection,
 } from "@/components/admin/AdminShell";
 import { StatsTab } from "@/components/workspace/tabs/StatsTab";
-import { PatientsTab } from "@/components/workspace/tabs/PatientsTab";
-import { DoctorsTab } from "@/components/workspace/tabs/DoctorsTab";
-import { ExpertsTab } from "@/components/workspace/tabs/ExpertsTab";
-import { AssetsTab } from "@/components/workspace/tabs/AssetsTab";
-import { UtilitiesTab } from "@/components/workspace/tabs/UtilitiesTab";
-import { PayrollTab } from "@/components/workspace/tabs/PayrollTab";
+import { AccountsTab } from "@/components/workspace/tabs/AccountsTab";
+import { ExpensesTab } from "@/components/workspace/tabs/ExpensesTab";
 import { RevenueTab } from "@/components/workspace/tabs/RevenueTab";
 
 export default function ManagerAdminPage() {
@@ -46,50 +42,17 @@ export default function ManagerAdminPage() {
       render: ({ version }) => <StatsTab version={version} active={true} />,
     },
     {
-      key: "patients",
-      label: "Bệnh nhân",
+      key: "accounts",
+      label: "Quản lý tài khoản",
       render: ({ version, bump }) => (
-        <PatientsTab
-          version={version}
-          active={true}
-          role="manager"
-          onChanged={bump}
-        />
+        <AccountsTab version={version} active={true} onChanged={bump} />
       ),
     },
     {
-      key: "doctors",
-      label: "Bác sĩ",
+      key: "expenses",
+      label: "Chi phí",
       render: ({ version, bump }) => (
-        <DoctorsTab version={version} active={true} onChanged={bump} />
-      ),
-    },
-    {
-      key: "experts",
-      label: "Chuyên gia",
-      render: ({ version, bump }) => (
-        <ExpertsTab version={version} active={true} onChanged={bump} />
-      ),
-    },
-    {
-      key: "assets",
-      label: "Cơ sở vật chất",
-      render: ({ version, bump }) => (
-        <AssetsTab version={version} active={true} onChanged={bump} />
-      ),
-    },
-    {
-      key: "utilities",
-      label: "Điện nước",
-      render: ({ version, bump }) => (
-        <UtilitiesTab version={version} active={true} onChanged={bump} />
-      ),
-    },
-    {
-      key: "payroll",
-      label: "Lương",
-      render: ({ version, bump }) => (
-        <PayrollTab version={version} active={true} onChanged={bump} />
+        <ExpensesTab version={version} active={true} onChanged={bump} />
       ),
     },
     {

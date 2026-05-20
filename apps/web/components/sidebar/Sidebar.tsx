@@ -153,7 +153,7 @@ export function Sidebar({
                   className="shrink-0"
                   priority
                 />
-                {isPatientMode ? "Bệnh Nhân" : "AI Gia Đình"}
+                {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
                 <svg
                   viewBox="0 0 20 20"
                   className="w-3.5 h-3.5 text-gray-400 shrink-0"

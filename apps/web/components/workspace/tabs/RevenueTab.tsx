@@ -62,6 +62,17 @@ export function RevenueTab({ version, active, onChanged }: Props) {
     return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
   }, [filtered]);
 
+  const totalShown = useMemo(
+    () => filtered.reduce((s, r) => s + r.amount, 0),
+    [filtered]
+  );
+  const scopeLabel = [
+    periodFilter === "all" ? "Mọi kỳ" : formatPeriod(periodFilter),
+    filter === "all" ? null : filter,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   async function handleDelete(id: string) {
     if (!confirm(`Xoá doanh thu ${id}?`)) return;
     setBusy(id);
@@ -78,6 +89,18 @@ export function RevenueTab({ version, active, onChanged }: Props) {
 
   return (
     <div className="px-5 py-4 space-y-3">
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-[#C8E7E9]/50 to-white px-4 py-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">
+            Tổng doanh thu
+          </div>
+          <div className="text-[11px] text-gray-500">{scopeLabel}</div>
+        </div>
+        <div className="mt-0.5 text-2xl font-semibold text-[#087E8B] tabular-nums">
+          {formatVND(totalShown)}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex flex-wrap gap-1">
           <Chip active={filter === "all"} onClick={() => setFilter("all")}>
