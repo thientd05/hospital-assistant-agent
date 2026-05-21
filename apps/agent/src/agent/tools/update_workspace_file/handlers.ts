@@ -1,5 +1,5 @@
 import type { WorkspaceKey } from "@pr_hospitalagent/types";
-import { setWorkspaceFile } from "../../workspace-store.ts";
+import { writeWorkspaceFile } from "../../api-client.ts";
 
 const MAX_BYTES = 200_000;
 
@@ -11,7 +11,7 @@ const FILE_NAME: Record<WorkspaceKey, string> = {
 
 export async function handleUpdateWorkspaceFile(
   input: Record<string, unknown>,
-  ownerId: string
+  token: string
 ): Promise<string> {
   const fileKey = typeof input.file === "string" ? input.file : "";
   if (!(fileKey in FILE_NAME)) {
@@ -30,7 +30,7 @@ export async function handleUpdateWorkspaceFile(
   }
 
   try {
-    await setWorkspaceFile(ownerId, key, input.content);
+    await writeWorkspaceFile(token, FILE_NAME[key], input.content);
   } catch (err) {
     return JSON.stringify({
       error: err instanceof Error ? err.message : String(err),

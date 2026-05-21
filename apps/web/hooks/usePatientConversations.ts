@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AGENT_URL } from "@/lib/api";
+import { API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 
 export type PatientConversationListItem = {
@@ -25,7 +25,7 @@ export function usePatientConversations({ enabled = true }: Options = {}) {
   const refresh = useCallback(async () => {
     if (!token || !enabled) return;
     try {
-      const res = await fetch(`${AGENT_URL}/api/conversations/patients`, {
+      const res = await fetch(`${API_URL}/api/conversations/patients`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401) {

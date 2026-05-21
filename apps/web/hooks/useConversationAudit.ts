@@ -1,7 +1,7 @@
 "use client";
 
 import type { Message } from "@pr_hospitalagent/types";
-import { httpAgent } from "@/lib/apiClient";
+import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
 
 export type ConversationOwnerRole = "doctor" | "patient" | "unknown";
@@ -17,7 +17,7 @@ export type ConversationAuditItem = {
 
 export function useConversationAuditList(version: number, enabled = true) {
   return useResource<{ conversations: ConversationAuditItem[] }>(
-    () => httpAgent.get("/api/conversations/audit"),
+    () => http.get("/api/conversations/audit"),
     [version],
     enabled
   );
@@ -42,7 +42,7 @@ export function useConversationAuditDetail(
   return useResource<ConversationAuditDetail>(
     async () => {
       if (!id) throw new Error("Chưa chọn hội thoại");
-      return httpAgent.get<ConversationAuditDetail>(
+      return http.get<ConversationAuditDetail>(
         `/api/conversations/audit/${id}`
       );
     },

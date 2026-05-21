@@ -93,4 +93,12 @@ export const patientRepo = {
       .toArray();
     return docs as PatientPublic[];
   },
+
+  async listByIds(ids: string[]) {
+    if (ids.length === 0) return [];
+    const c = await coll();
+    return c
+      .find({ id: { $in: ids } }, { projection: { _id: 0, id: 1, name: 1 } })
+      .toArray();
+  },
 };

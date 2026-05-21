@@ -8,7 +8,7 @@ import type {
   ToolRefresh,
 } from "@pr_hospitalagent/types";
 import { readSSEStream } from "@/lib/stream";
-import { AGENT_URL } from "@/lib/api";
+import { AGENT_URL, API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 
 type SSEEvent =
@@ -93,7 +93,7 @@ export function useChat(opts: UseChatOptions = {}) {
           mode === "patient"
             ? `/api/conversations/patients/${id}`
             : `/api/conversations/${id}`;
-        const res = await fetch(`${AGENT_URL}${path}`, {
+        const res = await fetch(`${API_URL}${path}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.status === 401) {
@@ -138,7 +138,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setMessages((prev) => [...prev, optimistic]);
         try {
           const res = await fetch(
-            `${AGENT_URL}/api/conversations/patients/${conversationId}/reply`,
+            `${API_URL}/api/conversations/patients/${conversationId}/reply`,
             {
               method: "POST",
               headers: {

@@ -23,15 +23,9 @@ importers:
       '@fastify/jwt':
         specifier: ^10.0.0
         version: 10.0.0
-      '@pr_hospitalagent/api-shared':
-        specifier: workspace:*
-        version: link:../../packages/api-shared
       fastify:
         specifier: ^5
         version: 5.8.5
-      mongodb:
-        specifier: ^6
-        version: 6.21.0
       zod:
         specifier: ^3
         version: 3.25.76

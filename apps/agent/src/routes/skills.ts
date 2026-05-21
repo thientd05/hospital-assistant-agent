@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
-import { requireRole, verifyAuth } from "@pr_hospitalagent/api-shared";
+import { requireRole, verifyToken } from "../auth/verify-token.ts";
 
 const NAME_RE = /^[A-Za-z0-9_-]+$/;
 const MAX_READ_BYTES = 200_000;
@@ -87,13 +87,13 @@ function writeSkill(
 export async function skillsRoutes(app: FastifyInstance) {
   app.get(
     "/skills",
-    { preHandler: [verifyAuth, requireRole("expert")] },
+    { preHandler: [verifyToken, requireRole("expert")] },
     async () => ({ skills: listSkills() })
   );
 
   app.get<{ Params: { name: string } }>(
     "/skills/:name",
-    { preHandler: [verifyAuth, requireRole("expert")] },
+    { preHandler: [verifyToken, requireRole("expert")] },
     async (req, reply) => {
       const result = readSkill(req.params.name);
       if ("error" in result) {
@@ -106,7 +106,7 @@ export async function skillsRoutes(app: FastifyInstance) {
 
   app.post(
     "/skills",
-    { preHandler: [verifyAuth, requireRole("expert")] },
+    { preHandler: [verifyToken, requireRole("expert")] },
     async (req, reply) => {
       const parsed = CreateSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -124,7 +124,7 @@ export async function skillsRoutes(app: FastifyInstance) {
 
   app.put<{ Params: { name: string } }>(
     "/skills/:name",
-    { preHandler: [verifyAuth, requireRole("expert")] },
+    { preHandler: [verifyToken, requireRole("expert")] },
     async (req, reply) => {
       const parsed = UpdateSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -146,7 +146,7 @@ export async function skillsRoutes(app: FastifyInstance) {
 
   app.delete<{ Params: { name: string } }>(
     "/skills/:name",
-    { preHandler: [verifyAuth, requireRole("expert")] },
+    { preHandler: [verifyToken, requireRole("expert")] },
     async (req, reply) => {
       const name = req.params.name;
       if (!NAME_RE.test(name)) {

@@ -10,6 +10,8 @@ import { assetsRoutes } from "./assets.ts";
 import { utilitiesRoutes } from "./utilities.ts";
 import { payrollRoutes } from "./payroll.ts";
 import { revenueRoutes } from "./revenue.ts";
+import { conversationsRoutes } from "./conversations.ts";
+import { workspaceRoutes } from "./workspace.ts";
 
 const modules = [
   authRoutes,
@@ -23,6 +25,8 @@ const modules = [
   utilitiesRoutes,
   payrollRoutes,
   revenueRoutes,
+  conversationsRoutes,
+  workspaceRoutes,
 ];
 
 export async function registerRoutes(app: FastifyInstance) {

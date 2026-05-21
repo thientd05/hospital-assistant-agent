@@ -17,7 +17,7 @@ import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
 import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_file/definitions.ts";
 import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
-import { getWorkspace } from "./workspace-store.ts";
+import { fetchWorkspace } from "./api-client.ts";
 
 const tools: Anthropic.Tool[] = [
   openPanelDef,
@@ -76,14 +76,14 @@ function buildSkillIndex(role: AuthRole): string | null {
 }
 
 async function buildSystemPrompt(
-  doctorId: string,
+  token: string,
   role: AuthRole
 ): Promise<string> {
   const parts = [loadAgentPrompt(role).trim()];
   const skillIndex = buildSkillIndex(role);
   if (skillIndex) parts.push(skillIndex);
-  // Đọc workspace từ Mongo mỗi lượt → ghi nhớ áp dụng ngay, không phụ thuộc đĩa.
-  const ws = await getWorkspace(doctorId);
+  // Đọc workspace qua REST backend mỗi lượt → áp dụng ngay, agent không chạm Mongo.
+  const ws = await fetchWorkspace(token);
   const user = ws.user.trim();
   const soul = ws.soul.trim();
   if (user) parts.push(user);
@@ -107,9 +107,9 @@ export type OnToolCall = (toolCall: {
 async function dispatchTool(
   name: string,
   input: Record<string, unknown>,
-  doctorId: string,
   role: AuthRole,
-  panel: PanelClient
+  panel: PanelClient,
+  token: string
 ): Promise<string> {
   if (!getAllowedTools(role).has(name)) {
     return JSON.stringify({
@@ -127,7 +127,7 @@ async function dispatchTool(
       case "read_skill":
         return await handleReadSkill(input, role);
       case "update_workspace_file":
-        return await handleUpdateWorkspaceFile(input, doctorId);
+        return await handleUpdateWorkspaceFile(input, token);
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
     }
@@ -173,12 +173,12 @@ export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
   onChunk: OnChunk,
   onToolCall: OnToolCall,
-  doctorId: string,
   role: AuthRole,
-  panel: PanelClient
+  panel: PanelClient,
+  token: string
 ): Promise<Anthropic.MessageParam[]> {
   let working = [...messages];
-  const systemPrompt = await buildSystemPrompt(doctorId, role);
+  const systemPrompt = await buildSystemPrompt(token, role);
   const allowedToolNames = getAllowedTools(role);
   const allowedTools = tools.filter((t) => allowedToolNames.has(t.name));
 
@@ -216,9 +216,9 @@ export async function runAgentLoop(
       const result = await dispatchTool(
         tu.name,
         tu.input as Record<string, unknown>,
-        doctorId,
         role,
-        panel
+        panel,
+        token
       );
       onToolCall({
         id: tu.id,

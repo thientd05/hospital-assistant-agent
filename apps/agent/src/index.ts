@@ -1,10 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
-import { connectDB } from "@pr_hospitalagent/api-shared";
 import { chatRoutes } from "./routes/chat.ts";
-import { conversationsRoutes } from "./routes/conversations.ts";
-import { workspaceRoutes } from "./routes/workspace.ts";
 import { skillsRoutes } from "./routes/skills.ts";
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -17,13 +14,10 @@ const app = Fastify({ logger: true });
 await app.register(cors, { origin: "http://localhost:3000" });
 await app.register(jwt, { secret: jwtSecret });
 
-await connectDB();
-
-app.get("/health", async () => ({ status: "ok", db: "connected" }));
+// Agent stateless về DB — không connectDB. Persistence đi qua REST backend.
+app.get("/health", async () => ({ status: "ok" }));
 
 await app.register(chatRoutes, { prefix: "/api" });
-await app.register(conversationsRoutes, { prefix: "/api" });
-await app.register(workspaceRoutes, { prefix: "/api" });
 await app.register(skillsRoutes, { prefix: "/api" });
 
 const port = Number(process.env.AGENT_PORT ?? 3002);
