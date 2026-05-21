@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { LabResult } from "@pr_hospitalagent/types";
 import { useLabs, patientsApi } from "@/hooks/usePatients";
+import { useMyLabs } from "@/hooks/useMyLabs";
 import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
 
 type Props = {
@@ -10,15 +11,25 @@ type Props = {
   version: number;
   active: boolean;
   onChanged: () => void;
+  // selfMode: bệnh nhân tự xem xét nghiệm CỦA MÌNH (qua /me/labs) — chỉ xem, ẩn Thêm/Xoá.
+  selfMode?: boolean;
 };
 
-export function LabsTab({ patientId, version, active, onChanged }: Props) {
-  const { data, loading, error, refetch } = useLabs(patientId, version, active);
+export function LabsTab({
+  patientId,
+  version,
+  active,
+  onChanged,
+  selfMode = false,
+}: Props) {
+  const doctorRes = useLabs(patientId, version, active && !selfMode);
+  const selfRes = useMyLabs(version, active && selfMode);
+  const { data, loading, error, refetch } = selfMode ? selfRes : doctorRes;
   const [showAdd, setShowAdd] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
   const [confirmIdx, setConfirmIdx] = useState<number | null>(null);
 
-  if (!patientId) {
+  if (!selfMode && !patientId) {
     return (
       <div className="px-5 py-8 text-sm text-gray-400 text-center">
         Chọn một bệnh nhân từ tab <span className="font-medium">Bệnh nhân</span>{" "}
@@ -59,7 +70,7 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
             {data.patientName} · {data.patientId}
           </div>
         </div>
-        {!showAdd && (
+        {!selfMode && !showAdd && (
           <button
             type="button"
             onClick={() => setShowAdd(true)}
@@ -73,7 +84,7 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
         )}
       </div>
 
-      {showAdd && (
+      {showAdd && patientId && (
         <div className="mb-3">
           <LabAddForm
             patientId={patientId}
@@ -93,11 +104,13 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-12 text-[11px] uppercase tracking-wider text-gray-400 font-medium pb-2 border-b border-gray-200">
-          <div className="col-span-4">Xét nghiệm</div>
+          <div className={selfMode ? "col-span-5" : "col-span-4"}>Xét nghiệm</div>
           <div className="col-span-2">Kết quả</div>
           <div className="col-span-2">Đơn vị</div>
-          <div className="col-span-2">Tham chiếu</div>
-          <div className="col-span-2"></div>
+          <div className={`${selfMode ? "col-span-3" : "col-span-2"} text-center`}>
+            Tham chiếu
+          </div>
+          {!selfMode && <div className="col-span-2"></div>}
         </div>
       )}
       <div className="divide-y divide-gray-100">
@@ -108,7 +121,13 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
               r.isAbnormal ? "bg-red-50/60 -mx-2 px-2 rounded" : ""
             }`}
           >
-            <div className="col-span-4 text-gray-800 truncate">{r.name}</div>
+            <div
+              className={`${
+                selfMode ? "col-span-5" : "col-span-4"
+              } text-gray-800 truncate`}
+            >
+              {r.name}
+            </div>
             <div
               className={`col-span-2 font-medium truncate ${
                 r.isAbnormal ? "text-red-700" : "text-gray-900"
@@ -119,22 +138,28 @@ export function LabsTab({ patientId, version, active, onChanged }: Props) {
             <div className="col-span-2 text-gray-500 truncate">
               {r.unit || "—"}
             </div>
-            <div className="col-span-2 text-gray-500 text-xs truncate">
+            <div
+              className={`${
+                selfMode ? "col-span-3" : "col-span-2"
+              } text-gray-500 text-xs truncate text-center`}
+            >
               {r.referenceRange}
             </div>
-            <div className="col-span-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setConfirmIdx(i)}
-                disabled={busy === i}
-                data-agent-ref={`lab:${i}:delete`}
-                data-agent-role="button"
-                data-agent-label={`Xoá xét nghiệm ${r.name}`}
-                className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-              >
-                {busy === i ? "Đang xoá…" : "Xoá"}
-              </button>
-            </div>
+            {!selfMode && (
+              <div className="col-span-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setConfirmIdx(i)}
+                  disabled={busy === i}
+                  data-agent-ref={`lab:${i}:delete`}
+                  data-agent-role="button"
+                  data-agent-label={`Xoá xét nghiệm ${r.name}`}
+                  className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {busy === i ? "Đang xoá…" : "Xoá"}
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

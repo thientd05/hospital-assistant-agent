@@ -3,6 +3,7 @@ import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
 import {
   AppointmentCreateSchema,
   AppointmentUpdateSchema,
+  AppointmentPatientCreateSchema,
 } from "../schemas/appointment.ts";
 import { parseBody } from "../lib/validate.ts";
 import { appointmentService } from "../services/appointment.service.ts";
@@ -11,23 +12,48 @@ import { UnauthorizedError } from "../lib/errors.ts";
 export async function appointmentsRoutes(app: FastifyInstance) {
   app.get(
     "/appointments",
-    { preHandler: [verifyAuth, requireRole("doctor", "manager")] },
+    { preHandler: [verifyAuth, requireRole("doctor", "manager", "patient")] },
     async (req) => {
-      const filter =
-        req.authRole === "doctor" && req.doctor ? req.doctor.id : undefined;
-      return appointmentService.list(filter);
+      if (req.authRole === "patient" && req.patient) {
+        return appointmentService.list({ patientId: req.patient.id });
+      }
+      if (req.authRole === "doctor" && req.doctor) {
+        // Bác sĩ thấy lịch của mình + hàng chờ chung (để nhận).
+        return appointmentService.list({
+          doctorId: req.doctor.id,
+          includePool: true,
+        });
+      }
+      // manager: toàn bộ.
+      return appointmentService.list({});
     }
   );
 
   app.post(
     "/appointments",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
+    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req) => {
+      if (req.authRole === "patient" && req.patient) {
+        return appointmentService.createForPatient(
+          req.patient.id,
+          parseBody(AppointmentPatientCreateSchema, req.body)
+        );
+      }
       if (!req.doctor) throw new UnauthorizedError();
       return appointmentService.create(
         req.doctor.id,
         parseBody(AppointmentCreateSchema, req.body)
       );
+    }
+  );
+
+  // Bác sĩ duyệt/nhận lịch (Chờ duyệt → Đã duyệt). Dùng cho cả lịch hàng chờ chung.
+  app.post<{ Params: { id: string } }>(
+    "/appointments/:id/accept",
+    { preHandler: [verifyAuth, requireRole("doctor")] },
+    async (req) => {
+      if (!req.doctor) throw new UnauthorizedError();
+      return appointmentService.accept(req.doctor.id, req.params.id);
     }
   );
 

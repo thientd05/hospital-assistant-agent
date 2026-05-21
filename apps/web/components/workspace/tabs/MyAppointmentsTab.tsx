@@ -1,15 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import type {
-  Appointment,
-  AppointmentStatus,
-} from "@pr_hospitalagent/types";
-import {
-  useAppointments,
-  appointmentsApi,
-} from "@/hooks/useAppointments";
-import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
+import { useEffect, useState } from "react";
+import type { AppointmentStatus } from "@pr_hospitalagent/types";
+import { useAppointments, appointmentsApi } from "@/hooks/useAppointments";
+import { useDoctors } from "@/hooks/useDoctors";
+import { useManagingDoctors } from "@/hooks/useManagingDoctors";
 
 const STATUS_STYLES: Record<AppointmentStatus, string> = {
   "Chờ duyệt": "bg-amber-50 text-amber-700 ring-amber-200",
@@ -35,55 +30,11 @@ function fmt(value: string | Date): string {
 type Props = {
   version: number;
   active: boolean;
-  onChanged: () => void;
 };
 
-export function AppointmentsTab({ version, active, onChanged }: Props) {
+export function MyAppointmentsTab({ version, active }: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
   const [showForm, setShowForm] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-
-  async function handleStatus(id: string, next: AppointmentStatus) {
-    setBusy(id);
-    try {
-      await appointmentsApi.update(id, { status: next });
-      refetch();
-      onChanged();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
-    }
-  }
-  // Duyệt/nhận lịch (gồm cả hàng chờ chung): ai duyệt trước thì nhận bệnh nhân.
-  async function handleAccept(id: string) {
-    setBusy(id);
-    try {
-      await appointmentsApi.accept(id);
-      refetch();
-      onChanged();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
-    }
-  }
-  async function confirmDelete() {
-    if (!confirmId) return;
-    const id = confirmId;
-    setBusy(id);
-    try {
-      await appointmentsApi.remove(id);
-      setConfirmId(null);
-      refetch();
-      onChanged();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
-    }
-  }
 
   return (
     <div className="px-5 py-4 space-y-3">
@@ -97,20 +48,20 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
             onClick={() => setShowForm(true)}
             data-agent-ref="appointment:create"
             data-agent-role="button"
-            data-agent-label="Tạo lịch hẹn"
+            data-agent-label="Đặt lịch hẹn"
             className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
           >
-            + Tạo
+            + Đặt lịch
           </button>
         )}
       </div>
       {showForm && (
-        <AppointmentForm
+        <BookingForm
+          active={active}
           onClose={() => setShowForm(false)}
           onSaved={() => {
             setShowForm(false);
             refetch();
-            onChanged();
           }}
         />
       )}
@@ -126,100 +77,47 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
         {(data ?? []).map((a) => (
           <li
             key={a.id}
-            className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
+            className="rounded-lg border border-gray-200 px-3 py-2.5"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="text-xs text-gray-500 font-medium tabular-nums">
                 {fmt(a.scheduledAt)}
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {a.doctorId === "" && (
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset bg-purple-50 text-purple-700 ring-purple-200">
-                    Hàng chờ chung
-                  </span>
-                )}
-                <span
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_STYLES[a.status]}`}
-                >
-                  {a.status}
-                </span>
-              </div>
+              <span
+                className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_STYLES[a.status]}`}
+              >
+                {a.status}
+              </span>
             </div>
-            <div className="mt-1 text-sm text-gray-900 font-medium">
-              {a.patientName ? `${a.patientName} · ${a.patientId}` : a.patientId}
+            <div className="mt-1 text-sm text-gray-900">
+              {a.doctorId
+                ? `Bác sĩ: ${a.doctorId}`
+                : "Đang chờ phòng khám phân bác sĩ"}
             </div>
             <div className="mt-0.5 text-xs text-gray-500 line-clamp-2">
               {a.reason}
             </div>
-            {a.status !== "Thành công" && (
-              <div className="mt-2 flex items-center justify-end gap-1.5">
-                {a.status === "Chờ duyệt" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => handleAccept(a.id)}
-                    data-agent-ref={`appointment:${a.id}:approve`}
-                    data-agent-role="button"
-                    data-agent-label={`Duyệt lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
-                  >
-                    {a.doctorId === "" ? "Nhận" : "Duyệt"}
-                  </button>
-                )}
-                {a.status === "Đã duyệt" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => handleStatus(a.id, "Thành công")}
-                    data-agent-ref={`appointment:${a.id}:complete`}
-                    data-agent-role="button"
-                    data-agent-label={`Hoàn tất lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-                  >
-                    Hoàn tất
-                  </button>
-                )}
-                {a.doctorId !== "" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => setConfirmId(a.id)}
-                    data-agent-ref={`appointment:${a.id}:cancel`}
-                    data-agent-role="button"
-                    data-agent-label={`Huỷ lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    Huỷ
-                  </button>
-                )}
-              </div>
-            )}
           </li>
         ))}
       </ul>
-
-      <ConfirmModal
-        open={confirmId !== null}
-        title="Huỷ lịch hẹn"
-        message={`Bạn có chắc muốn huỷ lịch hẹn ${confirmId ?? ""}?`}
-        confirmLabel="Huỷ lịch"
-        cancelLabel="Đóng"
-        busy={busy !== null && busy === confirmId}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmId(null)}
-      />
     </div>
   );
 }
 
-function AppointmentForm({
+function BookingForm({
+  active,
   onClose,
   onSaved,
 }: {
+  active: boolean;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [patientId, setPatientId] = useState("");
+  const doctorsRes = useDoctors(0, active);
+  const managingRes = useManagingDoctors(0, active);
+
+  const [doctorId, setDoctorId] = useState<string>("");
+  const [doctorTouched, setDoctorTouched] = useState(false);
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -228,18 +126,22 @@ function AppointmentForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const managingIds = new Set(
+    (managingRes.data?.doctors ?? []).map((d) => d.id)
+  );
+
+  // Mặc định = bác sĩ đang quản lý đầu tiên (nếu có); BN chưa ai quản lý → "" (hàng chờ chung).
+  useEffect(() => {
+    if (doctorTouched) return;
+    const first = managingRes.data?.doctors?.[0]?.id;
+    if (first) setDoctorId(first);
+  }, [managingRes.data, doctorTouched]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (
-      !patientId.trim() ||
-      !day ||
-      !month ||
-      !year ||
-      !time ||
-      !reason.trim()
-    ) {
-      setError("Cần nhập đủ thông tin.");
+    if (!day || !month || !year || !time || !reason.trim()) {
+      setError("Cần nhập đủ thời gian và lý do.");
       return;
     }
     const d = Number(day);
@@ -274,10 +176,10 @@ function AppointmentForm({
     }
     setSubmitting(true);
     try {
-      await appointmentsApi.create({
-        patientId: patientId.trim(),
+      await appointmentsApi.createAsPatient({
         scheduledAt: scheduled.toISOString(),
         reason: reason.trim(),
+        ...(doctorId ? { doctorId } : {}),
       });
       onSaved();
     } catch (e2) {
@@ -292,19 +194,29 @@ function AppointmentForm({
       onSubmit={submit}
       className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
     >
-      <h3 className="text-base font-semibold text-gray-900">Tạo lịch hẹn</h3>
+      <h3 className="text-base font-semibold text-gray-900">Đặt lịch hẹn</h3>
       <label className="block">
-        <span className="block text-xs text-gray-500 mb-0.5">Mã BN</span>
-        <input
-          value={patientId}
-          onChange={(e) => setPatientId(e.target.value)}
-          placeholder="BN001"
+        <span className="block text-xs text-gray-500 mb-0.5">Bác sĩ</span>
+        <select
+          value={doctorId}
+          onChange={(e) => {
+            setDoctorTouched(true);
+            setDoctorId(e.target.value);
+          }}
           className="input"
-          required
-          data-agent-ref="appointment-form:patientId"
-          data-agent-role="textbox"
-          data-agent-label="Mã BN"
-        />
+          data-agent-ref="booking-form:doctorId"
+          data-agent-role="combobox"
+          data-agent-label="Bác sĩ"
+        >
+          <option value="">Để phòng khám sắp xếp (ai duyệt trước nhận)</option>
+          {(doctorsRes.data?.doctors ?? []).map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.fullName}
+              {d.department ? ` · ${d.department}` : ""}
+              {managingIds.has(d.id) ? " (Bác sĩ của bạn)" : ""}
+            </option>
+          ))}
+        </select>
       </label>
       <div>
         <span className="block text-xs text-gray-500 mb-0.5">Thời gian</span>
@@ -320,7 +232,7 @@ function AppointmentForm({
               placeholder="DD"
               className="input"
               required
-              data-agent-ref="appointment-form:day"
+              data-agent-ref="booking-form:day"
               data-agent-role="textbox"
               data-agent-label="Ngày"
             />
@@ -336,7 +248,7 @@ function AppointmentForm({
               placeholder="MM"
               className="input"
               required
-              data-agent-ref="appointment-form:month"
+              data-agent-ref="booking-form:month"
               data-agent-role="textbox"
               data-agent-label="Tháng"
             />
@@ -352,7 +264,7 @@ function AppointmentForm({
               placeholder="YYYY"
               className="input"
               required
-              data-agent-ref="appointment-form:year"
+              data-agent-ref="booking-form:year"
               data-agent-role="textbox"
               data-agent-label="Năm"
             />
@@ -365,7 +277,7 @@ function AppointmentForm({
               onChange={(e) => setTime(e.target.value)}
               className="input"
               required
-              data-agent-ref="appointment-form:time"
+              data-agent-ref="booking-form:time"
               data-agent-role="textbox"
               data-agent-label="Giờ"
             />
@@ -373,24 +285,24 @@ function AppointmentForm({
         </div>
       </div>
       <label className="block">
-        <span className="block text-xs text-gray-500 mb-0.5">Lý do</span>
+        <span className="block text-xs text-gray-500 mb-0.5">Lý do khám</span>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           className="input"
           rows={2}
           required
-          data-agent-ref="appointment-form:reason"
+          data-agent-ref="booking-form:reason"
           data-agent-role="textbox"
-          data-agent-label="Lý do"
+          data-agent-label="Lý do khám"
         />
       </label>
       {error && (
         <div
           className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          data-agent-ref="appointment-form:error"
+          data-agent-ref="booking-form:error"
           data-agent-role="alert"
-          data-agent-label="Lỗi form lịch hẹn"
+          data-agent-label="Lỗi form đặt lịch"
         >
           {error}
         </div>
@@ -400,7 +312,7 @@ function AppointmentForm({
           type="button"
           onClick={onClose}
           disabled={submitting}
-          data-agent-ref="appointment-form:cancel"
+          data-agent-ref="booking-form:cancel"
           data-agent-role="button"
           data-agent-label="Huỷ"
           className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
@@ -410,13 +322,13 @@ function AppointmentForm({
         <button
           type="submit"
           disabled={submitting}
-          data-agent-ref="appointment-form:submit"
+          data-agent-ref="booking-form:submit"
           data-agent-role="button"
-          data-agent-label="Tạo lịch hẹn"
+          data-agent-label="Đặt lịch"
           data-agent-busy={submitting ? "true" : undefined}
           className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
         >
-          {submitting ? "Đang lưu…" : "Tạo"}
+          {submitting ? "Đang gửi…" : "Đặt lịch"}
         </button>
       </div>
       <style jsx>{`
@@ -429,7 +341,7 @@ function AppointmentForm({
           outline: none;
         }
         .input:focus {
-          border-color: rgb(168 85 247);
+          border-color: rgb(8 126 139);
         }
       `}</style>
     </form>

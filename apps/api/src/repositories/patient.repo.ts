@@ -1,5 +1,6 @@
 import type { Filter } from "mongodb";
 import type {
+  HomeVital,
   LabResult,
   Patient,
   PatientPublic,
@@ -100,5 +101,42 @@ export const patientRepo = {
     return c
       .find({ id: { $in: ids } }, { projection: { _id: 0, id: 1, name: 1 } })
       .toArray();
+  },
+
+  // Như listSummary nhưng chỉ trả các BN có id trong danh sách (cho bác sĩ — phạm vi quản lý).
+  async listSummaryByIds(ids: string[]) {
+    if (ids.length === 0) return [];
+    const c = await coll();
+    return c
+      .find(
+        { id: { $in: ids } },
+        {
+          projection: {
+            _id: 0,
+            id: 1,
+            name: 1,
+            age: 1,
+            gender: 1,
+            ward: 1,
+            diagnoses: 1,
+          },
+        }
+      )
+      .sort({ id: -1 })
+      .toArray();
+  },
+
+  async getHomeVitals(id: string) {
+    const c = await coll();
+    return c.findOne(
+      { id },
+      { projection: { _id: 0, id: 1, name: 1, vitals: 1, homeVitals: 1 } }
+    );
+  },
+
+  async pushHomeVital(id: string, entry: HomeVital) {
+    const c = await coll();
+    const res = await c.updateOne({ id }, { $push: { homeVitals: entry } });
+    return res.matchedCount > 0;
   },
 };

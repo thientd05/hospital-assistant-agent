@@ -24,5 +24,18 @@ export const AppointmentUpdateSchema = z
   })
   .strict();
 
+// Bệnh nhân tự đặt lịch: chỉ thời gian + lý do; doctorId tuỳ chọn
+// (rỗng/không truyền = vào hàng chờ chung, bác sĩ nào duyệt trước thì nhận).
+export const AppointmentPatientCreateSchema = z
+  .object({
+    scheduledAt: DateLike,
+    reason: z.string().min(1),
+    doctorId: z.string().optional(),
+  })
+  .strict();
+
 export type AppointmentCreate = z.infer<typeof AppointmentCreateSchema>;
 export type AppointmentUpdate = z.infer<typeof AppointmentUpdateSchema>;
+export type AppointmentPatientCreate = z.infer<
+  typeof AppointmentPatientCreateSchema
+>;

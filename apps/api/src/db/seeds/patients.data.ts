@@ -1,6 +1,9 @@
 import type { Patient } from "@pr_hospitalagent/types";
 
-export type PatientSeedSpec = Omit<Patient, "passwordHash"> & { password: string };
+// homeVitals khởi tạo rỗng ở seed.ts — không cần khai báo trong từng spec.
+export type PatientSeedSpec = Omit<Patient, "passwordHash" | "homeVitals"> & {
+  password: string;
+};
 
 const now = new Date();
 

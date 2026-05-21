@@ -24,6 +24,24 @@ export const LabSchema = z.object({
     }),
 });
 
+export const HomeVitalSchema = z
+  .object({
+    spO2: z.number().optional(),
+    heartRate: z.number().optional(),
+    bloodPressure: z.string().optional(),
+    temperature: z.number().optional(),
+    note: z.string().optional(),
+  })
+  .strict()
+  .refine(
+    (v) =>
+      v.spO2 !== undefined ||
+      v.heartRate !== undefined ||
+      v.bloodPressure !== undefined ||
+      v.temperature !== undefined,
+    { message: "Cần nhập ít nhất một chỉ số." }
+  );
+
 export const PatientCreateSchema = z.object({
   name: z.string().min(1),
   age: z.number().int().nonnegative(),
@@ -49,3 +67,4 @@ export const PatientUpdateSchema = z
 export type PatientCreate = z.infer<typeof PatientCreateSchema>;
 export type PatientUpdate = z.infer<typeof PatientUpdateSchema>;
 export type LabInput = z.infer<typeof LabSchema>;
+export type HomeVitalInput = z.infer<typeof HomeVitalSchema>;

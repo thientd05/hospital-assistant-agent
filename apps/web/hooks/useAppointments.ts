@@ -4,6 +4,7 @@ import type {
   Appointment,
   AppointmentCreateInput,
   AppointmentUpdateInput,
+  PatientAppointmentCreateInput,
 } from "@pr_hospitalagent/types";
 import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
@@ -23,8 +24,14 @@ export function useAppointments(version: number, enabled = true) {
 export const appointmentsApi = {
   create: (body: AppointmentCreateInput) =>
     http.post<Appointment>("/api/appointments", body),
+  // Bệnh nhân tự đặt lịch (không truyền patientId; doctorId rỗng = hàng chờ chung).
+  createAsPatient: (body: PatientAppointmentCreateInput) =>
+    http.post<Appointment>("/api/appointments", body),
   update: (id: string, body: AppointmentUpdateInput) =>
     http.patch<Appointment>(`/api/appointments/${id}`, body),
+  // Bác sĩ duyệt/nhận lịch (gồm cả hàng chờ chung).
+  accept: (id: string) =>
+    http.post<Appointment>(`/api/appointments/${id}/accept`),
   remove: (id: string) =>
     http.delete<{ ok: boolean; deleted: string }>(`/api/appointments/${id}`),
 };

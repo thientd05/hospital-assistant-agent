@@ -75,4 +75,35 @@ export const doctorRepo = {
       )
       .toArray();
   },
+
+  // DS id bệnh nhân bác sĩ này quản lý (mặc định [] nếu chưa có).
+  async getManagedIds(doctorId: string): Promise<string[]> {
+    const c = await coll();
+    const doc = await c.findOne(
+      { id: doctorId },
+      { projection: { _id: 0, patientIds: 1 } }
+    );
+    return doc?.patientIds ?? [];
+  },
+
+  // Thêm bệnh nhân vào danh sách quản lý (idempotent).
+  async addManagedPatient(doctorId: string, patientId: string) {
+    const c = await coll();
+    await c.updateOne(
+      { id: doctorId },
+      { $addToSet: { patientIds: patientId } }
+    );
+  },
+
+  // Các bác sĩ đang quản lý 1 bệnh nhân (reverse lookup) — cho FE bệnh nhân.
+  async listManaging(patientId: string) {
+    const c = await coll();
+    return c
+      .find(
+        { patientIds: patientId },
+        { projection: { _id: 0, id: 1, fullName: 1, department: 1 } }
+      )
+      .sort({ id: 1 })
+      .toArray();
+  },
 };

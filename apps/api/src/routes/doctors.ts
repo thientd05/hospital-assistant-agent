@@ -10,7 +10,8 @@ import { doctorService } from "../services/doctor.service.ts";
 export async function doctorsRoutes(app: FastifyInstance) {
   app.get(
     "/doctors",
-    { preHandler: [verifyAuth, requireRole("doctor", "manager")] },
+    // Bệnh nhân cũng đọc được DS tóm tắt để chọn bác sĩ khi đặt lịch.
+    { preHandler: [verifyAuth, requireRole("doctor", "manager", "patient")] },
     async () => {
       const doctors = await doctorService.list();
       return { count: doctors.length, doctors };

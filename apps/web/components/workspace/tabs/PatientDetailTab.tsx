@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { usePatient, patientsApi } from "@/hooks/usePatients";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 type Props = {
   patientId: string | null;
   version: number;
   active: boolean;
   onChanged: () => void;
+  // selfMode: bệnh nhân tự xem hồ sơ CỦA MÌNH (lấy từ /auth/me) — chỉ xem, ẩn nút Sửa.
+  selfMode?: boolean;
 };
 
 type Draft = {
@@ -50,12 +53,14 @@ export function PatientDetailTab({
   version,
   active,
   onChanged,
+  selfMode = false,
 }: Props) {
-  const { data, loading, error, refetch } = usePatient(
-    patientId,
-    version,
-    active
-  );
+  const { patient: authPatient } = useAuth();
+  const fetched = usePatient(patientId, version, active && !selfMode);
+  const data = selfMode ? authPatient : fetched.data;
+  const loading = selfMode ? false : fetched.loading;
+  const error = selfMode ? null : fetched.error;
+  const refetch = fetched.refetch;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -67,7 +72,7 @@ export function PatientDetailTab({
     setEditError(null);
   }, [patientId]);
 
-  if (!patientId) {
+  if (!selfMode && !patientId) {
     return (
       <div className="px-5 py-8 text-sm text-gray-400 text-center">
         Chọn một bệnh nhân từ tab <span className="font-medium">Bệnh nhân</span>{" "}
@@ -175,7 +180,11 @@ export function PatientDetailTab({
             {data.gender} · {data.age} tuổi · {data.ward}
           </div>
         </div>
-        {editing ? (
+        {selfMode ? (
+          <span className="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 text-gray-500 shrink-0">
+            Chỉ xem
+          </span>
+        ) : editing ? (
           <div className="flex gap-1.5">
             <button
               type="button"

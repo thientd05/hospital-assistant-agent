@@ -39,6 +39,17 @@ export type LabResult = {
   recordedAt: Date;
 };
 
+// Chỉ số bệnh nhân tự nhập tại nhà — lịch sử riêng, tách `vitals` lâm sàng do bác sĩ ghi.
+// Mỗi field chỉ số là optional (BN nhập field nào ghi field đó), recordedAt do server set.
+export type HomeVital = {
+  spO2?: number;
+  heartRate?: number;
+  bloodPressure?: string;
+  temperature?: number;
+  note?: string;
+  recordedAt: Date;
+};
+
 export type Patient = {
   id: string;
   username: string;
@@ -51,6 +62,7 @@ export type Patient = {
   vitals: Vital;
   medications: string[];
   labResults: LabResult[];
+  homeVitals: HomeVital[];
 };
 
 export type PatientPublic = Omit<Patient, "passwordHash">;
@@ -67,6 +79,8 @@ export type Doctor = {
   email: string;
   address: string;
   workspaceDir: string;
+  // DS bệnh nhân bác sĩ này quản lý (quan hệ nhiều–nhiều). Hình thành khi bác sĩ duyệt lịch hẹn.
+  patientIds: string[];
   createdAt: Date;
 };
 
@@ -117,6 +131,7 @@ export type AppointmentStatus = "Chờ duyệt" | "Đã duyệt" | "Thành công
 export type Appointment = {
   id: string;
   patientId: string;
+  // `""` = chưa có bác sĩ nhận (lịch ở hàng chờ chung); bác sĩ nào duyệt trước thì nhận.
   doctorId: string;
   scheduledAt: Date;
   reason: string;
@@ -154,6 +169,17 @@ export type PatientCreateInput = {
 export type PatientUpdateInput = Partial<
   Omit<Patient, "id" | "username" | "passwordHash" | "vitals">
 > & { vitals?: Partial<Vital> };
+
+// Bệnh nhân tự nhập 1 bản ghi chỉ số tại nhà (recordedAt do server gán).
+export type HomeVitalInput = Omit<HomeVital, "recordedAt">;
+
+// Bệnh nhân tự đặt lịch: không truyền patientId (lấy từ JWT); doctorId tuỳ chọn
+// (rỗng/không truyền = vào hàng chờ chung).
+export type PatientAppointmentCreateInput = {
+  scheduledAt: string | Date;
+  reason: string;
+  doctorId?: string;
+};
 
 export type DoctorCreateInput = {
   fullName: string;

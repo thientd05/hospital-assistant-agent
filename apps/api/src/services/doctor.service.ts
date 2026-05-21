@@ -45,6 +45,7 @@ export const doctorService = {
       email: data.email,
       address: data.address,
       workspaceDir: `workspaces/${id}`,
+      patientIds: [],
       createdAt: new Date(),
     };
     await doctorRepo.insert(doctor);

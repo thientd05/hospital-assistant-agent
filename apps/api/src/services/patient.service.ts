@@ -5,13 +5,15 @@ import type {
 } from "@pr_hospitalagent/types";
 import { hashPassword } from "@pr_hospitalagent/api-shared";
 import { patientRepo } from "../repositories/patient.repo.ts";
-import { BadRequestError, NotFoundError } from "../lib/errors.ts";
+import { doctorRepo } from "../repositories/doctor.repo.ts";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
 import { buildSet } from "../lib/patch.ts";
 import { stripPassword } from "../lib/public.ts";
 import type {
   PatientCreate,
   PatientUpdate,
   LabInput,
+  HomeVitalInput,
 } from "../schemas/patient.ts";
 
 const VITAL_DEFAULTS = {
@@ -31,7 +33,22 @@ const PATCH_KEYS = [
 ] as const;
 
 export const patientService = {
-  list: () => patientRepo.listSummary(),
+  // doctorId có → chỉ BN bác sĩ đó quản lý; không có (manager) → toàn bộ.
+  async list(scope?: { doctorId?: string }) {
+    if (scope?.doctorId) {
+      const ids = await doctorRepo.getManagedIds(scope.doctorId);
+      return patientRepo.listSummaryByIds(ids);
+    }
+    return patientRepo.listSummary();
+  },
+
+  // Chặn bác sĩ thao tác trên BN không thuộc phạm vi quản lý của mình.
+  async assertManagedBy(doctorId: string, patientId: string) {
+    const ids = await doctorRepo.getManagedIds(doctorId);
+    if (!ids.includes(patientId)) {
+      throw new ForbiddenError("Bệnh nhân không thuộc danh sách bạn quản lý.");
+    }
+  },
 
   async get(id: string): Promise<PatientPublic> {
     const patient = await patientRepo.findById(id);
@@ -41,7 +58,10 @@ export const patientService = {
     return patient;
   },
 
-  async create(data: PatientCreate): Promise<Omit<Patient, "passwordHash">> {
+  async create(
+    data: PatientCreate,
+    creatingDoctorId?: string
+  ): Promise<Omit<Patient, "passwordHash">> {
     const id = await patientRepo.nextId();
     const username = id.toLowerCase();
     const password = `matkhau${username}`;
@@ -61,8 +81,13 @@ export const patientService = {
         recordedAt: new Date(),
       },
       labResults: [],
+      homeVitals: [],
     };
     await patientRepo.insert(patient);
+    // Bác sĩ tạo BN thì quản lý BN đó luôn.
+    if (creatingDoctorId) {
+      await doctorRepo.addManagedPatient(creatingDoctorId, id);
+    }
     return stripPassword(patient);
   },
 
@@ -122,5 +147,23 @@ export const patientService = {
       labs.filter((_, i) => i !== idx)
     );
     return { ok: true, removedIndex: idx };
+  },
+
+  // Chỉ số tại nhà — bệnh nhân tự đọc/ghi (id lấy từ JWT ở route).
+  async listHomeVitals(patientId: string) {
+    const doc = await patientRepo.getHomeVitals(patientId);
+    if (!doc) throw new NotFoundError(`Không tìm thấy bệnh nhân ${patientId}`);
+    return {
+      patientId: doc.id,
+      vitals: doc.vitals ?? null,
+      homeVitals: doc.homeVitals ?? [],
+    };
+  },
+
+  async addHomeVital(patientId: string, input: HomeVitalInput) {
+    const entry = { ...input, recordedAt: new Date() };
+    const ok = await patientRepo.pushHomeVital(patientId, entry);
+    if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${patientId}`);
+    return { ok: true, homeVital: entry };
   },
 };

@@ -12,6 +12,8 @@ import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { LabsTab } from "./tabs/LabsTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { DrugCheckTab } from "./tabs/DrugCheckTab";
+import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
+import { HomeVitalsTab } from "./tabs/HomeVitalsTab";
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = MIN_WIDTH * 1.5;
@@ -22,6 +24,10 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   lab: "Lab",
   appointments: "Lịch hẹn",
   "drug-check": "Tương tác thuốc",
+  "my-record": "Hồ sơ",
+  "my-labs": "Xét nghiệm",
+  "my-appointments": "Lịch hẹn",
+  "home-vitals": "Chỉ số tại nhà",
 };
 
 type PatientFormControl = {
@@ -236,6 +242,36 @@ export function WorkspacePanel({
             />
           )}
           {role === "doctor" && activeTab === "drug-check" && <DrugCheckTab />}
+          {role === "patient" && activeTab === "my-record" && (
+            <PatientDetailTab
+              selfMode
+              patientId={null}
+              version={versions["my-record"]}
+              active={isOpen && activeTab === "my-record"}
+              onChanged={() => {}}
+            />
+          )}
+          {role === "patient" && activeTab === "my-labs" && (
+            <LabsTab
+              selfMode
+              patientId={null}
+              version={versions["my-labs"]}
+              active={isOpen && activeTab === "my-labs"}
+              onChanged={() => {}}
+            />
+          )}
+          {role === "patient" && activeTab === "my-appointments" && (
+            <MyAppointmentsTab
+              version={versions["my-appointments"]}
+              active={isOpen && activeTab === "my-appointments"}
+            />
+          )}
+          {role === "patient" && activeTab === "home-vitals" && (
+            <HomeVitalsTab
+              version={versions["home-vitals"]}
+              active={isOpen && activeTab === "home-vitals"}
+            />
+          )}
         </div>
       </div>
     </aside>

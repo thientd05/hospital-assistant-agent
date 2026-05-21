@@ -6,6 +6,7 @@ async function seed() {
   const patients: Patient[] = patientSeedSpecs.map(({ password, ...rest }) => ({
     ...rest,
     passwordHash: hashPassword(password),
+    homeVitals: [],
   }));
 
   const db = await connectDB();

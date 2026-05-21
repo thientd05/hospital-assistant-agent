@@ -1,8 +1,17 @@
 import { connectDB, client } from "@pr_hospitalagent/api-shared";
 import { hashPassword } from "@pr_hospitalagent/api-shared";
 import type { Doctor } from "@pr_hospitalagent/types";
+import { patientSeedSpecs } from "./seeds/patients.data.ts";
 
 const now = new Date();
+
+// Phân bổ bệnh nhân cho từng bác sĩ (BN009/BN010 để trống → test luồng hàng chờ chung).
+const patientIds = patientSeedSpecs.map((p) => p.id);
+const managedByDoctor: Record<string, string[]> = {
+  BS001: patientIds.slice(0, 4), // BN001–BN004
+  BS002: patientIds.slice(4, 7), // BN005–BN007
+  BS003: patientIds.slice(7, 8), // BN008
+};
 
 const seeds = [
   {
@@ -49,6 +58,7 @@ const seeds = [
 const doctors: Doctor[] = seeds.map(({ password, ...rest }) => ({
   ...rest,
   passwordHash: hashPassword(password),
+  patientIds: managedByDoctor[rest.id] ?? [],
   createdAt: now,
 }));
 
