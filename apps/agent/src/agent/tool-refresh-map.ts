@@ -21,6 +21,8 @@ export const TOOL_REFRESH_MAP: Record<string, RefreshTarget> = {
   act: false,
   // File-read tool: không động DB/panel.
   read_skill: false,
+  // File-write tool: ghi workspace của user, không động DB/panel.
+  update_workspace_file: false,
 };
 
 export function getRefreshTarget(toolName: string): RefreshTarget {

@@ -15,12 +15,16 @@ import { definition as actDef } from "./tools/act/definitions.ts";
 import { handleAct } from "./tools/act/handlers.ts";
 import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
+import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_file/definitions.ts";
+import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
+import { getWorkspace } from "./workspace-store.ts";
 
 const tools: Anthropic.Tool[] = [
   openPanelDef,
   readPanelDef,
   actDef,
   readSkillDef,
+  updateWorkspaceFileDef,
 ];
 
 const AGENT_DIR = import.meta.dirname;
@@ -71,19 +75,17 @@ function buildSkillIndex(role: AuthRole): string | null {
   return added > 0 ? lines.join("\n") : null;
 }
 
-function readWorkspaceFile(doctorId: string, name: string): string | null {
-  const path = join(AGENT_DIR, "workspaces", doctorId, name);
-  if (!existsSync(path)) return null;
-  const content = readFileSync(path, "utf8").trim();
-  return content || null;
-}
-
-function buildSystemPrompt(doctorId: string, role: AuthRole): string {
+async function buildSystemPrompt(
+  doctorId: string,
+  role: AuthRole
+): Promise<string> {
   const parts = [loadAgentPrompt(role).trim()];
   const skillIndex = buildSkillIndex(role);
   if (skillIndex) parts.push(skillIndex);
-  const user = readWorkspaceFile(doctorId, "USER.md");
-  const soul = readWorkspaceFile(doctorId, "SOUL.md");
+  // Đọc workspace từ Mongo mỗi lượt → ghi nhớ áp dụng ngay, không phụ thuộc đĩa.
+  const ws = await getWorkspace(doctorId);
+  const user = ws.user.trim();
+  const soul = ws.soul.trim();
   if (user) parts.push(user);
   if (soul) parts.push(soul);
   return parts.join("\n\n---\n\n");
@@ -105,7 +107,7 @@ export type OnToolCall = (toolCall: {
 async function dispatchTool(
   name: string,
   input: Record<string, unknown>,
-  _doctorId: string,
+  doctorId: string,
   role: AuthRole,
   panel: PanelClient
 ): Promise<string> {
@@ -124,6 +126,8 @@ async function dispatchTool(
         return await handleAct(input, panel);
       case "read_skill":
         return await handleReadSkill(input, role);
+      case "update_workspace_file":
+        return await handleUpdateWorkspaceFile(input, doctorId);
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
     }
@@ -174,7 +178,7 @@ export async function runAgentLoop(
   panel: PanelClient
 ): Promise<Anthropic.MessageParam[]> {
   let working = [...messages];
-  const systemPrompt = buildSystemPrompt(doctorId, role);
+  const systemPrompt = await buildSystemPrompt(doctorId, role);
   const allowedToolNames = getAllowedTools(role);
   const allowedTools = tools.filter((t) => allowedToolNames.has(t.name));
 

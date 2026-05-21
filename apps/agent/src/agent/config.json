@@ -1,6 +1,12 @@
 {
   "doctor": {
-    "tools": ["open_panel", "read_panel", "act", "read_skill"],
+    "tools": [
+      "open_panel",
+      "read_panel",
+      "act",
+      "read_skill",
+      "update_workspace_file"
+    ],
     "skills": [
       "create-patient",
       "add-lab-result",
@@ -10,7 +16,7 @@
     ]
   },
   "patient": {
-    "tools": [],
+    "tools": ["update_workspace_file"],
     "skills": []
   }
 }

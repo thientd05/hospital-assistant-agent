@@ -350,6 +350,16 @@ export type FinancialMonthPoint = {
   profit: number;
 };
 
+export type Workspace = {
+  id: string;
+  memory: string;
+  soul: string;
+  user: string;
+  updatedAt: string | Date;
+};
+
+export type WorkspaceKey = "memory" | "soul" | "user";
+
 export type FinancialStatsData = {
   currentMonth: FinancialMonthPoint;
   monthlyTrend: FinancialMonthPoint[];

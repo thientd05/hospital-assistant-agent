@@ -12,7 +12,6 @@ import {
   createPanelClient,
   resolvePanelCommand,
 } from "../agent/panel-bridge.ts";
-import { ensureAgentWorkspace } from "../middleware/ensure-workspace.ts";
 
 const BodySchema = z.object({
   conversationId: z.string().nullish(),
@@ -39,11 +38,7 @@ export async function chatRoutes(app: FastifyInstance) {
   app.post(
     "/chat",
     {
-      preHandler: [
-        verifyAuth,
-        ensureAgentWorkspace,
-        requireRole("doctor", "patient"),
-      ],
+      preHandler: [verifyAuth, requireRole("doctor", "patient")],
     },
     async (req, reply) => {
     const parsed = BodySchema.safeParse(req.body);
