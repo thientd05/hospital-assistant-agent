@@ -3,10 +3,8 @@ import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { managerRepo } from "../repositories/manager.repo.ts";
 import { expertRepo } from "../repositories/expert.repo.ts";
 import { patientRepo } from "../repositories/patient.repo.ts";
-import {
-  BadRequestError,
-  UnauthorizedError,
-} from "../lib/errors.ts";
+import { UnauthorizedError } from "../lib/errors.ts";
+import { assertHasUpdates } from "../lib/patch.ts";
 import {
   DoctorProfileSchema,
   ManagerProfileSchema,
@@ -22,33 +20,25 @@ export const profileService = {
     switch (role) {
       case "doctor": {
         const $set = parseBody(DoctorProfileSchema, body);
-        if (Object.keys($set).length === 0) {
-          throw new BadRequestError("Không có trường nào để cập nhật.");
-        }
+        assertHasUpdates($set);
         await doctorRepo.patch(id, $set);
         return { role: "doctor" as const, doctor: await doctorRepo.findById(id) };
       }
       case "manager": {
         const $set = parseBody(ManagerProfileSchema, body);
-        if (Object.keys($set).length === 0) {
-          throw new BadRequestError("Không có trường nào để cập nhật.");
-        }
+        assertHasUpdates($set);
         await managerRepo.patch(id, $set);
         return { role: "manager" as const, manager: await managerRepo.findById(id) };
       }
       case "expert": {
         const $set = parseBody(ExpertProfileSchema, body);
-        if (Object.keys($set).length === 0) {
-          throw new BadRequestError("Không có trường nào để cập nhật.");
-        }
+        assertHasUpdates($set);
         await expertRepo.patch(id, $set);
         return { role: "expert" as const, expert: await expertRepo.findById(id) };
       }
       case "patient": {
         const $set = parseBody(PatientProfileSchema, body);
-        if (Object.keys($set).length === 0) {
-          throw new BadRequestError("Không có trường nào để cập nhật.");
-        }
+        assertHasUpdates($set);
         await patientRepo.patch(id, $set);
         const updated = await patientRepo.findById(id);
         return { role: "patient" as const, patient: updated };

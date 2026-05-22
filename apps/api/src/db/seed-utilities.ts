@@ -1,24 +1,10 @@
 import { connectDB, client } from "@pr_hospitalagent/api-shared";
 import type { Utility, UtilityType, UtilityStatus } from "@pr_hospitalagent/types";
+import { periodKey, lastNPeriods } from "../lib/period.ts";
+import { rand } from "./seed-util.ts";
 
 const now = new Date();
 const ANCHOR = new Date(2026, 4, 10);
-
-function periodKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
-}
-
-function lastNPeriods(n: number, anchor: Date): string[] {
-  const out: string[] = [];
-  const y = anchor.getFullYear();
-  const m = anchor.getMonth();
-  for (let i = n - 1; i >= 0; i--) {
-    out.push(periodKey(new Date(y, m - i, 1)));
-  }
-  return out;
-}
 
 type Recipe = {
   type: UtilityType;
@@ -34,12 +20,6 @@ const recipes: Recipe[] = [
   { type: "Nước", baseAmount: 2_400_000, baseUsage: 180, unit: "m³", amountVar: 0.12, usageVar: 0.1 },
   { type: "Internet", baseAmount: 1_800_000, baseUsage: 1, unit: "tháng", amountVar: 0, usageVar: 0 },
 ];
-
-function rand(seed: number): number {
-  const x = Math.sin(seed * 9999) * 10000;
-  return x - Math.floor(x);
-}
-
 async function run() {
   const db = await connectDB();
   const collection = db.collection<Utility>("utilities");

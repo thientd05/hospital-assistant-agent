@@ -10,27 +10,8 @@ import {
   appointmentsApi,
 } from "@/hooks/useAppointments";
 import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
-
-const STATUS_STYLES: Record<AppointmentStatus, string> = {
-  "Chờ duyệt": "bg-amber-50 text-amber-700 ring-amber-200",
-  "Đã duyệt": "bg-blue-50 text-blue-700 ring-blue-200",
-  "Thành công": "bg-emerald-50 text-emerald-700 ring-emerald-200",
-};
-
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
-
-function fmt(value: string | Date): string {
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return String(value);
-  return dateFormatter.format(d);
-}
+import { formatDateTime as fmt } from "@/lib/format";
+import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
 
 type Props = {
   version: number;

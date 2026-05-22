@@ -1,18 +1,6 @@
-export type RefreshTarget =
-  | "patients"
-  | "patient"
-  | "lab"
-  | "appointments"
-  | "stats"
-  | "doctors"
-  | "doctor"
-  | "experts"
-  | "expert"
-  | "skills"
-  | "skill"
-  | false;
+import type { ToolRefresh } from "@pr_hospitalagent/types";
 
-export const TOOL_REFRESH_MAP: Record<string, RefreshTarget> = {
+export const TOOL_REFRESH_MAP: Record<string, ToolRefresh> = {
   // Generic panel-control tools: agent thao tác DOM thật, click button thật chạy
   // lại đúng handler có sẵn (validate + REST + refetch/bumpTab), nên backend KHÔNG
   // cần bắn refresh — để false tránh double-bump.
@@ -25,6 +13,6 @@ export const TOOL_REFRESH_MAP: Record<string, RefreshTarget> = {
   update_workspace_file: false,
 };
 
-export function getRefreshTarget(toolName: string): RefreshTarget {
+export function getRefreshTarget(toolName: string): ToolRefresh {
   return TOOL_REFRESH_MAP[toolName] ?? false;
 }

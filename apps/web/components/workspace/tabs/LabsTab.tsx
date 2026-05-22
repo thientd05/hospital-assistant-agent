@@ -5,6 +5,7 @@ import type { LabResult } from "@pr_hospitalagent/types";
 import { useLabs, patientsApi } from "@/hooks/usePatients";
 import { useMyLabs } from "@/hooks/useMyLabs";
 import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
+import { Field as Lbl } from "../forms/Field";
 
 type Props = {
   patientId: string | null;
@@ -343,20 +344,5 @@ function LabAddForm({
         }
       `}</style>
     </form>
-  );
-}
-
-function Lbl({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

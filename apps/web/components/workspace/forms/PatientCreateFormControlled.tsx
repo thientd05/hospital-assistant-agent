@@ -1,6 +1,7 @@
 "use client";
 
 import type { PatientFormValues } from "@/hooks/useWorkspace";
+import { Field } from "./Field";
 
 type Props = {
   values: PatientFormValues;
@@ -196,20 +197,5 @@ export function PatientCreateFormControlled({
         }
       `}</style>
     </form>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

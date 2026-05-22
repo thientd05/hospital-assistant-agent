@@ -7,6 +7,7 @@ import type {
   UtilityStatus,
 } from "@pr_hospitalagent/types";
 import { utilitiesApi } from "@/hooks/useUtilities";
+import { Field as Lbl } from "./Field";
 
 const TYPES: UtilityType[] = ["Điện", "Nước", "Internet", "Gas"];
 const STATUSES: UtilityStatus[] = ["Chưa thanh toán", "Đã thanh toán"];
@@ -249,20 +250,5 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
         `}</style>
       </form>
     </div>
-  );
-}
-
-function Lbl({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

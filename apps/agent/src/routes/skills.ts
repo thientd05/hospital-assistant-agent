@@ -11,10 +11,12 @@ import {
 import { join } from "node:path";
 import { z } from "zod";
 import { requireRole, verifyToken } from "../auth/verify-token.ts";
-
-const NAME_RE = /^[A-Za-z0-9_-]+$/;
-const MAX_READ_BYTES = 200_000;
-const SKILLS_DIR = join(import.meta.dirname, "..", "agent", "skills");
+import {
+  SKILLS_DIR,
+  NAME_RE,
+  MAX_SKILL_BYTES,
+  parseSkillFrontmatter,
+} from "../agent/skills-fs.ts";
 
 const CreateSchema = z.object({
   name: z.string().regex(NAME_RE),
@@ -35,17 +37,8 @@ function listSkills(): SkillSummary[] {
     const skillPath = join(SKILLS_DIR, entry.name, "SKILL.md");
     if (!existsSync(skillPath)) continue;
     const content = readFileSync(skillPath, "utf8");
-    const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    let description = "(không có mô tả)";
-    if (m) {
-      for (const line of m[1]!.split(/\r?\n/)) {
-        const idx = line.indexOf(":");
-        if (idx > 0 && line.slice(0, idx).trim() === "description") {
-          description = line.slice(idx + 1).trim();
-          break;
-        }
-      }
-    }
+    const fm = parseSkillFrontmatter(content);
+    const description = fm?.description ?? "(không có mô tả)";
     out.push({ name: entry.name, description });
   }
   return out;
@@ -59,9 +52,9 @@ function readSkill(
   if (!existsSync(path)) return { error: `Không tìm thấy skill: ${name}` };
   const stat = statSync(path);
   if (!stat.isFile()) return { error: `Đường dẫn không phải file: ${path}` };
-  if (stat.size > MAX_READ_BYTES) {
+  if (stat.size > MAX_SKILL_BYTES) {
     return {
-      error: `File quá lớn: ${stat.size} bytes (giới hạn ${MAX_READ_BYTES}).`,
+      error: `File quá lớn: ${stat.size} bytes (giới hạn ${MAX_SKILL_BYTES}).`,
     };
   }
   return {

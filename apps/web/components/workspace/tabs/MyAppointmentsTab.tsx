@@ -1,31 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AppointmentStatus } from "@pr_hospitalagent/types";
 import { useAppointments, appointmentsApi } from "@/hooks/useAppointments";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useManagingDoctors } from "@/hooks/useManagingDoctors";
-
-const STATUS_STYLES: Record<AppointmentStatus, string> = {
-  "Chờ duyệt": "bg-amber-50 text-amber-700 ring-amber-200",
-  "Đã duyệt": "bg-blue-50 text-blue-700 ring-blue-200",
-  "Thành công": "bg-emerald-50 text-emerald-700 ring-emerald-200",
-};
-
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
-
-function fmt(value: string | Date): string {
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return String(value);
-  return dateFormatter.format(d);
-}
+import { formatDateTime as fmt } from "@/lib/format";
+import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
 
 type Props = {
   version: number;
@@ -34,7 +14,12 @@ type Props = {
 
 export function MyAppointmentsTab({ version, active }: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
+  const doctorsRes = useDoctors(0, active);
   const [showForm, setShowForm] = useState(false);
+
+  const doctorById = new Map(
+    (doctorsRes.data?.doctors ?? []).map((d) => [d.id, d])
+  );
 
   return (
     <div className="px-5 py-4 space-y-3">
@@ -89,11 +74,31 @@ export function MyAppointmentsTab({ version, active }: Props) {
                 {a.status}
               </span>
             </div>
-            <div className="mt-1 text-sm text-gray-900">
-              {a.doctorId
-                ? `Bác sĩ: ${a.doctorId}`
-                : "Đang chờ phòng khám phân bác sĩ"}
-            </div>
+            {a.doctorId ? (
+              (() => {
+                const doc = doctorById.get(a.doctorId);
+                return (
+                  <div className="mt-1 text-sm text-gray-900">
+                    <div className="font-medium">
+                      {doc?.fullName
+                        ? `${doc.title ? `${doc.title} ` : ""}${doc.fullName}`
+                        : `Bác sĩ: ${a.doctorId}`}
+                    </div>
+                    {doc && (doc.department || doc.phone) && (
+                      <div className="mt-0.5 text-xs text-gray-500">
+                        {doc.department}
+                        {doc.department && doc.phone ? " · " : ""}
+                        {doc.phone && `ĐT: ${doc.phone}`}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="mt-1 text-sm text-gray-900">
+                Đang chờ phòng khám phân bác sĩ
+              </div>
+            )}
             <div className="mt-0.5 text-xs text-gray-500 line-clamp-2">
               {a.reason}
             </div>

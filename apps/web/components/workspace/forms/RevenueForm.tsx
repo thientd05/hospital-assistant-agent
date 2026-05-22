@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Revenue, RevenueSource } from "@pr_hospitalagent/types";
 import { revenueApi } from "@/hooks/useRevenue";
+import { Field as Lbl } from "./Field";
 
 const SOURCES: RevenueSource[] = [
   "Khám bệnh",
@@ -209,20 +210,5 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
         `}</style>
       </form>
     </div>
-  );
-}
-
-function Lbl({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

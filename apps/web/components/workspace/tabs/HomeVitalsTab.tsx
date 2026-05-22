@@ -3,21 +3,7 @@
 import { useState } from "react";
 import type { HomeVitalInput } from "@pr_hospitalagent/types";
 import { useHomeVitals, homeVitalsApi } from "@/hooks/useHomeVitals";
-
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
-
-function fmt(value: string | Date): string {
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return String(value);
-  return dateFormatter.format(d);
-}
+import { formatDateTime as fmt } from "@/lib/format";
 
 type Props = {
   version: number;

@@ -1,10 +1,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getAllowedSkills, type AuthRole } from "../../access.ts";
-
-const SKILLS_DIR = join(import.meta.dirname, "..", "..", "skills");
-const NAME_RE = /^[A-Za-z0-9_-]+$/;
-const MAX_BYTES = 200_000;
+import { SKILLS_DIR, NAME_RE, MAX_SKILL_BYTES } from "../../skills-fs.ts";
 
 export async function handleReadSkill(
   input: Record<string, unknown>,
@@ -30,9 +27,9 @@ export async function handleReadSkill(
   if (!stat.isFile()) {
     return JSON.stringify({ error: `Đường dẫn không phải file: ${path}` });
   }
-  if (stat.size > MAX_BYTES) {
+  if (stat.size > MAX_SKILL_BYTES) {
     return JSON.stringify({
-      error: `File skill "${name}" quá lớn: ${stat.size} bytes (giới hạn ${MAX_BYTES}).`,
+      error: `File skill "${name}" quá lớn: ${stat.size} bytes (giới hạn ${MAX_SKILL_BYTES}).`,
     });
   }
   const content = readFileSync(path, "utf8");

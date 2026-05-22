@@ -18,6 +18,7 @@ import { handleReadSkill } from "./tools/read_skill/handlers.ts";
 import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_file/definitions.ts";
 import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
 import { fetchWorkspace } from "./api-client.ts";
+import { SKILLS_DIR, parseSkillFrontmatter } from "./skills-fs.ts";
 
 const tools: Anthropic.Tool[] = [
   openPanelDef,
@@ -29,7 +30,6 @@ const tools: Anthropic.Tool[] = [
 
 const AGENT_DIR = import.meta.dirname;
 const BOOTS_DIR = join(AGENT_DIR, "boots");
-const SKILLS_DIR = join(AGENT_DIR, "skills");
 
 function loadAgentPrompt(role: AuthRole): string {
   return readFileSync(join(BOOTS_DIR, role, "AGENT.md"), "utf8");
@@ -40,21 +40,9 @@ function loadSkillFrontmatter(
 ): { name: string; description: string } | null {
   const path = join(SKILLS_DIR, skillName, "SKILL.md");
   if (!existsSync(path)) return null;
-  const content = readFileSync(path, "utf8");
-  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  let description = "";
-  let name = skillName;
-  for (const line of m[1]!.split(/\r?\n/)) {
-    const idx = line.indexOf(":");
-    if (idx > 0) {
-      const key = line.slice(0, idx).trim();
-      const value = line.slice(idx + 1).trim();
-      if (key === "description") description = value;
-      else if (key === "name") name = value;
-    }
-  }
-  return { name, description };
+  const fm = parseSkillFrontmatter(readFileSync(path, "utf8"));
+  if (!fm) return null;
+  return { name: fm.name ?? skillName, description: fm.description ?? "" };
 }
 
 function buildSkillIndex(role: AuthRole): string | null {

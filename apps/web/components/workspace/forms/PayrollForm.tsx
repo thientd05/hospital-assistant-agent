@@ -10,6 +10,7 @@ import { payrollApi } from "@/hooks/usePayroll";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useExperts } from "@/hooks/useExperts";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { Field as Lbl } from "./Field";
 
 const STATUSES: PayrollStatus[] = ["Chưa thanh toán", "Đã thanh toán"];
 
@@ -317,20 +318,5 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
         `}</style>
       </form>
     </div>
-  );
-}
-
-function Lbl({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

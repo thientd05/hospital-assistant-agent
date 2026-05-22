@@ -26,6 +26,21 @@ export function formatDate(d: Date | string | null | undefined): string {
   });
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+export function formatDateTime(value: string | Date): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return String(value);
+  return dateTimeFormatter.format(d);
+}
+
 export function formatPeriod(p: string): string {
   const [y, m] = p.split("-");
   if (!y || !m) return p;

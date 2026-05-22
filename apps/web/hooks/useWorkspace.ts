@@ -252,5 +252,3 @@ export function useWorkspace() {
     submitPatientForm,
   };
 }
-
-export type UseWorkspaceReturn = ReturnType<typeof useWorkspace>;

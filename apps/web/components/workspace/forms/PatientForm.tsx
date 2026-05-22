@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { patientsApi } from "@/hooks/usePatients";
+import { Field } from "./Field";
 
 type Props = {
   initial?: Partial<PatientPublic>;
@@ -160,20 +161,5 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
         }
       `}</style>
     </form>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
-      {children}
-    </label>
   );
 }

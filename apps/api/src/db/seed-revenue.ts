@@ -1,29 +1,10 @@
 import { connectDB, client } from "@pr_hospitalagent/api-shared";
 import type { Revenue, RevenueSource } from "@pr_hospitalagent/types";
+import { lastNPeriods } from "../lib/period.ts";
+import { rand } from "./seed-util.ts";
 
 const now = new Date();
 const ANCHOR = new Date(2026, 4, 10);
-
-function periodKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
-}
-
-function lastNPeriods(n: number, anchor: Date): string[] {
-  const out: string[] = [];
-  const y = anchor.getFullYear();
-  const m = anchor.getMonth();
-  for (let i = n - 1; i >= 0; i--) {
-    out.push(periodKey(new Date(y, m - i, 1)));
-  }
-  return out;
-}
-
-function rand(seed: number): number {
-  const x = Math.sin(seed * 9999) * 10000;
-  return x - Math.floor(x);
-}
 
 function daysInMonth(period: string): number {
   const [y, m] = period.split("-").map(Number) as [number, number];

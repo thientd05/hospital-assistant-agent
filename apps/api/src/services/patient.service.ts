@@ -7,7 +7,7 @@ import { hashPassword } from "@pr_hospitalagent/api-shared";
 import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
-import { buildSet } from "../lib/patch.ts";
+import { buildSet, assertHasUpdates } from "../lib/patch.ts";
 import { stripPassword } from "../lib/public.ts";
 import type {
   PatientCreate,
@@ -99,9 +99,7 @@ export const patientService = {
       }
       $set["vitals.recordedAt"] = new Date();
     }
-    if (Object.keys($set).length === 0) {
-      throw new BadRequestError("Không có trường nào để cập nhật.");
-    }
+    assertHasUpdates($set);
     const ok = await patientRepo.patch(id, $set);
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     const updated = await patientRepo.findById(id);
