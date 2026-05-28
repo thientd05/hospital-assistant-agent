@@ -57,7 +57,7 @@ export function AdminSidebar({ title, items, activeKey, onSelect }: Props) {
   return (
     <>
       <aside
-        className="relative shrink-0 border-r border-gray-200 bg-[#F8F9F6] overflow-hidden transition-[width] duration-300 ease-in-out h-full"
+        className="relative shrink-0 border-r border-gray-200 bg-white overflow-hidden transition-[width] duration-300 ease-in-out h-full"
         style={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       >
         <div
@@ -70,7 +70,7 @@ export function AdminSidebar({ title, items, activeKey, onSelect }: Props) {
             onClick={() => setCollapsed(false)}
             title="Mở rộng sidebar"
             aria-label="Mở rộng sidebar"
-            className="p-2 rounded-md text-gray-500 hover:bg-white/60 hover:text-gray-900 transition-colors"
+            className="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
           >
             <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="2" width="16" height="16" rx="2" />
@@ -102,7 +102,7 @@ export function AdminSidebar({ title, items, activeKey, onSelect }: Props) {
               onClick={() => setCollapsed(true)}
               title="Thu gọn sidebar"
               aria-label="Thu gọn sidebar"
-              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-white/60 transition-colors"
+              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="16" height="16" rx="2" />

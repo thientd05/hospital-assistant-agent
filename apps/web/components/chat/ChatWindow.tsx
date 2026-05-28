@@ -28,7 +28,7 @@ export function ChatWindow({
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
   const isPatientMode = chatMode === "patient";
   return (
-    <div className="relative flex-1 min-w-0 flex flex-col h-full bg-[#F8F9F6]">
+    <div className="relative flex-1 min-w-0 flex flex-col h-full bg-white">
       {onTogglePanel && !isPanelOpen && (
         <button
           type="button"

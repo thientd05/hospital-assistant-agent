@@ -10,6 +10,59 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-brand-50: #f0fafb;
+  --color-brand-100: #c8e7e9;
+  --color-brand-200: #9fd4d8;
+  --color-brand-300: #6dbac1;
+  --color-brand-400: #3fa0a9;
+  --color-brand-500: #15909c;
+  --color-brand-600: #087e8b;
+  --color-brand-700: #066671;
+  --color-brand-800: #044d56;
+  --color-brand-900: #033b43;
+  --color-brand-950: #022930;
+
+  --color-surface: #ffffff;
+  --color-ink: #0f172a;
+}
+
+@keyframes brand-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(20px, -30px) scale(1.05); }
+  66% { transform: translate(-15px, 20px) scale(0.97); }
+}
+.brand-blob {
+  animation: brand-blob 18s ease-in-out infinite;
+}
+
+@keyframes brand-pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.55; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.brand-pulse-ring {
+  animation: brand-pulse-ring 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes brand-cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.brand-cursor {
+  animation: brand-cursor-blink 1s steps(1) infinite;
+}
+
+.brand-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(8, 126, 139, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 126, 139, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.brand-dot-bg {
+  background-image: radial-gradient(rgba(8, 126, 139, 0.12) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 body {

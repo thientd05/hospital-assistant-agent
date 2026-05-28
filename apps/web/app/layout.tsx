@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthProvider";
@@ -14,8 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hospital AI",
-  description: "Trợ lý AI hỗ trợ bác sĩ tại bệnh viện",
+  title: {
+    default: "Hospital AI — Phòng khám gia đình thông minh",
+    template: "%s · Hospital AI",
+  },
+  description:
+    "Phòng khám gia đình với trợ lý AI 24/7. Đặt lịch dễ, theo dõi sức khoẻ tại nhà, đội ngũ bác sĩ tận tâm tại TP.HCM và Hà Nội.",
+  openGraph: {
+    title: "Hospital AI — Phòng khám gia đình thông minh",
+    description:
+      "Bác sĩ gia đình đồng hành cùng bạn, trợ lý AI hỗ trợ 24/7. 12 chuyên khoa, 50+ bác sĩ, đặt lịch trực tuyến.",
+    locale: "vi_VN",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#087E8B",
 };
 
 export default function RootLayout({
@@ -25,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="vi"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="h-full overflow-hidden">
