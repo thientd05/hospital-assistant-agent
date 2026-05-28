@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/.turbo
+.git
+.gitignore
+.env
+.env.*
+*.md
+.claude
+.vscode
+.idea
+apps/web/.next

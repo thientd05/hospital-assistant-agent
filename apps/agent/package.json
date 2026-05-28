@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "node --watch --env-file-if-exists=../../.env --experimental-strip-types src/index.ts"
+    "dev": "node --watch --env-file-if-exists=../../.env --experimental-strip-types src/index.ts",
+    "start": "node --experimental-strip-types src/index.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",

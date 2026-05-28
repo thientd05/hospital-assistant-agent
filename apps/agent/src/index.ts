@@ -11,7 +11,8 @@ if (!jwtSecret) {
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: "http://localhost:3000" });
+const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3000";
+await app.register(cors, { origin: corsOrigin });
 await app.register(jwt, { secret: jwtSecret });
 
 // Agent stateless về DB — không connectDB. Persistence đi qua REST backend.
