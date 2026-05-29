@@ -128,9 +128,9 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
   const d = CHAT_DATA[variant];
   return (
     <BrowserChrome>
-      <div className="grid h-[560px] grid-cols-[180px_1fr_320px] bg-white text-[12px]">
+      <div className="grid h-[480px] grid-cols-1 bg-white text-[12px] sm:h-[520px] md:h-[560px] md:grid-cols-[1fr_300px] lg:grid-cols-[180px_1fr_320px]">
         {/* Sidebar */}
-        <aside className="flex flex-col border-r border-slate-100 bg-slate-50/50">
+        <aside className="hidden flex-col border-r border-slate-100 bg-slate-50/50 lg:flex">
           <div className="flex items-center justify-between gap-2 px-3 py-3">
             <div className="flex items-center gap-1.5">
               <span className="inline-flex h-5 w-5 items-center justify-center text-brand-600">
@@ -213,7 +213,7 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
         </section>
 
         {/* Workspace panel */}
-        <aside className="flex min-w-0 flex-col border-l border-slate-100 bg-white">
+        <aside className="hidden min-w-0 flex-col border-l border-slate-100 bg-white md:flex">
           <div className="flex items-center gap-3 overflow-hidden border-b border-slate-100 px-4">
             {d.panel.tabs.map((t, i) => (
               <button
@@ -516,8 +516,8 @@ function AdminMock({ variant }: { variant: "manager" | "expert" }) {
   const d = ADMIN_DATA[variant];
   return (
     <BrowserChrome>
-      <div className="grid h-[560px] grid-cols-[200px_1fr] bg-white text-[12px]">
-        <aside className="flex flex-col border-r border-slate-100 bg-slate-50/50">
+      <div className="grid h-[480px] grid-cols-1 bg-white text-[12px] md:h-[560px] md:grid-cols-[200px_1fr]">
+        <aside className="hidden flex-col border-r border-slate-100 bg-slate-50/50 md:flex">
           <div className="flex items-center gap-1.5 px-3 py-3">
             <Sparkles className="h-3.5 w-3.5 text-brand-600" />
             <span className="text-[13px] font-semibold text-brand-800">
