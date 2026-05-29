@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { ConfirmModal } from "./ConfirmModal";
 import { AssistantAvatar } from "@/components/AssistantAvatar";
 import { ConversationItem } from "./ConversationItem";
@@ -47,8 +46,7 @@ export function Sidebar({
   onModeChange,
 }: Props) {
   const isPatientMode = mode === "patient";
-  const router = useRouter();
-  const { doctor, patient, logout } = useAuth();
+  const { doctor, patient } = useAuth();
   const profileName = doctor?.fullName ?? patient?.name ?? "—";
   const profileSubtitle = doctor
     ? doctor.specialty || doctor.department || ""
@@ -60,11 +58,6 @@ export function Sidebar({
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    router.replace("/login");
-  };
 
   const pendingTitle =
     conversations.find((c) => c.id === pendingDeleteId)?.title ?? "";
@@ -255,13 +248,13 @@ export function Sidebar({
           </div>
 
           {/* Profile */}
-          <div className="border-t border-gray-200 px-3 py-3 flex items-center gap-2">
+          <div className="border-t border-gray-200 px-3 py-3">
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
               title="Mở cài đặt"
               aria-label="Mở cài đặt"
-              className="flex items-center gap-3 flex-1 min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-gray-100 transition-colors text-left"
+              className="flex items-center gap-3 w-full min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-gray-100 transition-colors text-left"
             >
               <div className="w-8 h-8 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold shrink-0">
                 {profileName !== "—" ? initials(profileName) : "?"}
@@ -274,27 +267,6 @@ export function Sidebar({
                   {profileSubtitle}
                 </span>
               </div>
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Đăng xuất"
-              aria-label="Đăng xuất"
-              className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors shrink-0"
-            >
-              <svg
-                viewBox="0 0 20 20"
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M7 4H4v12h3" />
-                <path d="M13 14l4-4-4-4" />
-                <path d="M17 10H8" />
-              </svg>
             </button>
           </div>
 

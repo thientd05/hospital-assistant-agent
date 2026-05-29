@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import type {
   DoctorPublic,
@@ -145,8 +146,14 @@ type ProfileResponse =
   | { role: "patient"; patient: PatientPublic };
 
 export function SettingsModal({ open, onClose }: Props) {
-  const { account, updateAccount } = useAuth();
+  const { account, updateAccount, logout } = useAuth();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>({ kind: "profile" });
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -218,6 +225,28 @@ export function SettingsModal({ open, onClose }: Props) {
                 ))}
               </>
             )}
+            <div className="pt-3 mt-2 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="group w-full flex items-center gap-2 text-left px-3 py-2 rounded-md text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600"
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  className="w-4 h-4 shrink-0 text-gray-400 transition-colors group-hover:text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 4H4v12h3" />
+                  <path d="M13 14l4-4-4-4" />
+                  <path d="M17 10H8" />
+                </svg>
+                Đăng xuất
+              </button>
+            </div>
           </nav>
           <div className="p-3 border-t border-gray-200">
             <button
