@@ -4,9 +4,10 @@ type Props = {
   variant?: "default" | "light";
   href?: string | null;
   className?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
-export function BrandMark({ variant = "default", href = "/", className = "" }: Props) {
+export function BrandMark({ variant = "default", href = "/", className = "", onClick }: Props) {
   const isLight = variant === "light";
   const textColor = isLight ? "text-white" : "text-slate-900";
   const accent = isLight ? "text-brand-200" : "text-brand-600";
@@ -40,5 +41,5 @@ export function BrandMark({ variant = "default", href = "/", className = "" }: P
   );
 
   if (!href) return content;
-  return <Link href={href}>{content}</Link>;
+  return <Link href={href} onClick={onClick}>{content}</Link>;
 }

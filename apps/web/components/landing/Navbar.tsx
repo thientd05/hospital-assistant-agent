@@ -43,6 +43,14 @@ export function Navbar() {
 
   const cta = mounted && !isLoading ? getAppHref(role) : { href: "/login", label: "Đăng nhập" };
 
+  // Trang landing cuộn trong container của marketing layout, không phải window.
+  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    document
+      .getElementById("marketing-scroll")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <header
       className={`sticky top-0 z-40 transition-all duration-300 ${
@@ -54,7 +62,7 @@ export function Navbar() {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-8">
-        <BrandMark />
+        <BrandMark onClick={scrollToTop} />
 
         <nav className="hidden items-center gap-7 lg:flex">
           {NAV_LINKS.map((l) => (
