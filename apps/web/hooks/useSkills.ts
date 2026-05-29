@@ -7,6 +7,7 @@ export type SkillListItem = { name: string; description: string };
 
 export function useSkills(version: number, enabled = true) {
   return useResource<{ skills: SkillListItem[] }>(
+    "/api/skills",
     () => http.get("/api/skills"),
     [version],
     enabled
@@ -25,6 +26,7 @@ export function useSkill(
   enabled = true
 ) {
   return useResource<SkillDetail>(
+    name ? `/api/skills/${name}` : null,
     async () => {
       if (!name) throw new Error("Chưa chọn skill");
       return http.get<SkillDetail>(`/api/skills/${name}`);

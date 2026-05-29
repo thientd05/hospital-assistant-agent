@@ -15,6 +15,7 @@ export type ExpertListItem = Pick<
 
 export function useExperts(version: number, enabled = true) {
   return useResource<{ count: number; experts: ExpertListItem[] }>(
+    "/api/experts",
     () => http.get("/api/experts"),
     [version],
     enabled
@@ -27,6 +28,7 @@ export function useExpert(
   enabled = true
 ) {
   return useResource<ExpertPublic>(
+    id ? `/api/experts/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn chuyên gia");
       return http.get<ExpertPublic>(`/api/experts/${id}`);

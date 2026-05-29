@@ -17,6 +17,7 @@ export type ConversationAuditItem = {
 
 export function useConversationAuditList(version: number, enabled = true) {
   return useResource<{ conversations: ConversationAuditItem[] }>(
+    "/api/conversations/audit",
     () => http.get("/api/conversations/audit"),
     [version],
     enabled
@@ -40,6 +41,7 @@ export function useConversationAuditDetail(
   enabled = true
 ) {
   return useResource<ConversationAuditDetail>(
+    id ? `/api/conversations/audit/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn hội thoại");
       return http.get<ConversationAuditDetail>(

@@ -13,6 +13,7 @@ export type HomeVitalsResponse = {
 // Chỉ số tại nhà của bệnh nhân đang đăng nhập (id lấy từ JWT ở backend).
 export function useHomeVitals(version: number, enabled = true) {
   return useResource<HomeVitalsResponse>(
+    "/api/me/home-vitals",
     () => http.get("/api/me/home-vitals"),
     [version],
     enabled

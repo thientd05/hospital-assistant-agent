@@ -16,6 +16,7 @@ export type PatientListItem = Pick<
 
 export function usePatients(version: number, enabled = true) {
   return useResource<{ count: number; patients: PatientListItem[] }>(
+    "/api/patients",
     () => http.get("/api/patients"),
     [version],
     enabled
@@ -28,6 +29,7 @@ export function usePatient(
   enabled = true
 ) {
   return useResource<PatientPublic>(
+    id ? `/api/patients/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn bệnh nhân");
       return http.get<PatientPublic>(`/api/patients/${id}`);
@@ -47,6 +49,7 @@ export function useLabs(
     patientName: string;
     labResults: LabResult[];
   }>(
+    patientId ? `/api/patients/${patientId}/labs` : null,
     async () => {
       if (!patientId) throw new Error("Chưa chọn bệnh nhân");
       return http.get(`/api/patients/${patientId}/labs`);

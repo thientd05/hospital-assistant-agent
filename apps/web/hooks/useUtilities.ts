@@ -10,6 +10,7 @@ import { useResource } from "./useResource";
 
 export function useUtilities(version: number, enabled = true) {
   return useResource<{ count: number; utilities: Utility[] }>(
+    "/api/utilities",
     () => http.get("/api/utilities"),
     [version],
     enabled
@@ -18,6 +19,7 @@ export function useUtilities(version: number, enabled = true) {
 
 export function useUtility(id: string | null, version: number, enabled = true) {
   return useResource<Utility>(
+    id ? `/api/utilities/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn hoá đơn");
       return http.get<Utility>(`/api/utilities/${id}`);

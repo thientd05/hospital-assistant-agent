@@ -10,6 +10,7 @@ import { useResource } from "./useResource";
 
 export function usePayroll(version: number, enabled = true) {
   return useResource<{ count: number; payroll: Payroll[] }>(
+    "/api/payroll",
     () => http.get("/api/payroll"),
     [version],
     enabled
@@ -22,6 +23,7 @@ export function usePayrollEntry(
   enabled = true
 ) {
   return useResource<Payroll>(
+    id ? `/api/payroll/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn bản lương");
       return http.get<Payroll>(`/api/payroll/${id}`);

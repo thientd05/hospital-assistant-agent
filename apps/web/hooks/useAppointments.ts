@@ -14,6 +14,7 @@ export type AppointmentRow = Appointment & {
 
 export function useAppointments(version: number, enabled = true) {
   return useResource<AppointmentRow[]>(
+    "/api/appointments",
     () => http.get("/api/appointments"),
     [version],
     enabled

@@ -13,6 +13,7 @@ export type MyLabsResponse = {
 // Kết quả xét nghiệm của bệnh nhân đang đăng nhập (read-only, id từ JWT ở backend).
 export function useMyLabs(version: number, enabled = true) {
   return useResource<MyLabsResponse>(
+    "/api/me/labs",
     () => http.get("/api/me/labs"),
     [version],
     enabled

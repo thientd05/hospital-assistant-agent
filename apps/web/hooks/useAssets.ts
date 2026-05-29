@@ -10,6 +10,7 @@ import { useResource } from "./useResource";
 
 export function useAssets(version: number, enabled = true) {
   return useResource<{ count: number; assets: Asset[] }>(
+    "/api/assets",
     () => http.get("/api/assets"),
     [version],
     enabled
@@ -18,6 +19,7 @@ export function useAssets(version: number, enabled = true) {
 
 export function useAsset(id: string | null, version: number, enabled = true) {
   return useResource<Asset>(
+    id ? `/api/assets/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn tài sản");
       return http.get<Asset>(`/api/assets/${id}`);

@@ -8,6 +8,7 @@ export type BootData = { role: BootRole; content: string };
 
 export function useBoot(role: BootRole, version: number, enabled = true) {
   return useResource<BootData>(
+    `/api/boots/${role}`,
     () => http.get<BootData>(`/api/boots/${role}`),
     [role, version],
     enabled

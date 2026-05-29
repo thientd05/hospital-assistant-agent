@@ -22,6 +22,7 @@ export type CustomerStatsData = {
 
 export function useCustomerStats(version: number, enabled = true) {
   return useResource<CustomerStatsData>(
+    "/api/stats/customers",
     () => http.get("/api/stats/customers"),
     [version],
     enabled
@@ -30,6 +31,7 @@ export function useCustomerStats(version: number, enabled = true) {
 
 export function useFinancialStats(version: number, enabled = true) {
   return useResource<FinancialStatsData>(
+    "/api/stats/financial",
     () => http.get("/api/stats/financial"),
     [version],
     enabled

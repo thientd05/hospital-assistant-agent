@@ -14,6 +14,7 @@ import type {
   PatientPublic,
 } from "@pr_hospitalagent/types";
 import { ACCOUNT_KEY, API_URL, TOKEN_KEY } from "@/lib/api";
+import { clearResourceCache } from "@/lib/resourceCache";
 
 export type AuthAccount =
   | { role: "doctor"; doctor: DoctorPublic }
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuth = useCallback(() => {
     setAccount(null);
     setToken(null);
+    clearResourceCache();
     if (typeof window !== "undefined") {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(ACCOUNT_KEY);
@@ -112,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     (nextToken: string, nextAccount: AuthAccount) => {
+      clearResourceCache();
       localStorage.setItem(TOKEN_KEY, nextToken);
       localStorage.setItem(ACCOUNT_KEY, JSON.stringify(nextAccount));
       setToken(nextToken);

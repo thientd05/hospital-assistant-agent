@@ -10,6 +10,7 @@ import { useResource } from "./useResource";
 
 export function useRevenue(version: number, enabled = true) {
   return useResource<{ count: number; revenue: Revenue[] }>(
+    "/api/revenue",
     () => http.get("/api/revenue"),
     [version],
     enabled
@@ -22,6 +23,7 @@ export function useRevenueEntry(
   enabled = true
 ) {
   return useResource<Revenue>(
+    id ? `/api/revenue/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn doanh thu");
       return http.get<Revenue>(`/api/revenue/${id}`);

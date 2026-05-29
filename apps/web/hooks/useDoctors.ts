@@ -15,6 +15,7 @@ export type DoctorListItem = Pick<
 
 export function useDoctors(version: number, enabled = true) {
   return useResource<{ count: number; doctors: DoctorListItem[] }>(
+    "/api/doctors",
     () => http.get("/api/doctors"),
     [version],
     enabled
@@ -27,6 +28,7 @@ export function useDoctor(
   enabled = true
 ) {
   return useResource<DoctorPublic>(
+    id ? `/api/doctors/${id}` : null,
     async () => {
       if (!id) throw new Error("Chưa chọn bác sĩ");
       return http.get<DoctorPublic>(`/api/doctors/${id}`);
