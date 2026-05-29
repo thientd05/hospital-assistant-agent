@@ -42,6 +42,11 @@ export default function ChatPage() {
   const workspace = useWorkspace();
   const { openPanel, setTab } = workspace;
   const [chatMode, setChatMode] = useState<ChatMode>("ai");
+  // Mobile (< lg): chỉ 1 trong 3 (sidebar | chat | panel) hiện full-screen 1 lúc.
+  // Desktop (lg+) bỏ qua state này, vẫn hiển thị cả 3 cột như cũ.
+  const [mobileView, setMobileView] = useState<"sidebar" | "chat" | "panel">(
+    "chat"
+  );
   const savedConvIdsRef = useRef<Record<ChatMode, string | null>>({
     ai: null,
     patient: null,
@@ -53,6 +58,8 @@ export default function ChatPage() {
       const args = (rawArgs ?? {}) as Record<string, unknown>;
       if (command === "open_panel") {
         openPanel();
+        // Mobile: đưa panel lên full-screen để bác sĩ thấy agent thao tác.
+        setMobileView("panel");
         const tab = args.tab;
         const validTabs = ROLE_TABS.doctor ?? [];
         if (
@@ -227,20 +234,36 @@ export default function ChatPage() {
       <Sidebar
         conversations={sidebarConversations}
         activeId={chat.conversationId}
-        onSelect={chat.selectConversation}
-        onNew={() => chat.selectConversation(null)}
+        onSelect={(id) => {
+          chat.selectConversation(id);
+          setMobileView("chat");
+        }}
+        onNew={() => {
+          chat.selectConversation(null);
+          setMobileView("chat");
+        }}
         onDelete={handleDelete}
         disabled={chat.isStreaming}
         mode={chatMode}
         onModeChange={isDoctor ? handleChatModeChange : undefined}
+        mobileActive={mobileView === "sidebar"}
+        onCloseMobile={() => setMobileView("chat")}
       />
       <ChatWindow
         messages={chat.messages}
         isStreaming={chat.isStreaming}
         onSend={chat.sendMessage}
         isPanelOpen={workspace.isOpen}
-        onTogglePanel={hasPanel ? workspace.togglePanel : undefined}
+        onTogglePanel={
+          hasPanel
+            ? () => {
+                workspace.togglePanel();
+                setMobileView("panel");
+              }
+            : undefined
+        }
         chatMode={chatMode}
+        onOpenSidebar={() => setMobileView("sidebar")}
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}
@@ -248,7 +271,11 @@ export default function ChatPage() {
         versions={workspace.versions}
         selectedPatientId={workspace.selectedPatientId}
         role={role}
-        onClose={workspace.closePanel}
+        mobileActive={mobileView === "panel"}
+        onClose={() => {
+          workspace.closePanel();
+          setMobileView("chat");
+        }}
         onTabChange={workspace.setTab}
         onSelectPatient={workspace.selectPatient}
         bumpTab={workspace.bumpTab}

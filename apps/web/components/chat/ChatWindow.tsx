@@ -13,6 +13,8 @@ type Props = {
   isPanelOpen?: boolean;
   onTogglePanel?: () => void;
   chatMode?: ChatMode;
+  /** Mobile (< lg): mở sidebar full-screen. */
+  onOpenSidebar?: () => void;
 };
 
 export function ChatWindow({
@@ -22,19 +24,74 @@ export function ChatWindow({
   isPanelOpen,
   onTogglePanel,
   chatMode = "ai",
+  onOpenSidebar,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
   const isPatientMode = chatMode === "patient";
+  const panelIcon = (
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <line x1="15" y1="4" x2="15" y2="20" />
+    </svg>
+  );
+
   return (
     <div className="relative flex-1 min-w-0 flex flex-col h-full bg-white">
+      {/* Mobile-only top bar: hamburger (mở sidebar) + tiêu đề + mở panel */}
+      <div className="lg:hidden flex items-center justify-between gap-2 border-b border-gray-200 px-3 py-2 shrink-0">
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          aria-label="Mở danh sách hội thoại"
+          className="w-9 h-9 -ml-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
+        >
+          <svg
+            className="w-5 h-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <span className="text-sm font-medium text-gray-700 truncate">
+          {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
+        </span>
+        {onTogglePanel && !isPanelOpen ? (
+          <button
+            type="button"
+            onClick={onTogglePanel}
+            aria-label="Mở bảng làm việc"
+            className="w-9 h-9 -mr-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
+          >
+            {panelIcon}
+          </button>
+        ) : (
+          <span className="w-9" />
+        )}
+      </div>
+
       {onTogglePanel && !isPanelOpen && (
         <button
           type="button"
           onClick={onTogglePanel}
           aria-label="Mở bảng làm việc"
-          className="absolute top-4 right-6 z-10 w-8 h-8 rounded-md border border-gray-200 text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
+          className="hidden lg:flex absolute top-4 right-6 z-10 w-8 h-8 rounded-md border border-gray-200 text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 items-center justify-center transition-colors"
         >
           <svg
             className="w-4 h-4"

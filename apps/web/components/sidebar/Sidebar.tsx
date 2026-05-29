@@ -30,6 +30,10 @@ type Props = {
   disabled?: boolean;
   mode?: "ai" | "patient";
   onModeChange?: (mode: "ai" | "patient") => void;
+  /** Mobile (< lg): sidebar đang là view full-screen được chọn. */
+  mobileActive?: boolean;
+  /** Mobile: quay lại view chat (đóng sidebar full-screen). */
+  onCloseMobile?: () => void;
 };
 
 const EXPANDED_WIDTH = 288;
@@ -44,6 +48,8 @@ export function Sidebar({
   disabled,
   mode = "ai",
   onModeChange,
+  mobileActive = false,
+  onCloseMobile,
 }: Props) {
   const isPatientMode = mode === "patient";
   const { doctor, patient } = useAuth();
@@ -76,7 +82,11 @@ export function Sidebar({
   return (
     <>
       <aside
-        className="relative shrink-0 border-r border-gray-200 bg-white overflow-hidden transition-[width] duration-300 ease-in-out h-full"
+        className={`relative shrink-0 border-r border-gray-200 bg-white overflow-hidden transition-[width] duration-300 ease-in-out h-full ${
+          mobileActive
+            ? "max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:!w-full"
+            : "max-lg:hidden"
+        }`}
         style={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       >
         {/* Collapsed overlay — toggle + new chat, shown only when collapsed */}
@@ -114,7 +124,7 @@ export function Sidebar({
 
         {/* Inner container fixed at expanded width so children never reflow */}
         <div
-          className={`flex flex-col h-full transition-opacity duration-200 ${
+          className={`flex flex-col h-full transition-opacity duration-200 max-lg:!w-full ${
             collapsed ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
           style={{ width: EXPANDED_WIDTH }}
@@ -163,7 +173,7 @@ export function Sidebar({
               onClick={() => setCollapsed(true)}
               title="Thu gọn sidebar"
               aria-label="Thu gọn sidebar"
-              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="hidden lg:block p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <svg
                 viewBox="0 0 20 20"
@@ -176,6 +186,26 @@ export function Sidebar({
               >
                 <rect x="2" y="2" width="16" height="16" rx="2" />
                 <path d="M7 2v16" />
+              </svg>
+            </button>
+            {/* Mobile-only: quay lại chat */}
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              title="Đóng"
+              aria-label="Đóng danh sách"
+              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <svg
+                viewBox="0 0 20 20"
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 6l8 8M14 6l-8 8" />
               </svg>
             </button>
           </div>

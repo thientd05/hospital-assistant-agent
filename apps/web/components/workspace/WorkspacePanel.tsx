@@ -49,6 +49,8 @@ type Props = {
   versions: Record<WorkspaceTab, number>;
   selectedPatientId: string | null;
   role: string | null;
+  /** Mobile (< lg): panel đang là view full-screen được chọn. */
+  mobileActive?: boolean;
   onClose: () => void;
   onTabChange: (tab: WorkspaceTab) => void;
   onSelectPatient: (id: string | null) => void;
@@ -62,6 +64,7 @@ export function WorkspacePanel({
   versions,
   selectedPatientId,
   role,
+  mobileActive = false,
   onClose,
   onTabChange,
   onSelectPatient,
@@ -131,6 +134,10 @@ export function WorkspacePanel({
     <aside
       className={`relative shrink-0 h-full overflow-hidden border-l border-gray-200 bg-white ${
         isResizing ? "" : "transition-[width] duration-300 ease-in-out"
+      } ${
+        mobileActive
+          ? "max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:!w-full"
+          : "max-lg:hidden"
       }`}
       style={{ width: isOpen ? width : 0 }}
       aria-hidden={!isOpen}
@@ -141,13 +148,13 @@ export function WorkspacePanel({
           aria-orientation="vertical"
           aria-label="Kéo để thay đổi kích thước bảng làm việc"
           onMouseDown={startResize}
-          className={`absolute top-0 left-0 h-full w-1 cursor-col-resize z-10 transition-colors ${
+          className={`hidden lg:block absolute top-0 left-0 h-full w-1 cursor-col-resize z-10 transition-colors ${
             isResizing ? "bg-[#087E8B]" : "bg-transparent hover:bg-[#C8E7E9]"
           }`}
         />
       )}
       <div
-        className="h-full flex flex-col"
+        className="h-full flex flex-col max-lg:!w-full"
         style={{ width }}
         data-agent-panel-root={isOpen ? "" : undefined}
       >
