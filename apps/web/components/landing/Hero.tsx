@@ -63,7 +63,7 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-            <strong className="text-slate-800">Hospital AI</strong> là phòng khám gia đình với
+            <strong className="text-slate-800">FamilyHealth AI</strong> là phòng khám gia đình với
             trợ lý AI cá nhân cho từng bệnh nhân: hỏi đáp tức thì, đặt lịch một chạm, theo dõi
             sức khoẻ tại nhà — đội ngũ bác sĩ luôn đồng hành phía sau.
           </p>

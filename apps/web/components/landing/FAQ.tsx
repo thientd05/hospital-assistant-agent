@@ -20,7 +20,7 @@ const ITEMS = [
   },
   {
     q: "Có nhận bảo hiểm y tế không?",
-    a: "Có. Hospital AI là cơ sở khám chữa bệnh đăng ký bảo hiểm y tế (BHYT) và liên kết với hầu hết các hãng bảo hiểm tư nhân lớn tại Việt Nam. Mang theo thẻ khi đến khám lần đầu.",
+    a: "Có. FamilyHealth AI là cơ sở khám chữa bệnh đăng ký bảo hiểm y tế (BHYT) và liên kết với hầu hết các hãng bảo hiểm tư nhân lớn tại Việt Nam. Mang theo thẻ khi đến khám lần đầu.",
   },
   {
     q: "Dữ liệu sức khoẻ của tôi có an toàn không?",

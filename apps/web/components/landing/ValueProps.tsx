@@ -28,7 +28,7 @@ export function ValueProps() {
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-24">
         <Reveal>
           <p className="text-sm font-medium uppercase tracking-wide text-brand-700">
-            Vì sao chọn Hospital AI
+            Vì sao chọn FamilyHealth AI
           </p>
           <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Phòng khám gia đình — nay có một “bác sĩ AI” đồng hành.

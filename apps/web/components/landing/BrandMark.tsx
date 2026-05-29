@@ -34,7 +34,7 @@ export function BrandMark({ variant = "default", href = "/", className = "" }: P
         </svg>
       </span>
       <span className="text-base sm:text-lg">
-        Hospital<span className={accent}>AI</span>
+        FamilyHealth<span className={accent}>AI</span>
       </span>
     </span>
   );

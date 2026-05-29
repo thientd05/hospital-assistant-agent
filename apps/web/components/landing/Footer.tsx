@@ -77,11 +77,11 @@ export function Footer() {
                 Hotline: <strong className="text-slate-900">1900 8088</strong>
               </a>
               <a
-                href="mailto:lienhe@hospital-ai.vn"
+                href="mailto:lienhe@familyhealth-ai.vn"
                 className="flex items-center gap-2 hover:text-brand-700"
               >
                 <Mail className="h-4 w-4 text-brand-600" />
-                lienhe@hospital-ai.vn
+                lienhe@familyhealth-ai.vn
               </a>
             </div>
             <div className="mt-5 flex items-center gap-2">
@@ -139,7 +139,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-slate-200 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} Hospital AI · Phòng khám gia đình thông minh.</p>
+          <p>© {new Date().getFullYear()} FamilyHealth AI · Phòng khám gia đình thông minh.</p>
           <p>Giấy phép hoạt động khám chữa bệnh số 1234/HCM-GPHĐ — Sở Y tế cấp.</p>
         </div>
       </div>

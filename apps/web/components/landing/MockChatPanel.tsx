@@ -41,7 +41,7 @@ function BrowserChrome({ children }: { children: ReactNode }) {
           </div>
           <div className="ml-3 flex h-6 max-w-[280px] flex-1 items-center gap-1.5 rounded-md bg-white px-2 text-[10px] text-slate-400 ring-1 ring-slate-200">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            hospital-ai.vn/chat
+            family-healthcare-ai-thienta.vercel.app/chat
           </div>
         </div>
         {children}
@@ -521,7 +521,7 @@ function AdminMock({ variant }: { variant: "manager" | "expert" }) {
           <div className="flex items-center gap-1.5 px-3 py-3">
             <Sparkles className="h-3.5 w-3.5 text-brand-600" />
             <span className="text-[13px] font-semibold text-brand-800">
-              Hospital AI
+              FamilyHealth AI
             </span>
           </div>
           <div className="mt-2 px-3 text-[10px] uppercase tracking-wide text-slate-400">

@@ -281,7 +281,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-xs text-slate-400">
-            Bằng việc đăng nhập, bạn đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư của Hospital AI.
+            Bằng việc đăng nhập, bạn đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư của FamilyHealth AI.
           </p>
         </div>
       </main>
