@@ -1,15 +1,10 @@
-import { join } from "node:path";
-
-// Shared filesystem constants/helpers for skill files. Skills live at
-// `apps/agent/src/agent/skills/<name>/SKILL.md`; this module is in `agent/`,
-// so its dirname is the canonical anchor for SKILLS_DIR.
-export const SKILLS_DIR = join(import.meta.dirname, "skills");
+// Helper cho skill markdown (SKILL.md). Nội dung skill lưu ở Mongo; description
+// suy ra từ frontmatter `--- ... ---` khi đọc (giữ nguyên hành vi cũ của agent).
 export const NAME_RE = /^[A-Za-z0-9_-]+$/;
 export const MAX_SKILL_BYTES = 200_000;
 
-// Parse the YAML-ish frontmatter block of a SKILL.md. Returns null when there
-// is no `--- ... ---` block; otherwise returns whichever of name/description
-// were present.
+// Parse khối frontmatter YAML-ish của SKILL.md. Trả null khi không có khối `--- ... ---`;
+// ngược lại trả các field name/description có mặt.
 export function parseSkillFrontmatter(
   content: string
 ): { name?: string; description?: string } | null {
@@ -26,4 +21,8 @@ export function parseSkillFrontmatter(
     }
   }
   return result;
+}
+
+export function skillDescription(content: string): string {
+  return parseSkillFrontmatter(content)?.description ?? "(không có mô tả)";
 }

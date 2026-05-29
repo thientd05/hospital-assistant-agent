@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.env --experimental-strip-types src/index.ts",
     "start": "node --experimental-strip-types src/index.ts",
-    "vercel-build": "esbuild src/app.ts --bundle --platform=node --format=esm --outfile=dist/app.js --external:fastify --external:@fastify/* --external:@anthropic-ai/sdk --external:zod && cp -r src/agent/boots dist/boots && cp -r src/agent/skills dist/skills && cp src/agent/config.json dist/config.json"
+    "vercel-build": "esbuild src/app.ts --bundle --platform=node --format=esm --outfile=dist/app.js --external:fastify --external:@fastify/* --external:@anthropic-ai/sdk --external:zod && cp src/agent/config.json dist/config.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",

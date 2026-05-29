@@ -386,6 +386,28 @@ export type Workspace = {
 
 export type WorkspaceKey = "memory" | "soul" | "user";
 
+// Boot prompt (AGENT.md) của agent theo vai trò — lưu Mongo, đọc qua REST.
+export type BootRole = "doctor" | "patient";
+
+export type Boot = {
+  role: BootRole;
+  content: string;
+  updatedAt: string | Date;
+};
+
+// Skill (SKILL.md) cho agent — lưu Mongo, key = name slug. description suy từ frontmatter.
+export type Skill = {
+  name: string;
+  content: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+};
+
+export type SkillSummary = { name: string; description: string };
+
+// Shape chi tiết trả cho FE (giữ tương thích hợp đồng cũ của agent skills route).
+export type SkillDetail = { skill: string; path: string; content: string };
+
 export type FinancialStatsData = {
   currentMonth: FinancialMonthPoint;
   monthlyTrend: FinancialMonthPoint[];

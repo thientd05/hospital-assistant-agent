@@ -2,7 +2,6 @@ import Fastify, { type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import { chatRoutes } from "./routes/chat.ts";
-import { skillsRoutes } from "./routes/skills.ts";
 
 export async function buildAgentApp(): Promise<{
   app: FastifyInstance;
@@ -22,8 +21,8 @@ export async function buildAgentApp(): Promise<{
   // Agent stateless về DB — không connectDB. Persistence đi qua REST backend.
   app.get("/health", async () => ({ status: "ok" }));
 
+  // Skills CRUD đã chuyển sang apps/api (Mongo). Agent chỉ còn chat.
   await app.register(chatRoutes, { prefix: "/api" });
-  await app.register(skillsRoutes, { prefix: "/api" });
 
   const port = Number(process.env.AGENT_PORT ?? 3002);
   return { app, port };

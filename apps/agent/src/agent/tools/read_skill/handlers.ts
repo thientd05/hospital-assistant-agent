@@ -1,11 +1,12 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
 import { getAllowedSkills, type AuthRole } from "../../access.ts";
-import { SKILLS_DIR, NAME_RE, MAX_SKILL_BYTES } from "../../skills-fs.ts";
+import { fetchSkill } from "../../api-client.ts";
+
+const NAME_RE = /^[A-Za-z0-9_-]+$/;
 
 export async function handleReadSkill(
   input: Record<string, unknown>,
-  role: AuthRole
+  role: AuthRole,
+  token: string
 ): Promise<string> {
   const name = typeof input.name === "string" ? input.name : "";
   if (!name) {
@@ -19,19 +20,10 @@ export async function handleReadSkill(
       error: `Skill "${name}" không khả dụng cho vai trò "${role}".`,
     });
   }
-  const path = join(SKILLS_DIR, name, "SKILL.md");
-  if (!existsSync(path)) {
+  // Body skill lưu ở Mongo, đọc qua REST backend (agent không chạm Mongo/FS).
+  const skill = await fetchSkill(token, name);
+  if (!skill) {
     return JSON.stringify({ error: `Không tìm thấy skill: ${name}` });
   }
-  const stat = statSync(path);
-  if (!stat.isFile()) {
-    return JSON.stringify({ error: `Đường dẫn không phải file: ${path}` });
-  }
-  if (stat.size > MAX_SKILL_BYTES) {
-    return JSON.stringify({
-      error: `File skill "${name}" quá lớn: ${stat.size} bytes (giới hạn ${MAX_SKILL_BYTES}).`,
-    });
-  }
-  const content = readFileSync(path, "utf8");
-  return JSON.stringify({ name, content });
+  return JSON.stringify({ name, content: skill.content });
 }

@@ -12,6 +12,8 @@ import { payrollRoutes } from "./payroll.ts";
 import { revenueRoutes } from "./revenue.ts";
 import { conversationsRoutes } from "./conversations.ts";
 import { workspaceRoutes } from "./workspace.ts";
+import { bootsRoutes } from "./boots.ts";
+import { skillsRoutes } from "./skills.ts";
 
 const modules = [
   authRoutes,
@@ -27,6 +29,8 @@ const modules = [
   revenueRoutes,
   conversationsRoutes,
   workspaceRoutes,
+  bootsRoutes,
+  skillsRoutes,
 ];
 
 export async function registerRoutes(app: FastifyInstance) {

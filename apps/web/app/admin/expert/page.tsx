@@ -8,6 +8,7 @@ import {
   type AdminSection,
 } from "@/components/admin/AdminShell";
 import { SkillsTab } from "@/components/workspace/tabs/SkillsTab";
+import { BootsTab } from "@/components/workspace/tabs/BootsTab";
 import { ConversationAuditTab } from "@/components/workspace/tabs/ConversationAuditTab";
 
 export default function ExpertAdminPage() {
@@ -39,6 +40,13 @@ export default function ExpertAdminPage() {
       label: "Skill",
       render: ({ version, bump }) => (
         <SkillsTab version={version} active={true} onChanged={bump} />
+      ),
+    },
+    {
+      key: "boots",
+      label: "Prompt gốc (AGENT.md)",
+      render: ({ version, bump }) => (
+        <BootsTab version={version} active={true} onChanged={bump} />
       ),
     },
     {

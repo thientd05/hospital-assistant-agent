@@ -7,15 +7,6 @@
     "start": "node --experimental-strip-types src/index.ts",
     "vercel-build": "esbuild src/app.ts --bundle --platform=node --format=esm --outfile=dist/app.js --external:fastify --external:@fastify/* --external:mongodb --external:zod",
     "seed": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed.ts",
-    "seed:doctors": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-doctors.ts",
-    "seed:appointments": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-appointments.ts",
-    "seed:manager": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-manager.ts",
-    "seed:experts": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-experts.ts",
-    "seed:assets": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-assets.ts",
-    "seed:utilities": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-utilities.ts",
-    "seed:payroll": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-payroll.ts",
-    "seed:revenue": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/seed-revenue.ts",
-    "seed:finance": "pnpm seed:assets && pnpm seed:utilities && pnpm seed:payroll && pnpm seed:revenue",
     "cleanup:legacy-conversations": "node --env-file-if-exists=../../.env --experimental-strip-types src/db/cleanup-legacy-conversations.ts"
   },
   "dependencies": {

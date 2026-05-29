@@ -1,13 +1,13 @@
 "use client";
 
-import { httpAgent } from "@/lib/apiClient";
+import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
 
 export type SkillListItem = { name: string; description: string };
 
 export function useSkills(version: number, enabled = true) {
   return useResource<{ skills: SkillListItem[] }>(
-    () => httpAgent.get("/api/skills"),
+    () => http.get("/api/skills"),
     [version],
     enabled
   );
@@ -27,7 +27,7 @@ export function useSkill(
   return useResource<SkillDetail>(
     async () => {
       if (!name) throw new Error("Chưa chọn skill");
-      return httpAgent.get<SkillDetail>(`/api/skills/${name}`);
+      return http.get<SkillDetail>(`/api/skills/${name}`);
     },
     [name, version],
     enabled && Boolean(name)
@@ -36,9 +36,9 @@ export function useSkill(
 
 export const skillsApi = {
   create: (name: string, content: string) =>
-    httpAgent.post<SkillDetail>("/api/skills", { name, content }),
+    http.post<SkillDetail>("/api/skills", { name, content }),
   update: (name: string, content: string) =>
-    httpAgent.put<SkillDetail>(`/api/skills/${name}`, { content }),
+    http.put<SkillDetail>(`/api/skills/${name}`, { content }),
   remove: (name: string) =>
-    httpAgent.delete<{ ok: boolean; deleted: string }>(`/api/skills/${name}`),
+    http.delete<{ ok: boolean; deleted: string }>(`/api/skills/${name}`),
 };

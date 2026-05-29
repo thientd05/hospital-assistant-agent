@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   getAllowedSkills,
@@ -17,8 +15,7 @@ import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
 import { handleReadSkill } from "./tools/read_skill/handlers.ts";
 import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_file/definitions.ts";
 import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
-import { fetchWorkspace } from "./api-client.ts";
-import { SKILLS_DIR, parseSkillFrontmatter } from "./skills-fs.ts";
+import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
 
 const tools: Anthropic.Tool[] = [
   openPanelDef,
@@ -28,49 +25,36 @@ const tools: Anthropic.Tool[] = [
   updateWorkspaceFileDef,
 ];
 
-const AGENT_DIR = import.meta.dirname;
-const BOOTS_DIR = join(AGENT_DIR, "boots");
-
-function loadAgentPrompt(role: AuthRole): string {
-  return readFileSync(join(BOOTS_DIR, role, "AGENT.md"), "utf8");
-}
-
-function loadSkillFrontmatter(
-  skillName: string
-): { name: string; description: string } | null {
-  const path = join(SKILLS_DIR, skillName, "SKILL.md");
-  if (!existsSync(path)) return null;
-  const fm = parseSkillFrontmatter(readFileSync(path, "utf8"));
-  if (!fm) return null;
-  return { name: fm.name ?? skillName, description: fm.description ?? "" };
-}
-
-function buildSkillIndex(role: AuthRole): string | null {
-  const allowed = getAllowedSkills(role);
-  if (allowed.length === 0) return null;
+// Index skill = giao của allowlist (config.json, tầng phân quyền agent) và skill
+// thực tế có trong Mongo (đọc qua REST). description suy từ frontmatter ở backend.
+async function buildSkillIndex(
+  token: string,
+  role: AuthRole
+): Promise<string | null> {
+  const allowed = new Set(getAllowedSkills(role));
+  if (allowed.size === 0) return null;
+  const skills = (await fetchSkills(token)).filter((s) => allowed.has(s.name));
+  if (skills.length === 0) return null;
   const lines: string[] = [
     "# Skill khả dụng",
     "Khi tình huống match một skill bên dưới, bạn PHẢI gọi `read_skill(name)` để đọc body đầy đủ trước khi hành động. Mô tả ở đây chỉ là gợi nhớ, không đủ để theo đúng quy trình.",
     "",
   ];
-  let added = 0;
-  for (const skillName of allowed) {
-    const fm = loadSkillFrontmatter(skillName);
-    if (!fm) continue;
-    lines.push(`- **${fm.name}** — ${fm.description}`);
-    added += 1;
+  for (const s of skills) {
+    lines.push(`- **${s.name}** — ${s.description}`);
   }
-  return added > 0 ? lines.join("\n") : null;
+  return lines.join("\n");
 }
 
 async function buildSystemPrompt(
   token: string,
   role: AuthRole
 ): Promise<string> {
-  const parts = [loadAgentPrompt(role).trim()];
-  const skillIndex = buildSkillIndex(role);
+  // Boot prompt (AGENT.md), skill index và workspace đều đọc qua REST backend
+  // mỗi lượt → áp dụng ngay, agent không chạm Mongo / filesystem.
+  const parts = [(await fetchBoot(token, role)).trim()];
+  const skillIndex = await buildSkillIndex(token, role);
   if (skillIndex) parts.push(skillIndex);
-  // Đọc workspace qua REST backend mỗi lượt → áp dụng ngay, agent không chạm Mongo.
   const ws = await fetchWorkspace(token);
   const user = ws.user.trim();
   const soul = ws.soul.trim();
@@ -113,7 +97,7 @@ async function dispatchTool(
       case "act":
         return await handleAct(input, panel);
       case "read_skill":
-        return await handleReadSkill(input, role);
+        return await handleReadSkill(input, role, token);
       case "update_workspace_file":
         return await handleUpdateWorkspaceFile(input, token);
       default:

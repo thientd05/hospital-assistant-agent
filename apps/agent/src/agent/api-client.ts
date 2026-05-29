@@ -52,6 +52,42 @@ export async function fetchWorkspace(
   return call(token, "/api/workspace");
 }
 
+// Boot prompt (AGENT.md) theo vai trò — lưu Mongo, đọc qua REST. Thiếu = "".
+export async function fetchBoot(
+  token: string,
+  role: string
+): Promise<string> {
+  const res = await call<{ role: string; content: string }>(
+    token,
+    `/api/boots/${role}`
+  );
+  return res.content;
+}
+
+// Danh sách skill (name + description suy từ frontmatter) để build index.
+export async function fetchSkills(
+  token: string
+): Promise<{ name: string; description: string }[]> {
+  const res = await call<{ skills: { name: string; description: string }[] }>(
+    token,
+    "/api/skills"
+  );
+  return res.skills;
+}
+
+// Body skill đầy đủ; 404 → null.
+export async function fetchSkill(
+  token: string,
+  name: string
+): Promise<{ skill: string; path: string; content: string } | null> {
+  try {
+    return await call(token, `/api/skills/${name}`);
+  } catch (err) {
+    if ((err as { status?: number }).status === 404) return null;
+    throw err;
+  }
+}
+
 export async function writeWorkspaceFile(
   token: string,
   file: string,
