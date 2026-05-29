@@ -270,16 +270,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/60 p-3.5 text-xs text-slate-600">
-            <p className="font-medium text-brand-800">Trải nghiệm thử trợ lý AI</p>
-            <p className="mt-1 leading-relaxed">
-              Dùng tài khoản dùng thử dành cho khách tham quan:{" "}
-              <code className="rounded bg-white px-1.5 py-0.5 ring-1 ring-brand-100 text-brand-800">
-                bn001 / matkhaubn001
-              </code>
-            </p>
-          </div>
-
           <p className="mt-6 text-xs text-slate-400">
             Bằng việc đăng nhập, bạn đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư của FamilyHealth AI.
           </p>
