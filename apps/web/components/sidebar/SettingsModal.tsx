@@ -10,6 +10,7 @@ import type {
   PatientPublic,
 } from "@pr_hospitalagent/types";
 import { http, ApiError } from "@/lib/apiClient";
+import { dedupedFetch, getCached, setCached } from "@/lib/resourceCache";
 import { useAuth, type AuthAccount } from "@/app/providers/AuthProvider";
 
 type Props = {
@@ -536,23 +537,35 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const key = `/api/workspace/files/${meta.file}`;
+    // Có cache → hiện nội dung ngay, revalidate nền (không hiện "đang tải").
+    const cached = getCached<{ file: string; content: string }>(key);
+    if (cached) {
+      setContent(cached.content);
+      setDraft(cached.content);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     setInfo(null);
     setEditing(false);
     (async () => {
       try {
-        const data = await http.get<{ file: string; content: string }>(
-          `/api/workspace/files/${meta.file}`
+        const data = await dedupedFetch(key, () =>
+          http.get<{ file: string; content: string }>(key)
         );
         if (cancelled) return;
         setContent(data.content);
         setDraft(data.content);
       } catch (err) {
         if (cancelled) return;
-        setError(
-          err instanceof ApiError ? err.message : "Không tải được nội dung."
-        );
+        // Lỗi revalidate khi đã có cache → giữ nội dung cũ; chưa cache mới báo lỗi.
+        if (getCached(key) === undefined) {
+          setError(
+            err instanceof ApiError ? err.message : "Không tải được nội dung."
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -567,14 +580,16 @@ function WorkspaceFilePanel({ meta }: { meta: WorkspaceFileMeta }) {
     setError(null);
     setInfo(null);
     try {
-      const data = await http.put<{ file: string; content: string }>(
-        `/api/workspace/files/${meta.file}`,
-        { content: draft }
-      );
+      const key = `/api/workspace/files/${meta.file}`;
+      const data = await http.put<{ file: string; content: string }>(key, {
+        content: draft,
+      });
       setContent(data.content);
       setDraft(data.content);
       setEditing(false);
       setInfo("Đã lưu.");
+      // Đồng bộ cache để lần mở lại hiện nội dung vừa lưu, không phải bản cũ.
+      setCached(key, data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Không lưu được.");
     } finally {

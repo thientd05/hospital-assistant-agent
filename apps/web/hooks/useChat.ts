@@ -10,6 +10,32 @@ import type {
 import { readSSEStream } from "@/lib/stream";
 import { AGENT_URL, API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
+import { dedupedFetch, getCached, setCached } from "@/lib/resourceCache";
+
+// Nội dung hội thoại lưu cache ở dạng "thô" (createdAt là chuỗi ISO) để serialize
+// được vào sessionStorage; chuyển về Date khi đọc ra.
+type RawMessage = Omit<Message, "createdAt"> & { createdAt: string };
+type RawConversation = { id: string; messages: RawMessage[] };
+
+function convPath(mode: ChatMode, id: string): string {
+  return mode === "patient"
+    ? `/api/conversations/patients/${id}`
+    : `/api/conversations/${id}`;
+}
+
+function toMessages(raw: RawConversation): Message[] {
+  return raw.messages.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
+}
+
+function toRaw(id: string, messages: Message[]): RawConversation {
+  return {
+    id,
+    messages: messages.map((m) => ({
+      ...m,
+      createdAt: m.createdAt.toISOString(),
+    })),
+  };
+}
 
 type SSEEvent =
   | { type: "text"; content: string }
@@ -85,35 +111,32 @@ export function useChat(opts: UseChatOptions = {}) {
         setConversationId(null);
         return;
       }
-      setIsLoadingConversation(true);
-      setMessages([]);
+      const path = convPath(mode, id);
+      // Có cache → hiện nội dung ngay, revalidate nền (không hiện "đang tải").
+      const cached = getCached<RawConversation>(path);
       setConversationId(id);
+      if (cached) {
+        setMessages(toMessages(cached));
+        setIsLoadingConversation(false);
+      } else {
+        setMessages([]);
+        setIsLoadingConversation(true);
+      }
       try {
-        const path =
-          mode === "patient"
-            ? `/api/conversations/patients/${id}`
-            : `/api/conversations/${id}`;
-        const res = await fetch(`${API_URL}${path}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const data = await dedupedFetch<RawConversation>(path, async () => {
+          const res = await fetch(`${API_URL}${path}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.status === 401) {
+            logout();
+            throw new Error("unauthorized");
+          }
+          if (!res.ok) throw new Error(`API ${res.status}`);
+          return (await res.json()) as RawConversation;
         });
-        if (res.status === 401) {
-          logout();
-          return;
-        }
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        const data = (await res.json()) as {
-          id: string;
-          messages: Array<
-            Omit<Message, "createdAt"> & { createdAt: string }
-          >;
-        };
-        setMessages(
-          data.messages.map((m) => ({
-            ...m,
-            createdAt: new Date(m.createdAt),
-          }))
-        );
+        setMessages(toMessages(data));
       } catch (err) {
+        // Lỗi revalidate → giữ nội dung cache đang hiển thị (nếu có).
         console.error("Failed to load conversation", err);
       } finally {
         setIsLoadingConversation(false);
@@ -160,13 +183,24 @@ export function useChat(opts: UseChatOptions = {}) {
             message?: { content?: string };
           };
           const finalContent = data.message?.content;
-          if (typeof finalContent === "string" && finalContent !== text) {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === optimistic.id ? { ...m, content: finalContent } : m
-              )
-            );
-          }
+          setMessages((prev) => {
+            const updated =
+              typeof finalContent === "string" && finalContent !== text
+                ? prev.map((m) =>
+                    m.id === optimistic.id
+                      ? { ...m, content: finalContent }
+                      : m
+                  )
+                : prev;
+            // Lưu cache để mở lại hội thoại không hiện bản cũ thiếu lượt vừa gửi.
+            if (conversationId) {
+              setCached(
+                convPath("patient", conversationId),
+                toRaw(conversationId, updated)
+              );
+            }
+            return updated;
+          });
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
           setMessages((prev) =>
@@ -307,8 +341,14 @@ export function useChat(opts: UseChatOptions = {}) {
               console.error("Failed to POST tool-callback", e);
             }
           } else if (ev.type === "done") {
-            setConversationId(ev.conversationId);
+            const cid = ev.conversationId;
+            setConversationId(cid);
             setIsStreaming(false);
+            // Cập nhật cache nội dung hội thoại để lần sau mở lại thấy bản mới nhất.
+            setMessages((prev) => {
+              setCached(convPath(mode, cid), toRaw(cid, prev));
+              return prev;
+            });
           } else if (ev.type === "error") {
             updateAssistant((m) => ({
               ...m,
