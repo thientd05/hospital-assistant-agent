@@ -29,7 +29,7 @@ export default function ManagerAdminPage() {
 
   if (isLoading || role !== "manager") {
     return (
-      <div className="h-screen w-screen flex items-center justify-center text-sm text-gray-400">
+      <div className="h-dvh w-screen flex items-center justify-center text-sm text-gray-400">
         Đang tải…
       </div>
     );

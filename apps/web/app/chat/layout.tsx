@@ -14,14 +14,14 @@ export default function ChatLayout({ children }: { children: ReactNode }) {
 
   if (isLoading || !account) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-white text-gray-500 text-sm">
+      <div className="h-dvh w-screen flex items-center justify-center bg-white text-gray-500 text-sm">
         Đang tải…
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-white text-gray-900">
+    <div className="h-dvh w-screen flex overflow-hidden bg-white text-gray-900">
       {children}
     </div>
   );

@@ -36,7 +36,7 @@ export function AdminShell({ title, sections }: Props) {
   const active = sections.find((s) => s.key === activeKey) ?? sections[0];
 
   return (
-    <div className="h-screen w-screen flex bg-white">
+    <div className="h-dvh w-screen flex bg-white">
       <AdminSidebar
         title={title}
         items={items}

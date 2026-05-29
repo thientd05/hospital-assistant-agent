@@ -185,7 +185,7 @@ export function SettingsModal({ open, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
-        className="relative bg-white rounded-lg shadow-xl border border-gray-200 w-[920px] max-w-[95vw] h-[600px] max-h-[90vh] flex overflow-hidden"
+        className="relative bg-white rounded-lg shadow-xl border border-gray-200 w-[920px] max-w-[95vw] h-[600px] max-h-[90dvh] flex overflow-hidden"
       >
         {/* Sidebar tabs */}
         <div className="w-56 shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col">

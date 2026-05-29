@@ -108,7 +108,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <form
         onSubmit={submit}
-        className="w-[480px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90vh] overflow-y-auto"
+        className="w-[480px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
       >
         <h3 className="text-base font-semibold text-gray-900">
           {editId ? `Sửa tài sản ${editId}` : "Thêm tài sản"}
