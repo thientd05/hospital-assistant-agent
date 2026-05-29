@@ -8,7 +8,7 @@ const PANEL_ROOT_SELECTOR = "[data-agent-panel-root]";
 const ELEMENT_ATTR = "data-agent-ref";
 
 // Delay between steps so the doctor can watch the agent operate.
-const STEP_DELAY_MS = 100;
+const STEP_DELAY_MS = 200;
 const ELEMENT_WAIT_MS = 1500;
 const BUSY_WAIT_MS = 8000;
 const POLL_MS = 50;
