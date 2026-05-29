@@ -1,6 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { verifyAuth } from "@pr_hospitalagent/api-shared";
-import { LoginSchema, PasswordChangeSchema } from "../schemas/auth.ts";
+import {
+  LoginSchema,
+  PasswordChangeSchema,
+  RegisterSchema,
+} from "../schemas/auth.ts";
 import { parseBody } from "../lib/validate.ts";
 import { authService } from "../services/auth.service.ts";
 import { profileService } from "../services/profile.service.ts";
@@ -10,6 +14,14 @@ export async function authRoutes(app: FastifyInstance) {
   app.post("/auth/login", async (req) => {
     const { username, password } = parseBody(LoginSchema, req.body);
     return authService.login(username, password, (payload) =>
+      app.jwt.sign(payload, { expiresIn: "24h" })
+    );
+  });
+
+  // Đăng ký công khai — chỉ tạo tài khoản bệnh nhân.
+  app.post("/auth/register", async (req) => {
+    const data = parseBody(RegisterSchema, req.body);
+    return authService.register(data, (payload) =>
       app.jwt.sign(payload, { expiresIn: "24h" })
     );
   });

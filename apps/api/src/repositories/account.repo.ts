@@ -34,6 +34,15 @@ export const accountRepo = {
       .findOne({ username });
   },
 
+  // Username phải unique cross-collection (cùng thứ tự với login chain).
+  async usernameTaken(username: string) {
+    for (const role of LOGIN_ORDER) {
+      const found = await accountRepo.findByUsername(role, username);
+      if (found) return true;
+    }
+    return false;
+  },
+
   async findById(role: AuthRole, id: string) {
     const db = await connectDB();
     return db.collection<AccountDoc>(ROLE_COLLECTION[role]).findOne({ id });

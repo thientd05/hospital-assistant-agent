@@ -11,8 +11,10 @@ import type {
 import type { AuthRole } from "@pr_hospitalagent/api-shared";
 import { verifyPassword } from "@pr_hospitalagent/api-shared";
 import { accountRepo, LOGIN_ORDER } from "../repositories/account.repo.ts";
+import { patientService } from "./patient.service.ts";
 import { stripPassword } from "../lib/public.ts";
-import { UnauthorizedError } from "../lib/errors.ts";
+import { ConflictError, UnauthorizedError } from "../lib/errors.ts";
+import type { RegisterInput } from "../schemas/auth.ts";
 
 export type LoginResult =
   | { token: string; role: "doctor"; doctor: DoctorPublic }
@@ -68,5 +70,18 @@ export const authService = {
       }
     }
     throw new UnauthorizedError("Sai tên đăng nhập hoặc mật khẩu");
+  },
+
+  // Đăng ký công khai — CHỈ tạo bệnh nhân, rồi sign token để đăng nhập ngay.
+  async register(
+    data: RegisterInput,
+    sign: (payload: { sub: string; role: AuthRole }) => string
+  ): Promise<LoginResult> {
+    if (await accountRepo.usernameTaken(data.username)) {
+      throw new ConflictError("Tên đăng nhập đã tồn tại, vui lòng chọn tên khác.");
+    }
+    const patient = await patientService.register(data);
+    const token = sign({ sub: patient.id, role: "patient" });
+    return buildResult("patient", patient, token);
   },
 };

@@ -91,6 +91,35 @@ export const patientService = {
     return stripPassword(patient);
   },
 
+  // Bệnh nhân tự đăng ký — username/password do BN chọn, chưa có bác sĩ quản lý.
+  // Trả về full Patient để authService sign token đăng nhập ngay.
+  async register(data: {
+    username: string;
+    password: string;
+    name: string;
+    age: number;
+    gender: "Nam" | "Nữ";
+    ward: string;
+  }): Promise<Patient> {
+    const id = await patientRepo.nextId();
+    const patient: Patient = {
+      id,
+      username: data.username,
+      passwordHash: hashPassword(data.password),
+      name: data.name,
+      age: data.age,
+      gender: data.gender,
+      ward: data.ward,
+      diagnoses: [],
+      medications: [],
+      vitals: { ...VITAL_DEFAULTS, recordedAt: new Date() },
+      labResults: [],
+      homeVitals: [],
+    };
+    await patientRepo.insert(patient);
+    return patient;
+  },
+
   async update(id: string, data: PatientUpdate): Promise<PatientPublic> {
     const $set = buildSet(data, PATCH_KEYS);
     if (data.vitals) {

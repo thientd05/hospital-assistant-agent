@@ -82,6 +82,14 @@ export function Navbar() {
               <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Đang đăng nhập · {role}
             </span>
           ) : null}
+          {mounted && !role ? (
+            <Link
+              href="/register"
+              className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-medium text-brand-700 transition-all hover:border-brand-300 hover:bg-brand-50"
+            >
+              Đăng ký
+            </Link>
+          ) : null}
           <Link
             href={cta.href}
             className="inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-brand-600/20 transition-all hover:bg-brand-700 hover:shadow-brand-600/30"
@@ -122,6 +130,15 @@ export function Navbar() {
               {cta.label}
               <ArrowRight className="h-4 w-4" />
             </Link>
+            {mounted && !role ? (
+              <Link
+                href="/register"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex items-center justify-center rounded-lg border border-brand-200 px-4 py-2.5 text-sm font-medium text-brand-700"
+              >
+                Đăng ký tài khoản
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : null}

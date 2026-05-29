@@ -10,36 +10,38 @@ import {
   EyeOff,
   Loader2,
   Lock,
+  MapPin,
   Sparkles,
   User,
+  UserPlus,
 } from "lucide-react";
-import type {
-  DoctorPublic,
-  ExpertPublic,
-  ManagerPublic,
-  PatientPublic,
-} from "@pr_hospitalagent/types";
+import type { PatientPublic } from "@pr_hospitalagent/types";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { BrandMark } from "@/components/landing/BrandMark";
 
-type LoginResponse =
-  | { token: string; role: "doctor"; doctor: DoctorPublic }
-  | { token: string; role: "manager"; manager: ManagerPublic }
-  | { token: string; role: "patient"; patient: PatientPublic }
-  | { token: string; role: "expert"; expert: ExpertPublic };
+type RegisterResponse = {
+  token: string;
+  role: "patient";
+  patient: PatientPublic;
+};
 
 const HIGHLIGHTS = [
-  "Trợ lý AI 24/7 — hỏi đáp bằng tiếng Việt tự nhiên.",
-  "Đặt lịch khám trong 30 giây — nhắc tái khám tự động.",
-  "Theo dõi sức khoẻ tại nhà — bác sĩ luôn cập nhật.",
+  "Tạo tài khoản miễn phí — quản lý hồ sơ sức khoẻ của bạn.",
+  "Chat với trợ lý AI và tự đặt lịch khám bất cứ lúc nào.",
+  "Tự nhập chỉ số tại nhà — bác sĩ gia đình luôn theo dõi.",
 ];
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const { doctor, manager, patient, expert, isLoading, login } = useAuth();
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState<"Nam" | "Nữ">("Nam");
+  const [ward, setWard] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -55,38 +57,51 @@ export default function LoginPage() {
     e.preventDefault();
     if (submitting) return;
     setError(null);
+
+    if (password !== confirm) {
+      setError("Mật khẩu nhập lại không khớp.");
+      return;
+    }
+    const ageNum = Number(age);
+    if (!Number.isInteger(ageNum) || ageNum < 0 || ageNum > 150) {
+      setError("Tuổi không hợp lệ.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username: username.trim().toLowerCase(),
+          password,
+          name: name.trim(),
+          age: ageNum,
+          gender,
+          ward: ward.trim(),
+        }),
       });
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "Đăng nhập thất bại");
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          details?: unknown;
+        };
+        setError(data.error ?? "Đăng ký thất bại");
         return;
       }
-      const data = (await res.json()) as LoginResponse;
-      if (data.role === "manager") {
-        login(data.token, { role: "manager", manager: data.manager });
-        router.replace("/admin/manager");
-      } else if (data.role === "patient") {
-        login(data.token, { role: "patient", patient: data.patient });
-        router.replace("/chat");
-      } else if (data.role === "expert") {
-        login(data.token, { role: "expert", expert: data.expert });
-        router.replace("/admin/expert");
-      } else {
-        login(data.token, { role: "doctor", doctor: data.doctor });
-        router.replace("/chat");
-      }
+      const data = (await res.json()) as RegisterResponse;
+      login(data.token, { role: "patient", patient: data.patient });
+      router.replace("/chat");
     } catch {
       setError("Không kết nối được tới máy chủ");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const inputClass =
+    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50";
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
@@ -116,11 +131,11 @@ export default function LoginPage() {
             Trợ lý AI cho phòng khám
           </div>
           <h2 className="mt-5 text-3xl font-semibold tracking-tight xl:text-4xl">
-            Chào mừng trở lại — gia đình bạn đang chờ chăm sóc.
+            Bắt đầu hành trình chăm sóc sức khoẻ gia đình bạn.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-brand-100">
-            Đăng nhập để vào hồ sơ sức khoẻ của bạn, chat với trợ lý AI, đặt lịch khám hoặc theo dõi
-            chỉ số tại nhà. Bác sĩ gia đình của bạn vẫn ở đó — sẵn sàng khi bạn cần.
+            Tạo tài khoản bệnh nhân để trò chuyện với trợ lý AI, đặt lịch khám và theo dõi sức
+            khoẻ tại nhà. Tài khoản bác sĩ và chuyên gia do phòng khám cấp riêng.
           </p>
 
           <ul className="mt-7 space-y-3">
@@ -133,22 +148,6 @@ export default function LoginPage() {
               </li>
             ))}
           </ul>
-
-          <figure className="mt-10 rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
-            <blockquote className="text-sm leading-relaxed text-brand-50">
-              “Con tôi sốt nửa đêm, tôi nhắn cho trợ lý AI — sáng đến phòng khám bác sĩ đã thấy hết
-              tiền sử rồi, đỡ phải kể lại.”
-            </blockquote>
-            <figcaption className="mt-3 flex items-center gap-2 text-xs text-brand-100">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 font-semibold ring-1 ring-white/25">
-                L
-              </span>
-              <span>
-                Chị Lan · Mẹ 2 con, TP.HCM
-                <span className="text-brand-200"> · câu chuyện minh hoạ</span>
-              </span>
-            </figcaption>
-          </figure>
         </div>
       </aside>
 
@@ -169,17 +168,97 @@ export default function LoginPage() {
 
           <div className="mt-6 lg:mt-0">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              Đăng nhập
+              Đăng ký tài khoản
             </h1>
             <p className="mt-1.5 text-sm text-slate-500">
-              Chưa có tài khoản?{" "}
-              <Link href="/register" className="font-medium text-brand-700 hover:underline">
-                Đăng ký ngay
+              Đã có tài khoản?{" "}
+              <Link href="/login" className="font-medium text-brand-700 hover:underline">
+                Đăng nhập
               </Link>
             </p>
           </div>
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">
+            <div>
+              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Họ và tên
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <User className="h-4 w-4" />
+                </span>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={submitting}
+                  placeholder="vd. Nguyễn Văn A"
+                  className={`${inputClass} pl-9`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="age" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Tuổi
+                </label>
+                <input
+                  id="age"
+                  type="number"
+                  min={0}
+                  max={150}
+                  required
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  disabled={submitting}
+                  placeholder="vd. 32"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="gender"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                >
+                  Giới tính
+                </label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value as "Nam" | "Nữ")}
+                  disabled={submitting}
+                  className={inputClass}
+                >
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="ward" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Phường / Xã
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                <input
+                  id="ward"
+                  type="text"
+                  required
+                  value={ward}
+                  onChange={(e) => setWard(e.target.value)}
+                  disabled={submitting}
+                  placeholder="vd. Phường Bến Nghé"
+                  className={`${inputClass} pl-9`}
+                />
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="username"
@@ -189,7 +268,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                  <User className="h-4 w-4" />
+                  <UserPlus className="h-4 w-4" />
                 </span>
                 <input
                   id="username"
@@ -199,10 +278,13 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={submitting}
-                  placeholder="vd. bs001"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pl-9 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50"
+                  placeholder="vd. nguyenvana"
+                  className={`${inputClass} pl-9`}
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-400">
+                Chữ thường, số, dấu chấm hoặc gạch dưới — ít nhất 3 ký tự.
+              </p>
             </div>
 
             <div>
@@ -219,13 +301,13 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={submitting}
-                  placeholder="••••••••"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50"
+                  placeholder="Ít nhất 6 ký tự"
+                  className={`${inputClass} pl-9 pr-10`}
                 />
                 <button
                   type="button"
@@ -235,12 +317,33 @@ export default function LoginPage() {
                   aria-pressed={showPassword}
                   className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-brand-700 disabled:opacity-50"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirm"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                Nhập lại mật khẩu
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <Lock className="h-4 w-4" />
+                </span>
+                <input
+                  id="confirm"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  disabled={submitting}
+                  placeholder="Nhập lại mật khẩu"
+                  className={`${inputClass} pl-9`}
+                />
               </div>
             </div>
 
@@ -261,16 +364,17 @@ export default function LoginPage() {
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang đăng nhập…
+                  Đang tạo tài khoản…
                 </>
               ) : (
-                "Đăng nhập"
+                "Tạo tài khoản"
               )}
             </button>
           </form>
 
           <p className="mt-6 text-xs text-slate-400">
-            Bằng việc đăng nhập, bạn đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư của FamilyHealth AI.
+            Bằng việc đăng ký, bạn đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư của
+            FamilyHealth AI.
           </p>
         </div>
       </main>
