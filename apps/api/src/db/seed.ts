@@ -18,6 +18,7 @@ import type {
   Boot,
   BootRole,
   Skill,
+  Workspace,
   Doctor,
   Manager,
   Expert,
@@ -648,6 +649,73 @@ function buildSkills(): Skill[] {
     }));
 }
 
+// ───────────────────────────────── Workspaces (cá nhân hóa: memory/soul/user)
+// 1 doc/user (key = id doctor/patient). memory rỗng cho tất cả. soul + user chỉ
+// seed nội dung cho BS001 + BN001 (demo cá nhân hóa); còn lại rỗng.
+const BS001_USER = `# Hồ sơ bác sĩ
+
+- **Họ tên:** BS. Trần Quang Minh
+- **Chức danh:** Bác sĩ chuyên khoa I — khoa Nội Tim mạch
+- **Chuyên môn:** Suy tim, tăng huyết áp, rối loạn nhịp
+- **Mã bác sĩ:** BS001
+
+## Bối cảnh công việc
+- Quản lý nhóm bệnh nhân tim mạch (BN001–BN004).
+- Theo dõi sát huyết áp, NT-proBNP và chức năng thận cho bệnh nhân suy tim.
+- Thường kê Amlodipine, Losartan, Furosemide — lưu ý tương tác và độ lọc cầu thận.
+`;
+
+const BS001_SOUL = `# Phong cách làm việc mong muốn
+
+- Trả lời **ngắn gọn, đi thẳng trọng tâm lâm sàng**, dùng thuật ngữ y khoa tiếng Việt chuẩn.
+- Khi tóm tắt bệnh nhân: chẩn đoán → sinh hiệu bất thường → xét nghiệm bất thường → hướng xử trí.
+- Luôn cảnh báo khi có chỉ số nguy hiểm (SpO2 thấp, HA quá cao, kali cao…).
+- Chủ động nhắc các xét nghiệm theo dõi và lịch tái khám còn thiếu.
+`;
+
+const BN001_USER = `# Hồ sơ cá nhân
+
+- **Họ tên:** Nguyễn Văn A
+- **Tuổi:** 58 — **Giới:** Nam
+- **Bệnh nền:** Tăng huyết áp, Đái tháo đường type 2, nghi suy tim mất bù
+- **Thuốc đang dùng:** Amlodipine 5mg, Metformin 500mg, Aspirin 81mg
+
+## Lưu ý
+- Đang điều trị tại khoa Nội Tim mạch (BS. Trần Quang Minh quản lý).
+- Cần kiểm soát huyết áp và đường huyết đều đặn.
+`;
+
+const BN001_SOUL = `# Mong muốn khi trò chuyện
+
+- Giải thích bằng **ngôn ngữ đơn giản, dễ hiểu**; hạn chế thuật ngữ, nếu dùng thì giải thích kèm.
+- Giọng điệu **nhẹ nhàng, trấn an**, tránh gây lo lắng.
+- Nhắc lịch uống thuốc và tái khám một cách thân thiện.
+- Khi có dấu hiệu nguy hiểm thì khuyên đi khám ngay, nhưng không hù dọa.
+`;
+
+function buildWorkspaces(): Workspace[] {
+  const docs: Workspace[] = [];
+  for (const d of doctorSeeds) {
+    docs.push({
+      id: d.id,
+      memory: "",
+      soul: d.id === "BS001" ? BS001_SOUL : "",
+      user: d.id === "BS001" ? BS001_USER : "",
+      updatedAt: now,
+    });
+  }
+  for (const p of patientSeeds) {
+    docs.push({
+      id: p.id,
+      memory: "",
+      soul: p.id === "BN001" ? BN001_SOUL : "",
+      user: p.id === "BN001" ? BN001_USER : "",
+      updatedAt: now,
+    });
+  }
+  return docs;
+}
+
 // ───────────────────────────────────────────────────────── Runner
 async function seed() {
   const db = await connectDB();
@@ -735,6 +803,13 @@ async function seed() {
   const skillDocs = buildSkills();
   await skills.insertMany(skillDocs);
 
+  // 12. Workspaces (cá nhân hóa memory/soul/user theo từng user).
+  const workspaces = db.collection<Workspace>("workspaces");
+  await workspaces.deleteMany({});
+  await workspaces.createIndex({ id: 1 }, { unique: true });
+  const workspaceDocs = buildWorkspaces();
+  await workspaces.insertMany(workspaceDocs);
+
   // Tổng kết
   console.log("✓ Seed hoàn tất — đã xoá sạch và insert lại:");
   console.log(`  patients     ${patientDocs.length}`);
@@ -748,6 +823,7 @@ async function seed() {
   console.log(`  revenue      ${revenueDocs.length}`);
   console.log(`  boots        ${bootDocs.length}`);
   console.log(`  skills       ${skillDocs.length}`);
+  console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
   console.log("\nTài khoản:");
   console.log("  bs001..bs003 / matkhau001..003   (bác sĩ)");
   console.log("  ql001        / matkhauql001       (quản lý)");
