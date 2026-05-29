@@ -30,10 +30,15 @@ export function Navbar() {
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    // Trang landing cuộn trong container của marketing layout (body là
+    // overflow-hidden), KHÔNG cuộn window — nên đọc scroll từ target của event
+    // và bắt ở capture phase (scroll không bubble).
+    const readTop = (target: EventTarget | null): number =>
+      target instanceof HTMLElement ? target.scrollTop : window.scrollY;
+    const onScroll = (e: Event) => setScrolled(readTop(e.target) > 8);
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () =>
+      window.removeEventListener("scroll", onScroll, { capture: true });
   }, []);
 
   const cta = mounted && !isLoading ? getAppHref(role) : { href: "/login", label: "Đăng nhập" };
