@@ -10,7 +10,6 @@ import {
   NotFoundError,
 } from "../lib/errors.ts";
 import type {
-  AppointmentCreate,
   AppointmentUpdate,
   AppointmentPatientCreate,
 } from "../schemas/appointment.ts";
@@ -41,42 +40,6 @@ export const appointmentService = {
   async list(filter: AppointmentListFilter = {}) {
     const rows = await appointmentRepo.list(filter);
     return joinPatientNames(rows);
-  },
-
-  async create(
-    requesterId: string,
-    data: AppointmentCreate
-  ): Promise<Appointment> {
-    const doctorId = data.doctorId ?? requesterId;
-    if (doctorId !== requesterId) {
-      throw new ForbiddenError("Bác sĩ chỉ tạo được lịch cho chính mình.");
-    }
-    const patient = await patientRepo.findById(data.patientId);
-    if (!patient) {
-      throw new NotFoundError(`Không tìm thấy bệnh nhân ${data.patientId}`);
-    }
-    // Bác sĩ chỉ tạo lịch cho BN mình quản lý.
-    const managed = await doctorRepo.getManagedIds(requesterId);
-    if (!managed.includes(data.patientId)) {
-      throw new ForbiddenError("Bệnh nhân không thuộc danh sách bạn quản lý.");
-    }
-    const id = await appointmentRepo.nextId();
-    const now = new Date();
-    const appointment: Appointment = {
-      id,
-      patientId: data.patientId,
-      doctorId,
-      scheduledAt:
-        data.scheduledAt instanceof Date
-          ? data.scheduledAt
-          : new Date(data.scheduledAt),
-      reason: data.reason,
-      status: data.status ?? "Chờ duyệt",
-      createdAt: now,
-      updatedAt: now,
-    };
-    await appointmentRepo.insert(appointment);
-    return appointment;
   },
 
   // Bệnh nhân tự đặt lịch. doctorId rỗng/không truyền → hàng chờ chung ("").

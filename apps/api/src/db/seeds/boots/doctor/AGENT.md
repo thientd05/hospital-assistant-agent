@@ -51,7 +51,7 @@ Khi cần một quy trình nghiệp vụ cụ thể, hãy theo đúng skill đư
 Đây là sơ đồ tĩnh toàn bộ panel để bạn biết panel **có gì** và nằm ở đâu. Nhưng phải nhớ 4 nguyên tắc về cách snapshot phản ánh nó:
 
 1. **Snapshot chỉ liệt kê phần tử ĐANG HIỂN THỊ trên tab đang mở.** Phần tử ở tab khác KHÔNG có trong snapshot — muốn thao tác phải chuyển tab (`open_panel({tab})` hoặc click `tab:<key>`) trước.
-2. **Nhiều khu vực ẩn mặc định** (form tạo/sửa, hộp xác nhận). Chúng KHÔNG có trong snapshot cho tới khi bạn **click một nút "mở"** (vd `patients:create`, `patient-detail:edit`, `lab:add`, `appointment:create`, hay nút Xoá/Huỷ mở hộp xác nhận). Nếu cần điền một form mà chưa thấy `ref` của nó trong snapshot → nghĩa là form chưa mở: **click nút mở trước**. Vì vậy luôn gộp "click mở form" + "điền field" trong **cùng một batch `act`** (frontend tự chờ field xuất hiện rồi mới gõ).
+2. **Nhiều khu vực ẩn mặc định** (form tạo/sửa, hộp xác nhận). Chúng KHÔNG có trong snapshot cho tới khi bạn **click một nút "mở"** (vd `patients:create`, `patient-detail:edit`, `lab:add`, hay nút Xoá/Huỷ mở hộp xác nhận). Nếu cần điền một form mà chưa thấy `ref` của nó trong snapshot → nghĩa là form chưa mở: **click nút mở trước**. Vì vậy luôn gộp "click mở form" + "điền field" trong **cùng một batch `act`** (frontend tự chờ field xuất hiện rồi mới gõ).
 3. **Ref tĩnh** (liệt kê dưới đây, dùng được ngay) vs **ref động** (kèm `<id>`/`<index>`, vd `patient:BN012:open`) — ref động CHỈ đọc được từ snapshot tại thời điểm đó, đừng đoán.
 4. **Tab Hồ sơ và Lab cần đã chọn một bệnh nhân** (qua `patient:<id>:open` ở tab Bệnh nhân). Chưa chọn thì tab trống, không có gì để thao tác.
 
@@ -117,22 +117,11 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │           ├─ lab-form:cancel              (button) "Huỷ"
 │           └─ lab-form:error               (alert) chỉ khi lỗi
 │
-├─ tab:appointments                         (tab) "Lịch hẹn"
+├─ tab:appointments                         (tab) "Lịch hẹn" — CHỈ XEM/duyệt, KHÔNG tạo
 │   └─(click tab:appointments)── tab Lịch hẹn
-│       ├─ appointment:create               (button) "+ Tạo" — chỉ hiện khi form đóng
-│       ├─ appointment:<id>:approve         (button, ĐỘNG) chỉ khi "Chờ duyệt"
+│       ├─ appointment:<id>:approve         (button, ĐỘNG) chỉ khi "Chờ duyệt" (Nhận nếu hàng chờ chung)
 │       ├─ appointment:<id>:complete        (button, ĐỘNG) chỉ khi "Đã duyệt"
-│       ├─ appointment:<id>:cancel          (button, ĐỘNG) khi chưa "Thành công" → ConfirmModal
-│       └─(click appointment:create)── form Tạo lịch hẹn (ẩn mặc định)
-│           ├─ appointment-form:patientId   (textbox) mã BN, vd BN001
-│           ├─ appointment-form:day         (textbox) ngày
-│           ├─ appointment-form:month       (textbox) tháng
-│           ├─ appointment-form:year        (textbox) năm
-│           ├─ appointment-form:time        (textbox) giờ HH:MM
-│           ├─ appointment-form:reason      (textbox) lý do
-│           ├─ appointment-form:submit      (button) "Tạo"
-│           ├─ appointment-form:cancel      (button) "Huỷ"
-│           └─ appointment-form:error       (alert) chỉ khi lỗi
+│       └─ appointment:<id>:cancel          (button, ĐỘNG) khi chưa "Thành công" → ConfirmModal
 │
 └─ tab:drug-check                           (tab) "Tương tác thuốc"
     └─(click tab:drug-check)── tab Tương tác thuốc

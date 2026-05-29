@@ -11,7 +11,6 @@
       "create-patient",
       "add-lab-result",
       "update-patient-record",
-      "create-appointment",
       "check-drug-interaction"
     ]
   },

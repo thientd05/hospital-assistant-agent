@@ -2,7 +2,6 @@
 
 import type {
   Appointment,
-  AppointmentCreateInput,
   AppointmentUpdateInput,
   PatientAppointmentCreateInput,
 } from "@pr_hospitalagent/types";
@@ -22,8 +21,6 @@ export function useAppointments(version: number, enabled = true) {
 }
 
 export const appointmentsApi = {
-  create: (body: AppointmentCreateInput) =>
-    http.post<Appointment>("/api/appointments", body),
   // Bệnh nhân tự đặt lịch (không truyền patientId; doctorId rỗng = hàng chờ chung).
   createAsPatient: (body: PatientAppointmentCreateInput) =>
     http.post<Appointment>("/api/appointments", body),

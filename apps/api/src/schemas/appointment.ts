@@ -7,14 +7,6 @@ export const AppointmentStatusEnum = z.enum([
   "Thành công",
 ]);
 
-export const AppointmentCreateSchema = z.object({
-  patientId: z.string().min(1),
-  doctorId: z.string().min(1).optional(),
-  scheduledAt: DateLike,
-  reason: z.string().min(1),
-  status: AppointmentStatusEnum.optional(),
-});
-
 export const AppointmentUpdateSchema = z
   .object({
     patientId: z.string().min(1).optional(),
@@ -34,7 +26,6 @@ export const AppointmentPatientCreateSchema = z
   })
   .strict();
 
-export type AppointmentCreate = z.infer<typeof AppointmentCreateSchema>;
 export type AppointmentUpdate = z.infer<typeof AppointmentUpdateSchema>;
 export type AppointmentPatientCreate = z.infer<
   typeof AppointmentPatientCreateSchema

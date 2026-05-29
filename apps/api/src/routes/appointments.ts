@@ -1,7 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
 import {
-  AppointmentCreateSchema,
   AppointmentUpdateSchema,
   AppointmentPatientCreateSchema,
 } from "../schemas/appointment.ts";
@@ -29,20 +28,15 @@ export async function appointmentsRoutes(app: FastifyInstance) {
     }
   );
 
+  // Chỉ bệnh nhân tự đặt lịch. Bác sĩ không tạo lịch (chỉ duyệt/nhận từ hàng chờ).
   app.post(
     "/appointments",
-    { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
+    { preHandler: [verifyAuth, requireRole("patient")] },
     async (req) => {
-      if (req.authRole === "patient" && req.patient) {
-        return appointmentService.createForPatient(
-          req.patient.id,
-          parseBody(AppointmentPatientCreateSchema, req.body)
-        );
-      }
-      if (!req.doctor) throw new UnauthorizedError();
-      return appointmentService.create(
-        req.doctor.id,
-        parseBody(AppointmentCreateSchema, req.body)
+      if (!req.patient) throw new UnauthorizedError();
+      return appointmentService.createForPatient(
+        req.patient.id,
+        parseBody(AppointmentPatientCreateSchema, req.body)
       );
     }
   );
