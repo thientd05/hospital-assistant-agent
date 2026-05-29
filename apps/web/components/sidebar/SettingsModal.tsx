@@ -185,19 +185,37 @@ export function SettingsModal({ open, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
-        className="relative bg-white rounded-lg shadow-xl border border-gray-200 w-[920px] max-w-[95vw] h-[600px] max-h-[90dvh] flex overflow-hidden"
+        className="relative bg-white shadow-xl border border-gray-200 flex flex-col overflow-hidden max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full md:flex-row md:rounded-lg md:w-[920px] md:max-w-[95vw] md:h-[600px] md:max-h-[90dvh]"
       >
-        {/* Sidebar tabs */}
-        <div className="w-56 shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col">
-          <div className="px-4 py-4 border-b border-gray-200">
+        {/* Sidebar tabs — cột dọc trên desktop, thanh ngang trên mobile */}
+        <div className="flex flex-col bg-gray-50 md:w-56 md:shrink-0 md:border-r md:border-gray-200">
+          <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between gap-2">
             <h2
               id="settings-modal-title"
               className="font-semibold text-gray-900"
             >
               Cài đặt
             </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng"
+              className="md:hidden -mr-1 p-1.5 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+            >
+              <svg
+                viewBox="0 0 20 20"
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 6l8 8M14 6l-8 8" />
+              </svg>
+            </button>
           </div>
-          <nav className="flex-1 overflow-y-auto p-2 space-y-0.5 text-sm">
+          <nav className="flex gap-1 overflow-x-auto p-2 text-sm md:flex-1 md:flex-col md:gap-0 md:space-y-0.5 md:overflow-x-visible md:overflow-y-auto">
             <TabButton
               active={tab.kind === "profile"}
               onClick={() => setTab({ kind: "profile" })}
@@ -212,7 +230,7 @@ export function SettingsModal({ open, onClose }: Props) {
             </TabButton>
             {showWorkspaceFiles && (
               <>
-                <div className="pt-3 pb-1 px-3 text-xs uppercase tracking-wide text-gray-400">
+                <div className="hidden md:block pt-3 pb-1 px-3 text-xs uppercase tracking-wide text-gray-400">
                   Workspace
                 </div>
                 {WORKSPACE_FILES.map((f) => (
@@ -226,7 +244,14 @@ export function SettingsModal({ open, onClose }: Props) {
                 ))}
               </>
             )}
-            <div className="pt-3 mt-2 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="md:hidden shrink-0 whitespace-nowrap px-3 py-2 rounded-md text-red-600 font-medium transition-colors hover:bg-red-50"
+            >
+              Đăng xuất
+            </button>
+            <div className="hidden md:block pt-3 mt-2 border-t border-gray-200">
               <button
                 type="button"
                 onClick={handleLogout}
@@ -249,7 +274,7 @@ export function SettingsModal({ open, onClose }: Props) {
               </button>
             </div>
           </nav>
-          <div className="p-3 border-t border-gray-200">
+          <div className="hidden md:block p-3 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
@@ -261,7 +286,7 @@ export function SettingsModal({ open, onClose }: Props) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {tab.kind === "profile" && (
             <ProfilePanel
               account={account}
@@ -294,7 +319,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+      className={`shrink-0 whitespace-nowrap text-left px-3 py-2 rounded-md transition-colors md:w-full ${
         active
           ? "bg-[#C8E7E9] text-[#087E8B] font-medium"
           : "text-gray-700 hover:bg-white"
