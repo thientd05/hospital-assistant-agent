@@ -19,7 +19,11 @@ export const RegisterSchema = z.object({
   name: z.string().min(1, "Vui lòng nhập họ tên."),
   age: z.number().int().nonnegative("Tuổi không hợp lệ."),
   gender: z.enum(["Nam", "Nữ"]),
-  ward: z.string().min(1, "Vui lòng nhập phường/xã."),
+  address: z.string().min(1, "Vui lòng nhập địa chỉ."),
+  phone: z
+    .string()
+    .min(8, "Số điện thoại không hợp lệ.")
+    .regex(/^[0-9+\s.-]+$/, "Số điện thoại chỉ gồm chữ số và ký tự + - . cách."),
 });
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
@@ -61,7 +65,10 @@ export const ExpertProfileSchema = z
 export const PatientProfileSchema = z
   .object({
     name: z.string().min(1).optional(),
-    ward: z.string().min(1).optional(),
+    age: z.number().int().nonnegative().optional(),
+    gender: z.enum(["Nam", "Nữ"]).optional(),
+    address: z.string().optional(),
+    phone: z.string().optional(),
   })
   .strict();
 

@@ -11,6 +11,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  Phone,
   Sparkles,
   User,
   UserPlus,
@@ -38,7 +39,8 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"Nam" | "Nữ">("Nam");
-  const [ward, setWard] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -79,7 +81,8 @@ export default function RegisterPage() {
           name: name.trim(),
           age: ageNum,
           gender,
-          ward: ward.trim(),
+          address: address.trim(),
+          phone: phone.trim(),
         }),
       });
       if (!res.ok) {
@@ -239,21 +242,49 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="ward" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Phường / Xã
+              <label
+                htmlFor="address"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                Địa chỉ
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                   <MapPin className="h-4 w-4" />
                 </span>
                 <input
-                  id="ward"
+                  id="address"
                   type="text"
                   required
-                  value={ward}
-                  onChange={(e) => setWard(e.target.value)}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   disabled={submitting}
-                  placeholder="vd. Phường Bến Nghé"
+                  placeholder="vd. 12 Nguyễn Trãi, Phường Bến Thành, Quận 1, TP.HCM"
+                  className={`${inputClass} pl-9`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="phone"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                Số điện thoại
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <Phone className="h-4 w-4" />
+                </span>
+                <input
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  disabled={submitting}
+                  placeholder="vd. 0901234567"
                   className={`${inputClass} pl-9`}
                 />
               </div>

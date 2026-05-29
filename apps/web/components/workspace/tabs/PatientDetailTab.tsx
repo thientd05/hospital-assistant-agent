@@ -19,6 +19,8 @@ type Draft = {
   age: string;
   gender: "Nam" | "Nữ";
   ward: string;
+  address: string;
+  phone: string;
   diagnoses: string;
   medications: string;
   spO2: string;
@@ -33,6 +35,8 @@ function toDraft(p: PatientPublic): Draft {
     age: String(p.age),
     gender: p.gender,
     ward: p.ward,
+    address: p.address ?? "",
+    phone: p.phone ?? "",
     diagnoses: p.diagnoses.join(", "),
     medications: p.medications.join(", "),
     spO2: String(p.vitals.spO2),
@@ -141,6 +145,8 @@ export function PatientDetailTab({
       age: ageNum,
       gender: draft.gender,
       ward: draft.ward.trim(),
+      address: draft.address.trim(),
+      phone: draft.phone.trim(),
       diagnoses: draft.diagnoses
         .split(",")
         .map((s) => s.trim())
@@ -279,13 +285,35 @@ export function PatientDetailTab({
               data-agent-label="Khoa"
             />
           </EditRow>
+          <EditRow label="Địa chỉ">
+            <input
+              value={draft.address}
+              onChange={(e) => updateDraft("address", e.target.value)}
+              className="edit-input"
+              data-agent-ref="patient-detail:address"
+              data-agent-role="textbox"
+              data-agent-label="Địa chỉ"
+            />
+          </EditRow>
+          <EditRow label="Điện thoại">
+            <input
+              value={draft.phone}
+              onChange={(e) => updateDraft("phone", e.target.value)}
+              className="edit-input"
+              data-agent-ref="patient-detail:phone"
+              data-agent-role="textbox"
+              data-agent-label="Điện thoại"
+            />
+          </EditRow>
         </>
       ) : (
         <>
           <Row label="Họ tên" value={data.name} />
           <Row label="Tuổi / Giới" value={`${data.age} / ${data.gender}`} />
           <Row label="Mã BN" value={data.id} />
-          <Row label="Khoa" value={data.ward} />
+          <Row label="Khoa" value={data.ward || "—"} />
+          <Row label="Địa chỉ" value={data.address || "—"} />
+          <Row label="Điện thoại" value={data.phone || "—"} />
         </>
       )}
 

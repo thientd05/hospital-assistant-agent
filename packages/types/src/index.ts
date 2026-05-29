@@ -58,6 +58,8 @@ export type Patient = {
   age: number;
   gender: "Nam" | "Nữ";
   ward: string;
+  address: string;
+  phone: string;
   diagnoses: string[];
   vitals: Vital;
   medications: string[];
@@ -160,6 +162,8 @@ export type PatientCreateInput = {
   age: number;
   gender: "Nam" | "Nữ";
   ward: string;
+  address?: string;
+  phone?: string;
   diagnoses?: string[];
   medications?: string[];
   vitals?: Partial<Vital>;

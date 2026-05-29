@@ -28,6 +28,8 @@ const PATCH_KEYS = [
   "age",
   "gender",
   "ward",
+  "address",
+  "phone",
   "diagnoses",
   "medications",
 ] as const;
@@ -73,6 +75,8 @@ export const patientService = {
       age: data.age,
       gender: data.gender,
       ward: data.ward,
+      address: data.address ?? "",
+      phone: data.phone ?? "",
       diagnoses: data.diagnoses ?? [],
       medications: data.medications ?? [],
       vitals: {
@@ -92,14 +96,15 @@ export const patientService = {
   },
 
   // Bệnh nhân tự đăng ký — username/password do BN chọn, chưa có bác sĩ quản lý.
-  // Trả về full Patient để authService sign token đăng nhập ngay.
+  // ward (Khoa) để trống — bác sĩ phân khoa khi nhận. Trả full Patient để sign token ngay.
   async register(data: {
     username: string;
     password: string;
     name: string;
     age: number;
     gender: "Nam" | "Nữ";
-    ward: string;
+    address: string;
+    phone: string;
   }): Promise<Patient> {
     const id = await patientRepo.nextId();
     const patient: Patient = {
@@ -109,7 +114,9 @@ export const patientService = {
       name: data.name,
       age: data.age,
       gender: data.gender,
-      ward: data.ward,
+      ward: "",
+      address: data.address,
+      phone: data.phone,
       diagnoses: [],
       medications: [],
       vitals: { ...VITAL_DEFAULTS, recordedAt: new Date() },

@@ -55,7 +55,8 @@ type Tab =
 type FieldDef = {
   key: string;
   label: string;
-  type?: "text" | "email";
+  type?: "text" | "email" | "tel" | "number" | "select";
+  options?: string[];
 };
 
 const DOCTOR_FIELDS: FieldDef[] = [
@@ -88,7 +89,10 @@ const EXPERT_FIELDS: FieldDef[] = [
 
 const PATIENT_FIELDS: FieldDef[] = [
   { key: "name", label: "Họ và tên" },
-  { key: "ward", label: "Phường/Xã" },
+  { key: "age", label: "Tuổi", type: "number" },
+  { key: "gender", label: "Giới tính", type: "select", options: ["Nam", "Nữ"] },
+  { key: "address", label: "Địa chỉ" },
+  { key: "phone", label: "Số điện thoại", type: "tel" },
 ];
 
 function fieldsForRole(role: AuthAccount["role"]): FieldDef[] {
@@ -136,7 +140,10 @@ function profileFromAccount(account: AuthAccount): Record<string, string> {
   const p = account.patient;
   return {
     name: p.name,
-    ward: p.ward,
+    age: String(p.age),
+    gender: p.gender,
+    address: p.address ?? "",
+    phone: p.phone ?? "",
   };
 }
 
@@ -356,11 +363,11 @@ function ProfilePanel({
     e.preventDefault();
     setError(null);
     setSuccess(false);
-    const body: Record<string, string> = {};
+    const body: Record<string, string | number> = {};
     for (const f of fields) {
       const v = (values[f.key] ?? "").trim();
       if (v !== (initial[f.key] ?? "")) {
-        body[f.key] = v;
+        body[f.key] = f.type === "number" ? Number(v) : v;
       }
     }
     if (Object.keys(body).length === 0) return;
@@ -397,14 +404,30 @@ function ProfilePanel({
         {fields.map((f) => (
           <label key={f.key} className="flex flex-col gap-1 text-sm">
             <span className="text-gray-700">{f.label}</span>
-            <input
-              type={f.type ?? "text"}
-              value={values[f.key] ?? ""}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, [f.key]: e.target.value }))
-              }
-              className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
-            />
+            {f.type === "select" ? (
+              <select
+                value={values[f.key] ?? ""}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
+                className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
+              >
+                {(f.options ?? []).map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={f.type ?? "text"}
+                value={values[f.key] ?? ""}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, [f.key]: e.target.value }))
+                }
+                className="border border-gray-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#C8E7E9] focus:border-[#087E8B]"
+              />
+            )}
           </label>
         ))}
       </div>
