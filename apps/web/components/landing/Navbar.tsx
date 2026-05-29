@@ -44,7 +44,7 @@ export function Navbar() {
         mobileOpen
           ? "border-b border-slate-200 bg-white"
           : scrolled
-          ? "border-b border-slate-200/70 bg-white/85 backdrop-blur-md"
+          ? "border-b border-slate-200/70 bg-white backdrop-blur-md lg:bg-white/85"
           : "border-b border-transparent bg-white/0"
       }`}
     >
