@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "./ConfirmModal";
-import claudeAvt from "@/public/claude_avt.png";
+import { AssistantAvatar } from "@/components/AssistantAvatar";
 import { ConversationItem } from "./ConversationItem";
 import { SettingsModal } from "./SettingsModal";
 import type { ConversationListItem } from "@/hooks/useConversations";
@@ -145,14 +144,7 @@ export function Sidebar({
                 }
                 className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-[#EFEFEB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
-                <Image
-                  src={claudeAvt}
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="shrink-0"
-                  priority
-                />
+                <AssistantAvatar size={24} className="shrink-0" />
                 {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
                 <svg
                   viewBox="0 0 20 20"
@@ -169,14 +161,7 @@ export function Sidebar({
               </button>
             ) : (
               <span className="flex items-center gap-2 font-semibold text-gray-900 py-1">
-                <Image
-                  src={claudeAvt}
-                  alt="AI Gia Đình"
-                  width={24}
-                  height={24}
-                  className="shrink-0"
-                  priority
-                />
+                <AssistantAvatar size={24} className="shrink-0" />
                 AI Gia Đình
               </span>
             )}

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import claudeAvt from "@/public/claude_avt.png";
+import { AssistantAvatar } from "@/components/AssistantAvatar";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { SettingsModal } from "@/components/sidebar/SettingsModal";
 
@@ -87,14 +86,7 @@ export function AdminSidebar({ title, items, activeKey, onSelect }: Props) {
         >
           <div className="flex items-center justify-between px-4 py-[14px]">
             <span className="flex items-center gap-2 font-semibold text-gray-900">
-              <Image
-                src={claudeAvt}
-                alt={title}
-                width={24}
-                height={24}
-                className="shrink-0"
-                priority
-              />
+              <AssistantAvatar size={24} className="shrink-0" />
               {title}
             </span>
             <button

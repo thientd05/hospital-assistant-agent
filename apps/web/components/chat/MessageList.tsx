@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import type { Message } from "@pr_hospitalagent/types";
 import { MessageBubble } from "./MessageBubble";
-import claudeAvt from "@/public/claude_avt.png";
+import { AssistantAvatar } from "@/components/AssistantAvatar";
 
 type Props = {
   messages: Message[];
@@ -47,14 +46,7 @@ export function EmptyGreeting({
   const roleLabel = role ? ROLE_LABEL_VI[role] ?? "" : "";
   return (
     <div className="flex items-center gap-5 text-gray-900">
-      <Image
-        src={claudeAvt}
-        alt="Hospital AI"
-        width={35}
-        height={35}
-        className="shrink-0"
-        priority
-      />
+      <AssistantAvatar size={35} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
         Xin chào {roleLabel} {userName}
       </h1>
