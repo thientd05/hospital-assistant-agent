@@ -481,9 +481,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Input sửa trực tiếp tại chỗ — căn phải, ngồi đúng vị trí giá trị đang hiển thị.
+// Sửa tại chỗ: giữ y nguyên kiểu chữ + vị trí của giá trị, chỉ thêm gạch chân
+// mờ để đánh dấu edit được — KHÔNG vẽ ô (tránh xô lệch layout).
 const INLINE_INPUT =
-  "min-w-0 text-right text-sm text-gray-900 font-medium bg-white rounded-md px-2 py-1 outline-none border border-[#C8E7E9] focus:border-[#087E8B]";
+  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-dashed border-gray-300 focus:border-[#087E8B]";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
