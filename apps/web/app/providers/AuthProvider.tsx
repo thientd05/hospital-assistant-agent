@@ -15,6 +15,7 @@ import type {
 } from "@pr_hospitalagent/types";
 import { ACCOUNT_KEY, API_URL, TOKEN_KEY } from "@/lib/api";
 import { clearResourceCache } from "@/lib/resourceCache";
+import { prefetchDoctorData } from "@/lib/prefetch";
 import {
   authFetch,
   clearTokens,
@@ -93,6 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(getAccessToken());
         setAccount(next);
         localStorage.setItem(ACCOUNT_KEY, JSON.stringify(next));
+        // Quay lại app đã đăng nhập sẵn → nạp trước data bác sĩ (best-effort).
+        if (next.role === "doctor") void prefetchDoctorData();
       } catch {
         if (!cancelled) clearAuth();
       } finally {
@@ -127,6 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(ACCOUNT_KEY, JSON.stringify(nextAccount));
       setToken(nextToken);
       setAccount(nextAccount);
+      // Đăng nhập mới → nạp trước data bác sĩ (best-effort, không chặn UI).
+      if (nextAccount.role === "doctor") void prefetchDoctorData();
     },
     []
   );
