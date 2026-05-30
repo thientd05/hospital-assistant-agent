@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { HomeVitalInput } from "@pr_hospitalagent/types";
 import { useHomeVitals, homeVitalsApi } from "@/hooks/useHomeVitals";
 import { formatDateTime as fmt } from "@/lib/format";
+import { Field } from "../forms/Field";
+import { FormHeader, FormError, FormActions } from "../forms/ui";
 
 type Props = {
   version: number;
@@ -162,125 +164,90 @@ function HomeVitalForm({
   return (
     <form
       onSubmit={submit}
-      className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <h3 className="text-base font-semibold text-gray-900">
-        Thêm chỉ số tại nhà
-      </h3>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block">
-          <span className="block text-xs text-gray-500 mb-0.5">SpO₂ (%)</span>
+      <FormHeader title="Thêm chỉ số tại nhà" />
+      <div className="p-4 space-y-3.5">
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="SpO₂ (%)">
           <input
             type="number"
             value={spO2}
             onChange={(e) => setSpO2(e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="home-vital-form:spO2"
             data-agent-role="textbox"
             data-agent-label="SpO2"
           />
-        </label>
-        <label className="block">
-          <span className="block text-xs text-gray-500 mb-0.5">
-            Nhịp tim (l/p)
-          </span>
+        </Field>
+        <Field label="Nhịp tim (l/p)">
           <input
             type="number"
             value={heartRate}
             onChange={(e) => setHeartRate(e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="home-vital-form:heartRate"
             data-agent-role="textbox"
             data-agent-label="Nhịp tim"
           />
-        </label>
-        <label className="block">
-          <span className="block text-xs text-gray-500 mb-0.5">Huyết áp</span>
+        </Field>
+        <Field label="Huyết áp">
           <input
             value={bloodPressure}
             onChange={(e) => setBloodPressure(e.target.value)}
             placeholder="120/80"
-            className="input"
+            className="ws-input"
             data-agent-ref="home-vital-form:bloodPressure"
             data-agent-role="textbox"
             data-agent-label="Huyết áp"
           />
-        </label>
-        <label className="block">
-          <span className="block text-xs text-gray-500 mb-0.5">
-            Nhiệt độ (°C)
-          </span>
+        </Field>
+        <Field label="Nhiệt độ (°C)">
           <input
             type="number"
             step="0.1"
             value={temperature}
             onChange={(e) => setTemperature(e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="home-vital-form:temperature"
             data-agent-role="textbox"
             data-agent-label="Nhiệt độ"
           />
-        </label>
+        </Field>
       </div>
-      <label className="block">
-        <span className="block text-xs text-gray-500 mb-0.5">Ghi chú</span>
+      <Field label="Ghi chú">
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="input"
+          className="ws-input"
           rows={2}
           data-agent-ref="home-vital-form:note"
           data-agent-role="textbox"
           data-agent-label="Ghi chú"
         />
-      </label>
+      </Field>
       {error && (
-        <div
-          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          data-agent-ref="home-vital-form:error"
-          data-agent-role="alert"
-          data-agent-label="Lỗi form chỉ số"
-        >
+        <FormError agentRef="home-vital-form:error" agentLabel="Lỗi form chỉ số">
           {error}
-        </div>
+        </FormError>
       )}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={submitting}
-          data-agent-ref="home-vital-form:cancel"
-          data-agent-role="button"
-          data-agent-label="Huỷ"
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-        >
-          Huỷ
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          data-agent-ref="home-vital-form:submit"
-          data-agent-role="button"
-          data-agent-label="Lưu chỉ số"
-          data-agent-busy={submitting ? "true" : undefined}
-          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-        >
-          {submitting ? "Đang lưu…" : "Lưu"}
-        </button>
+      <FormActions
+        onCancel={onClose}
+        submitting={submitting}
+        submitLabel="Lưu"
+        cancelProps={{
+          "data-agent-ref": "home-vital-form:cancel",
+          "data-agent-role": "button",
+          "data-agent-label": "Huỷ",
+        }}
+        submitProps={{
+          "data-agent-ref": "home-vital-form:submit",
+          "data-agent-role": "button",
+          "data-agent-label": "Lưu chỉ số",
+          "data-agent-busy": submitting ? "true" : undefined,
+        }}
+      />
       </div>
-      <style jsx>{`
-        .input {
-          width: 100%;
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.375rem 0.625rem;
-          outline: none;
-        }
-        .input:focus {
-          border-color: rgb(8 126 139);
-        }
-      `}</style>
     </form>
   );
 }

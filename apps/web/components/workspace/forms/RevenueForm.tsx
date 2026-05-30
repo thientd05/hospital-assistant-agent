@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Revenue, RevenueSource } from "@pr_hospitalagent/types";
 import { revenueApi } from "@/hooks/useRevenue";
 import { Field as Lbl } from "./Field";
+import { FormModal, FormHeader, FormError, FormActions } from "./ui";
 
 const SOURCES: RevenueSource[] = [
   "Khám bệnh",
@@ -103,20 +104,18 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form
-        onSubmit={submit}
-        className="w-[460px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
-      >
-        <h3 className="text-base font-semibold text-gray-900">
-          {editId ? `Sửa doanh thu ${editId}` : "Thêm doanh thu"}
-        </h3>
+    <FormModal maxWidth={480}>
+      <form onSubmit={submit}>
+        <FormHeader
+          title={editId ? `Sửa doanh thu ${editId}` : "Thêm doanh thu"}
+        />
+        <div className="p-4 space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
           <Lbl label="Nguồn">
             <select
               value={source}
               onChange={(e) => setSource(e.target.value as RevenueSource)}
-              className="input"
+              className="ws-input"
             >
               {SOURCES.map((s) => (
                 <option key={s} value={s}>
@@ -130,7 +129,7 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
               type="date"
               value={date}
               onChange={(e) => onDateChange(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -141,7 +140,7 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -151,7 +150,7 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -160,7 +159,7 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
           <input
             value={patientId}
             onChange={(e) => setPatientId(e.target.value)}
-            className="input"
+            className="ws-input"
             placeholder="VD: BN001"
           />
         </Lbl>
@@ -168,47 +167,18 @@ export function RevenueForm({ initial, editId, onClose, onSaved }: Props) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="input"
+            className="ws-input"
             rows={2}
           />
         </Lbl>
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-          >
-            {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-          </button>
+        {error && <FormError>{error}</FormError>}
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel={editId ? "Lưu" : "Tạo"}
+        />
         </div>
-        <style jsx>{`
-          .input {
-            width: 100%;
-            font-size: 0.875rem;
-            border: 1px solid rgb(229 231 235);
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.625rem;
-            outline: none;
-            background: white;
-          }
-          .input:focus {
-            border-color: #087e8b;
-          }
-        `}</style>
       </form>
-    </div>
+    </FormModal>
   );
 }

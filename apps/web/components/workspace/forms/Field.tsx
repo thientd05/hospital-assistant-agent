@@ -9,7 +9,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs text-gray-500 mb-0.5">{label}</span>
+      <span className="ws-label">{label}</span>
       {children}
     </label>
   );

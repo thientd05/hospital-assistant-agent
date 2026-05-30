@@ -6,6 +6,8 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { useManagingDoctors } from "@/hooks/useManagingDoctors";
 import { formatDateTime as fmt } from "@/lib/format";
 import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
+import { Field } from "../forms/Field";
+import { FormHeader, FormError, FormActions } from "../forms/ui";
 
 type Props = {
   version: number;
@@ -197,18 +199,18 @@ function BookingForm({
   return (
     <form
       onSubmit={submit}
-      className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <h3 className="text-base font-semibold text-gray-900">Đặt lịch hẹn</h3>
-      <label className="block">
-        <span className="block text-xs text-gray-500 mb-0.5">Bác sĩ</span>
+      <FormHeader title="Đặt lịch hẹn" />
+      <div className="p-4 space-y-3.5">
+      <Field label="Bác sĩ">
         <select
           value={doctorId}
           onChange={(e) => {
             setDoctorTouched(true);
             setDoctorId(e.target.value);
           }}
-          className="input"
+          className="ws-input"
           data-agent-ref="booking-form:doctorId"
           data-agent-role="combobox"
           data-agent-label="Bác sĩ"
@@ -222,12 +224,12 @@ function BookingForm({
             </option>
           ))}
         </select>
-      </label>
+      </Field>
       <div>
-        <span className="block text-xs text-gray-500 mb-0.5">Thời gian</span>
+        <span className="ws-label">Thời gian</span>
         <div className="grid grid-cols-4 gap-2">
           <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-0.5">Ngày</span>
+            <span className="block text-[11px] text-gray-400 mb-1">Ngày</span>
             <input
               type="number"
               min={1}
@@ -235,7 +237,7 @@ function BookingForm({
               value={day}
               onChange={(e) => setDay(e.target.value)}
               placeholder="DD"
-              className="input"
+              className="ws-input"
               required
               data-agent-ref="booking-form:day"
               data-agent-role="textbox"
@@ -243,7 +245,7 @@ function BookingForm({
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-0.5">Tháng</span>
+            <span className="block text-[11px] text-gray-400 mb-1">Tháng</span>
             <input
               type="number"
               min={1}
@@ -251,7 +253,7 @@ function BookingForm({
               value={month}
               onChange={(e) => setMonth(e.target.value)}
               placeholder="MM"
-              className="input"
+              className="ws-input"
               required
               data-agent-ref="booking-form:month"
               data-agent-role="textbox"
@@ -259,7 +261,7 @@ function BookingForm({
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-0.5">Năm</span>
+            <span className="block text-[11px] text-gray-400 mb-1">Năm</span>
             <input
               type="number"
               min={1900}
@@ -267,7 +269,7 @@ function BookingForm({
               value={year}
               onChange={(e) => setYear(e.target.value)}
               placeholder="YYYY"
-              className="input"
+              className="ws-input"
               required
               data-agent-ref="booking-form:year"
               data-agent-role="textbox"
@@ -275,12 +277,12 @@ function BookingForm({
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-0.5">Giờ</span>
+            <span className="block text-[11px] text-gray-400 mb-1">Giờ</span>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="input"
+              className="ws-input"
               required
               data-agent-ref="booking-form:time"
               data-agent-role="textbox"
@@ -289,66 +291,41 @@ function BookingForm({
           </label>
         </div>
       </div>
-      <label className="block">
-        <span className="block text-xs text-gray-500 mb-0.5">Lý do khám</span>
+      <Field label="Lý do khám">
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          className="input"
+          className="ws-input"
           rows={2}
           required
           data-agent-ref="booking-form:reason"
           data-agent-role="textbox"
           data-agent-label="Lý do khám"
         />
-      </label>
+      </Field>
       {error && (
-        <div
-          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          data-agent-ref="booking-form:error"
-          data-agent-role="alert"
-          data-agent-label="Lỗi form đặt lịch"
-        >
+        <FormError agentRef="booking-form:error" agentLabel="Lỗi form đặt lịch">
           {error}
-        </div>
+        </FormError>
       )}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={submitting}
-          data-agent-ref="booking-form:cancel"
-          data-agent-role="button"
-          data-agent-label="Huỷ"
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-        >
-          Huỷ
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          data-agent-ref="booking-form:submit"
-          data-agent-role="button"
-          data-agent-label="Đặt lịch"
-          data-agent-busy={submitting ? "true" : undefined}
-          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-        >
-          {submitting ? "Đang gửi…" : "Đặt lịch"}
-        </button>
+      <FormActions
+        onCancel={onClose}
+        submitting={submitting}
+        submitLabel="Đặt lịch"
+        pendingLabel="Đang gửi…"
+        cancelProps={{
+          "data-agent-ref": "booking-form:cancel",
+          "data-agent-role": "button",
+          "data-agent-label": "Huỷ",
+        }}
+        submitProps={{
+          "data-agent-ref": "booking-form:submit",
+          "data-agent-role": "button",
+          "data-agent-label": "Đặt lịch",
+          "data-agent-busy": submitting ? "true" : undefined,
+        }}
+      />
       </div>
-      <style jsx>{`
-        .input {
-          width: 100%;
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.375rem 0.625rem;
-          outline: none;
-        }
-        .input:focus {
-          border-color: rgb(8 126 139);
-        }
-      `}</style>
     </form>
   );
 }

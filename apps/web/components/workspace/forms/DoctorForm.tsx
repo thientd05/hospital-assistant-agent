@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { DoctorPublic } from "@pr_hospitalagent/types";
 import { doctorsApi } from "@/hooks/useDoctors";
 import { Field as Lbl } from "./Field";
+import { FormModal, FormHeader, FormError, FormActions } from "./ui";
 
 type Props = {
   initial?: Partial<DoctorPublic>;
@@ -63,19 +64,15 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form
-        onSubmit={submit}
-        className="w-[420px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3"
-      >
-        <h3 className="text-base font-semibold text-gray-900">
-          {editId ? `Sửa bác sĩ ${editId}` : "Tạo bác sĩ mới"}
-        </h3>
+    <FormModal maxWidth={440}>
+      <form onSubmit={submit}>
+        <FormHeader title={editId ? `Sửa bác sĩ ${editId}` : "Tạo bác sĩ mới"} />
+        <div className="p-4 space-y-3.5">
         <Lbl label="Họ tên">
           <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Lbl>
@@ -84,7 +81,7 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -92,7 +89,7 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
             <input
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -101,7 +98,7 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
           <input
             value={specialty}
             onChange={(e) => setSpecialty(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Lbl>
@@ -110,7 +107,7 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -119,7 +116,7 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -128,46 +125,18 @@ export function DoctorForm({ initial, editId, onClose, onSaved }: Props) {
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Lbl>
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-          >
-            {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-          </button>
+        {error && <FormError>{error}</FormError>}
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel={editId ? "Lưu" : "Tạo"}
+        />
         </div>
-        <style jsx>{`
-          .input {
-            width: 100%;
-            font-size: 0.875rem;
-            border: 1px solid rgb(229 231 235);
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.625rem;
-            outline: none;
-          }
-          .input:focus {
-            border-color: rgb(168 85 247);
-          }
-        `}</style>
       </form>
-    </div>
+    </FormModal>
   );
 }

@@ -2,6 +2,7 @@
 
 import type { PatientFormValues } from "@/hooks/useWorkspace";
 import { Field } from "./Field";
+import { FormHeader, FormError, FormActions } from "./ui";
 
 type Props = {
   values: PatientFormValues;
@@ -29,16 +30,15 @@ export function PatientCreateFormControlled({
         e.preventDefault();
         onSubmit();
       }}
-      className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <h3 className="text-base font-semibold text-gray-900">
-        Tạo bệnh nhân mới
-      </h3>
+      <FormHeader title="Tạo bệnh nhân mới" />
+      <div className="p-4 space-y-3.5">
       <Field label="Họ tên">
         <input
           value={values.name}
           onChange={(e) => onChange("name", e.target.value)}
-          className="input"
+          className="ws-input"
           data-agent-ref="patient-form:name"
           data-agent-role="textbox"
           data-agent-label="Họ tên"
@@ -51,7 +51,7 @@ export function PatientCreateFormControlled({
             inputMode="numeric"
             value={values.age}
             onChange={(e) => onChange("age", e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:age"
             data-agent-role="textbox"
             data-agent-label="Tuổi"
@@ -63,7 +63,7 @@ export function PatientCreateFormControlled({
             onChange={(e) =>
               onChange("gender", e.target.value as "Nam" | "Nữ")
             }
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:gender"
             data-agent-role="combobox"
             data-agent-label="Giới tính"
@@ -77,7 +77,7 @@ export function PatientCreateFormControlled({
         <input
           value={values.ward}
           onChange={(e) => onChange("ward", e.target.value)}
-          className="input"
+          className="ws-input"
           data-agent-ref="patient-form:ward"
           data-agent-role="textbox"
           data-agent-label="Khoa / phòng"
@@ -87,7 +87,7 @@ export function PatientCreateFormControlled({
         <input
           value={values.medications}
           onChange={(e) => onChange("medications", e.target.value)}
-          className="input"
+          className="ws-input"
           data-agent-ref="patient-form:medications"
           data-agent-role="textbox"
           data-agent-label="Thuốc"
@@ -104,7 +104,7 @@ export function PatientCreateFormControlled({
             inputMode="numeric"
             value={values.spO2}
             onChange={(e) => onChange("spO2", e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:spO2"
             data-agent-role="textbox"
             data-agent-label="SpO2 (%)"
@@ -116,7 +116,7 @@ export function PatientCreateFormControlled({
             inputMode="numeric"
             value={values.heartRate}
             onChange={(e) => onChange("heartRate", e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:heartRate"
             data-agent-role="textbox"
             data-agent-label="Nhịp tim (bpm)"
@@ -129,7 +129,7 @@ export function PatientCreateFormControlled({
             value={values.bloodPressure}
             onChange={(e) => onChange("bloodPressure", e.target.value)}
             placeholder="120/80"
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:bloodPressure"
             data-agent-role="textbox"
             data-agent-label="Huyết áp (mmHg)"
@@ -141,7 +141,7 @@ export function PatientCreateFormControlled({
             inputMode="decimal"
             value={values.temperature}
             onChange={(e) => onChange("temperature", e.target.value)}
-            className="input"
+            className="ws-input"
             data-agent-ref="patient-form:temperature"
             data-agent-role="textbox"
             data-agent-label="Nhiệt độ (°C)"
@@ -150,52 +150,30 @@ export function PatientCreateFormControlled({
       </div>
 
       {error && (
-        <div
-          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          data-agent-ref="patient-form:error"
-          data-agent-role="alert"
-          data-agent-label="Lỗi form bệnh nhân"
+        <FormError
+          agentRef="patient-form:error"
+          agentLabel="Lỗi form bệnh nhân"
         >
           {error}
-        </div>
+        </FormError>
       )}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          disabled={submitting}
-          data-agent-ref="patient-form:cancel"
-          data-agent-role="button"
-          data-agent-label="Huỷ"
-        >
-          Huỷ
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          data-agent-ref="patient-form:submit"
-          data-agent-role="button"
-          data-agent-label="Tạo bệnh nhân"
-          data-agent-busy={submitting ? "true" : undefined}
-          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-        >
-          {submitting ? "Đang lưu…" : "Tạo"}
-        </button>
+      <FormActions
+        onCancel={onClose}
+        submitting={submitting}
+        submitLabel="Tạo"
+        cancelProps={{
+          "data-agent-ref": "patient-form:cancel",
+          "data-agent-role": "button",
+          "data-agent-label": "Huỷ",
+        }}
+        submitProps={{
+          "data-agent-ref": "patient-form:submit",
+          "data-agent-role": "button",
+          "data-agent-label": "Tạo bệnh nhân",
+          "data-agent-busy": submitting ? "true" : undefined,
+        }}
+      />
       </div>
-      <style jsx>{`
-        .input {
-          width: 100%;
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.375rem 0.625rem;
-          outline: none;
-        }
-        .input:focus {
-          border-color: rgb(168 85 247);
-        }
-      `}</style>
     </form>
   );
 }

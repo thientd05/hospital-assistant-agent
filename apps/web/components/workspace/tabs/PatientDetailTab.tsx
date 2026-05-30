@@ -237,7 +237,7 @@ export function PatientDetailTab({
             <input
               value={draft.name}
               onChange={(e) => updateDraft("name", e.target.value)}
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:name"
               data-agent-role="textbox"
               data-agent-label="Họ tên"
@@ -249,7 +249,7 @@ export function PatientDetailTab({
               min={0}
               value={draft.age}
               onChange={(e) => updateDraft("age", e.target.value)}
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:age"
               data-agent-role="textbox"
               data-agent-label="Tuổi"
@@ -261,7 +261,7 @@ export function PatientDetailTab({
               onChange={(e) =>
                 updateDraft("gender", e.target.value as "Nam" | "Nữ")
               }
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:gender"
               data-agent-role="combobox"
               data-agent-label="Giới tính"
@@ -279,7 +279,7 @@ export function PatientDetailTab({
             <input
               value={draft.ward}
               onChange={(e) => updateDraft("ward", e.target.value)}
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:ward"
               data-agent-role="textbox"
               data-agent-label="Khoa"
@@ -289,7 +289,7 @@ export function PatientDetailTab({
             <input
               value={draft.address}
               onChange={(e) => updateDraft("address", e.target.value)}
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:address"
               data-agent-role="textbox"
               data-agent-label="Địa chỉ"
@@ -299,7 +299,7 @@ export function PatientDetailTab({
             <input
               value={draft.phone}
               onChange={(e) => updateDraft("phone", e.target.value)}
-              className="edit-input"
+              className="ws-input-sm"
               data-agent-ref="patient-detail:phone"
               data-agent-role="textbox"
               data-agent-label="Điện thoại"
@@ -327,7 +327,7 @@ export function PatientDetailTab({
                 step="0.1"
                 value={draft.spO2}
                 onChange={(e) => updateDraft("spO2", e.target.value)}
-                className="edit-input w-24 text-right"
+                className="ws-input-sm w-24 text-right"
                 data-agent-ref="patient-detail:spO2"
                 data-agent-role="textbox"
                 data-agent-label="SpO2"
@@ -341,7 +341,7 @@ export function PatientDetailTab({
                 type="number"
                 value={draft.heartRate}
                 onChange={(e) => updateDraft("heartRate", e.target.value)}
-                className="edit-input w-24 text-right"
+                className="ws-input-sm w-24 text-right"
                 data-agent-ref="patient-detail:heartRate"
                 data-agent-role="textbox"
                 data-agent-label="Nhịp tim"
@@ -355,7 +355,7 @@ export function PatientDetailTab({
                 value={draft.bloodPressure}
                 onChange={(e) => updateDraft("bloodPressure", e.target.value)}
                 placeholder="120/80"
-                className="edit-input w-24 text-right"
+                className="ws-input-sm w-24 text-right"
                 data-agent-ref="patient-detail:bloodPressure"
                 data-agent-role="textbox"
                 data-agent-label="Huyết áp"
@@ -370,7 +370,7 @@ export function PatientDetailTab({
                 step="0.1"
                 value={draft.temperature}
                 onChange={(e) => updateDraft("temperature", e.target.value)}
-                className="edit-input w-24 text-right"
+                className="ws-input-sm w-24 text-right"
                 data-agent-ref="patient-detail:temperature"
                 data-agent-role="textbox"
                 data-agent-label="Nhiệt độ"
@@ -408,7 +408,7 @@ export function PatientDetailTab({
           value={draft.diagnoses}
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="edit-input w-full"
+          className="ws-input-sm w-full"
           data-agent-ref="patient-detail:diagnoses"
           data-agent-role="textbox"
           data-agent-label="Chẩn đoán"
@@ -431,7 +431,7 @@ export function PatientDetailTab({
           value={draft.medications}
           onChange={(e) => updateDraft("medications", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="edit-input w-full"
+          className="ws-input-sm w-full"
           data-agent-ref="patient-detail:medications"
           data-agent-role="textbox"
           data-agent-label="Thuốc"
@@ -453,7 +453,7 @@ export function PatientDetailTab({
 
       {editing && editError && (
         <div
-          className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
           data-agent-ref="patient-detail:error"
           data-agent-role="alert"
           data-agent-label="Lỗi sửa hồ sơ"
@@ -461,20 +461,6 @@ export function PatientDetailTab({
           {editError}
         </div>
       )}
-
-      <style jsx>{`
-        :global(.edit-input) {
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.25rem 0.5rem;
-          outline: none;
-          background: white;
-        }
-        :global(.edit-input:focus) {
-          border-color: rgb(168 85 247);
-        }
-      `}</style>
     </div>
   );
 }

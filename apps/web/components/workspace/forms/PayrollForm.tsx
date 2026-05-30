@@ -11,6 +11,7 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { useExperts } from "@/hooks/useExperts";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { Field as Lbl } from "./Field";
+import { FormModal, FormHeader, FormError, FormActions } from "./ui";
 
 const STATUSES: PayrollStatus[] = ["Chưa thanh toán", "Đã thanh toán"];
 
@@ -167,20 +168,18 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form
-        onSubmit={submit}
-        className="w-[480px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
-      >
-        <h3 className="text-base font-semibold text-gray-900">
-          {editId ? `Sửa bản lương ${editId}` : "Thêm bản lương"}
-        </h3>
+    <FormModal maxWidth={500}>
+      <form onSubmit={submit}>
+        <FormHeader
+          title={editId ? `Sửa bản lương ${editId}` : "Thêm bản lương"}
+        />
+        <div className="p-4 space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
           <Lbl label="Nhân viên">
             <select
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
-              className="input"
+              className="ws-input"
               required
               disabled={Boolean(editId)}
             >
@@ -203,7 +202,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -215,7 +214,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={baseSalary}
               onChange={(e) => setBaseSalary(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -225,7 +224,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={bonus}
               onChange={(e) => setBonus(e.target.value)}
-              className="input"
+              className="ws-input"
             />
           </Lbl>
           <Lbl label="Khấu trừ">
@@ -234,7 +233,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={deduction}
               onChange={(e) => setDeduction(e.target.value)}
-              className="input"
+              className="ws-input"
             />
           </Lbl>
         </div>
@@ -249,7 +248,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as PayrollStatus)}
-              className="input"
+              className="ws-input"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -263,7 +262,7 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
               type="date"
               value={paidDate}
               onChange={(e) => setPaidDate(e.target.value)}
-              className="input"
+              className="ws-input"
               disabled={status !== "Đã thanh toán"}
             />
           </Lbl>
@@ -272,51 +271,18 @@ export function PayrollForm({ initial, editId, onClose, onSaved }: Props) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="input"
+            className="ws-input"
             rows={2}
           />
         </Lbl>
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-          >
-            {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-          </button>
+        {error && <FormError>{error}</FormError>}
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel={editId ? "Lưu" : "Tạo"}
+        />
         </div>
-        <style jsx>{`
-          .input {
-            width: 100%;
-            font-size: 0.875rem;
-            border: 1px solid rgb(229 231 235);
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.625rem;
-            outline: none;
-            background: white;
-          }
-          .input:focus {
-            border-color: #087e8b;
-          }
-          .input:disabled {
-            background: rgb(243 244 246);
-            color: rgb(156 163 175);
-          }
-        `}</style>
       </form>
-    </div>
+    </FormModal>
   );
 }

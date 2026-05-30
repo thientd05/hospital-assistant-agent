@@ -8,6 +8,7 @@ import type {
 } from "@pr_hospitalagent/types";
 import { utilitiesApi } from "@/hooks/useUtilities";
 import { Field as Lbl } from "./Field";
+import { FormModal, FormHeader, FormError, FormActions } from "./ui";
 
 const TYPES: UtilityType[] = ["Điện", "Nước", "Internet", "Gas"];
 const STATUSES: UtilityStatus[] = ["Chưa thanh toán", "Đã thanh toán"];
@@ -114,20 +115,18 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form
-        onSubmit={submit}
-        className="w-[460px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
-      >
-        <h3 className="text-base font-semibold text-gray-900">
-          {editId ? `Sửa hoá đơn ${editId}` : "Thêm hoá đơn điện nước"}
-        </h3>
+    <FormModal maxWidth={480}>
+      <form onSubmit={submit}>
+        <FormHeader
+          title={editId ? `Sửa hoá đơn ${editId}` : "Thêm hoá đơn điện nước"}
+        />
+        <div className="p-4 space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
           <Lbl label="Loại">
             <select
               value={type}
               onChange={(e) => onTypeChange(e.target.value as UtilityType)}
-              className="input"
+              className="ws-input"
             >
               {TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -141,7 +140,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -153,7 +152,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -163,7 +162,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={usage}
               onChange={(e) => setUsage(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -171,7 +170,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
             <input
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -181,7 +180,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as UtilityStatus)}
-              className="input"
+              className="ws-input"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -195,7 +194,7 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
               type="date"
               value={paidDate}
               onChange={(e) => setPaidDate(e.target.value)}
-              className="input"
+              className="ws-input"
               disabled={status !== "Đã thanh toán"}
             />
           </Lbl>
@@ -204,51 +203,18 @@ export function UtilityForm({ initial, editId, onClose, onSaved }: Props) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="input"
+            className="ws-input"
             rows={2}
           />
         </Lbl>
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-          >
-            {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-          </button>
+        {error && <FormError>{error}</FormError>}
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel={editId ? "Lưu" : "Tạo"}
+        />
         </div>
-        <style jsx>{`
-          .input {
-            width: 100%;
-            font-size: 0.875rem;
-            border: 1px solid rgb(229 231 235);
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.625rem;
-            outline: none;
-            background: white;
-          }
-          .input:focus {
-            border-color: #087e8b;
-          }
-          .input:disabled {
-            background: rgb(243 244 246);
-            color: rgb(156 163 175);
-          }
-        `}</style>
       </form>
-    </div>
+    </FormModal>
   );
 }

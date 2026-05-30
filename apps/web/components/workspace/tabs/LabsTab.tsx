@@ -6,6 +6,7 @@ import { useLabs, patientsApi } from "@/hooks/usePatients";
 import { useMyLabs } from "@/hooks/useMyLabs";
 import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
 import { Field as Lbl } from "../forms/Field";
+import { FormHeader, FormError, FormActions } from "../forms/ui";
 
 type Props = {
   patientId: string | null;
@@ -234,16 +235,15 @@ function LabAddForm({
   return (
     <form
       onSubmit={submit}
-      className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <h3 className="text-base font-semibold text-gray-900">
-        Thêm xét nghiệm
-      </h3>
+      <FormHeader title="Thêm xét nghiệm" />
+      <div className="p-4 space-y-3.5">
       <Lbl label="Tên xét nghiệm">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="input"
+          className="ws-input"
           required
           data-agent-ref="lab-form:name"
           data-agent-role="textbox"
@@ -255,7 +255,7 @@ function LabAddForm({
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="input"
+            className="ws-input"
             required
             data-agent-ref="lab-form:value"
             data-agent-role="textbox"
@@ -266,7 +266,7 @@ function LabAddForm({
           <input
             value={unit}
             onChange={(e) => setUnit(e.target.value)}
-            className="input"
+            className="ws-input"
             required
             data-agent-ref="lab-form:unit"
             data-agent-role="textbox"
@@ -278,18 +278,19 @@ function LabAddForm({
         <input
           value={referenceRange}
           onChange={(e) => setReferenceRange(e.target.value)}
-          className="input"
+          className="ws-input"
           required
           data-agent-ref="lab-form:referenceRange"
           data-agent-role="textbox"
           data-agent-label="Khoảng tham chiếu"
         />
       </Lbl>
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
           checked={isAbnormal}
           onChange={(e) => setIsAbnormal(e.target.checked)}
+          className="h-4 w-4 accent-[#087E8B]"
           data-agent-ref="lab-form:isAbnormal"
           data-agent-role="checkbox"
           data-agent-label="Bất thường"
@@ -297,52 +298,27 @@ function LabAddForm({
         Bất thường
       </label>
       {error && (
-        <div
-          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-          data-agent-ref="lab-form:error"
-          data-agent-role="alert"
-          data-agent-label="Lỗi form xét nghiệm"
-        >
+        <FormError agentRef="lab-form:error" agentLabel="Lỗi form xét nghiệm">
           {error}
-        </div>
+        </FormError>
       )}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={submitting}
-          data-agent-ref="lab-form:cancel"
-          data-agent-role="button"
-          data-agent-label="Huỷ"
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-        >
-          Huỷ
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          data-agent-ref="lab-form:submit"
-          data-agent-role="button"
-          data-agent-label="Lưu xét nghiệm"
-          data-agent-busy={submitting ? "true" : undefined}
-          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-        >
-          {submitting ? "Đang lưu…" : "Lưu"}
-        </button>
+      <FormActions
+        onCancel={onClose}
+        submitting={submitting}
+        submitLabel="Lưu"
+        cancelProps={{
+          "data-agent-ref": "lab-form:cancel",
+          "data-agent-role": "button",
+          "data-agent-label": "Huỷ",
+        }}
+        submitProps={{
+          "data-agent-ref": "lab-form:submit",
+          "data-agent-role": "button",
+          "data-agent-label": "Lưu xét nghiệm",
+          "data-agent-busy": submitting ? "true" : undefined,
+        }}
+      />
       </div>
-      <style jsx>{`
-        .input {
-          width: 100%;
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.375rem 0.625rem;
-          outline: none;
-        }
-        .input:focus {
-          border-color: rgb(168 85 247);
-        }
-      `}</style>
     </form>
   );
 }

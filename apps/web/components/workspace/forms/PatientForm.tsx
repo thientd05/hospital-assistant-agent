@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { patientsApi } from "@/hooks/usePatients";
 import { Field } from "./Field";
+import { FormHeader, FormError, FormActions } from "./ui";
 
 type Props = {
   initial?: Partial<PatientPublic>;
@@ -68,16 +69,17 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-lg border border-gray-200 p-4 space-y-3"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <h3 className="text-base font-semibold text-gray-900">
-        {editId ? `Sửa hồ sơ ${editId}` : "Tạo bệnh nhân mới"}
-      </h3>
+      <FormHeader
+        title={editId ? `Sửa hồ sơ ${editId}` : "Tạo bệnh nhân mới"}
+      />
+      <div className="p-4 space-y-3.5">
       <Field label="Họ tên">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="input"
+          className="ws-input"
           required
         />
       </Field>
@@ -88,7 +90,7 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
             min={0}
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Field>
@@ -96,7 +98,7 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
           <select
             value={gender}
             onChange={(e) => setGender(e.target.value as "Nam" | "Nữ")}
-            className="input"
+            className="ws-input"
           >
             <option value="Nam">Nam</option>
             <option value="Nữ">Nữ</option>
@@ -107,7 +109,7 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
         <input
           value={ward}
           onChange={(e) => setWard(e.target.value)}
-          className="input"
+          className="ws-input"
           required
         />
       </Field>
@@ -115,51 +117,23 @@ export function PatientForm({ initial, editId, onClose, onSaved }: Props) {
         <input
           value={diagnoses}
           onChange={(e) => setDiagnoses(e.target.value)}
-          className="input"
+          className="ws-input"
         />
       </Field>
       <Field label="Thuốc (phân tách bằng dấu phẩy)">
         <input
           value={medications}
           onChange={(e) => setMedications(e.target.value)}
-          className="input"
+          className="ws-input"
         />
       </Field>
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
-        </div>
-      )}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          disabled={submitting}
-        >
-          Huỷ
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-        >
-          {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-        </button>
+      {error && <FormError>{error}</FormError>}
+      <FormActions
+        onCancel={onClose}
+        submitting={submitting}
+        submitLabel={editId ? "Lưu" : "Tạo"}
+      />
       </div>
-      <style jsx>{`
-        .input {
-          width: 100%;
-          font-size: 0.875rem;
-          border: 1px solid rgb(229 231 235);
-          border-radius: 0.375rem;
-          padding: 0.375rem 0.625rem;
-          outline: none;
-        }
-        .input:focus {
-          border-color: rgb(168 85 247);
-        }
-      `}</style>
     </form>
   );
 }

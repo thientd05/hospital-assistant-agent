@@ -8,6 +8,7 @@ import type {
 } from "@pr_hospitalagent/types";
 import { assetsApi } from "@/hooks/useAssets";
 import { Field as Lbl } from "./Field";
+import { FormModal, FormHeader, FormError, FormActions } from "./ui";
 
 const CATEGORIES: AssetCategory[] = [
   "Thiết bị y tế",
@@ -105,19 +106,15 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form
-        onSubmit={submit}
-        className="w-[480px] max-w-[90vw] bg-white rounded-lg shadow-xl border border-gray-200 p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
-      >
-        <h3 className="text-base font-semibold text-gray-900">
-          {editId ? `Sửa tài sản ${editId}` : "Thêm tài sản"}
-        </h3>
+    <FormModal maxWidth={500}>
+      <form onSubmit={submit}>
+        <FormHeader title={editId ? `Sửa tài sản ${editId}` : "Thêm tài sản"} />
+        <div className="p-4 space-y-3.5">
         <Lbl label="Tên tài sản">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Lbl>
@@ -126,7 +123,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as AssetCategory)}
-              className="input"
+              className="ws-input"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -139,7 +136,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
             <select
               value={condition}
               onChange={(e) => setCondition(e.target.value as AssetCondition)}
-              className="input"
+              className="ws-input"
             >
               {CONDITIONS.map((c) => (
                 <option key={c} value={c}>
@@ -153,7 +150,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
           <input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="input"
+            className="ws-input"
             required
           />
         </Lbl>
@@ -163,7 +160,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -173,7 +170,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={purchasePrice}
               onChange={(e) => setPurchasePrice(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -183,7 +180,7 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
               min={0}
               value={depreciationYears}
               onChange={(e) => setDepreciationYears(e.target.value)}
-              className="input"
+              className="ws-input"
               required
             />
           </Lbl>
@@ -192,47 +189,18 @@ export function AssetForm({ initial, editId, onClose, onSaved }: Props) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="input"
+            className="ws-input"
             rows={2}
           />
         </Lbl>
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-            {error}
-          </div>
-        )}
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-3 py-1.5 text-sm rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
-          >
-            {submitting ? "Đang lưu…" : editId ? "Lưu" : "Tạo"}
-          </button>
+        {error && <FormError>{error}</FormError>}
+        <FormActions
+          onCancel={onClose}
+          submitting={submitting}
+          submitLabel={editId ? "Lưu" : "Tạo"}
+        />
         </div>
-        <style jsx>{`
-          .input {
-            width: 100%;
-            font-size: 0.875rem;
-            border: 1px solid rgb(229 231 235);
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.625rem;
-            outline: none;
-            background: white;
-          }
-          .input:focus {
-            border-color: #087e8b;
-          }
-        `}</style>
       </form>
-    </div>
+    </FormModal>
   );
 }
