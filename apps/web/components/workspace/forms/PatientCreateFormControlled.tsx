@@ -83,6 +83,28 @@ export function PatientCreateFormControlled({
           data-agent-label="Khoa / phòng"
         />
       </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Địa chỉ">
+          <input
+            value={values.address}
+            onChange={(e) => onChange("address", e.target.value)}
+            className="ws-input"
+            data-agent-ref="patient-form:address"
+            data-agent-role="textbox"
+            data-agent-label="Địa chỉ"
+          />
+        </Field>
+        <Field label="Số điện thoại">
+          <input
+            value={values.phone}
+            onChange={(e) => onChange("phone", e.target.value)}
+            className="ws-input"
+            data-agent-ref="patient-form:phone"
+            data-agent-role="textbox"
+            data-agent-label="Số điện thoại"
+          />
+        </Field>
+      </div>
       <Field label="Thuốc (phân tách bằng dấu phẩy)">
         <input
           value={values.medications}

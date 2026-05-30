@@ -15,7 +15,7 @@ description: Cập nhật hồ sơ bệnh nhân đang chọn — chẩn đoán, 
      { action: "click", ref: "patient-detail:save" }
    ]})
    ```
-   Chỉ `type` các field cần đổi: `name`, `age`, `ward` (text), `gender` (select), `spO2`/`heartRate`/`bloodPressure`/`temperature` (sinh hiệu), `diagnoses`/`medications` (danh sách, cách nhau dấu phẩy).
+   Chỉ `type` các field cần đổi: `name`, `age`, `ward`, `address` (địa chỉ), `phone` (số điện thoại) (text), `gender` (select), `spO2`/`heartRate`/`bloodPressure`/`temperature` (sinh hiệu), `diagnoses`/`medications` (danh sách, cách nhau dấu phẩy).
 3. Form đóng = đã lưu.
 
 ## Badcase

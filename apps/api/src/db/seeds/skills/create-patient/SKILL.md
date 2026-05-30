@@ -15,10 +15,12 @@ description: Tạo một bệnh nhân mới — mở form ở tab Bệnh nhân, 
      { action: "type",   ref: "patient-form:age",    value: "<tuổi>" },
      { action: "select", ref: "patient-form:gender", value: "Nam" },
      { action: "type",   ref: "patient-form:ward",   value: "<khoa>" },
+     { action: "type",   ref: "patient-form:address", value: "<địa chỉ>" },
+     { action: "type",   ref: "patient-form:phone",   value: "<số điện thoại>" },
      { action: "click",  ref: "patient-form:submit" }
    ]})
    ```
-   Bắt buộc: `name`, `age`, `ward`. Tuỳ chọn (chỉ khi bác sĩ cung cấp số đo): `medications`, `spO2`, `heartRate`, `bloodPressure`, `temperature`.
+   Bắt buộc: `name`, `age`, `ward`. Tuỳ chọn — chỉ điền khi bác sĩ cung cấp: `address` (địa chỉ), `phone` (số điện thoại), `medications`; sinh hiệu (chỉ khi có số đo): `spO2`, `heartRate`, `bloodPressure`, `temperature`.
 3. Submit thành công (form đóng) → trong snapshot tìm `patient:<id>:open` của bệnh nhân vừa tạo (label khớp tên, hoặc id BN lớn nhất) và `act` click nó để mở hồ sơ cho bác sĩ xem.
 
 ## Badcase

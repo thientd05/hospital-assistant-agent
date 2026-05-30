@@ -52,6 +52,8 @@ export type PatientFormValues = {
   age: string;
   gender: "Nam" | "Nữ";
   ward: string;
+  address: string;
+  phone: string;
   medications: string;
   spO2: string;
   heartRate: string;
@@ -64,6 +66,8 @@ const EMPTY_PATIENT_FORM: PatientFormValues = {
   age: "",
   gender: "Nam",
   ward: "",
+  address: "",
+  phone: "",
   medications: "",
   spO2: "",
   heartRate: "",
@@ -206,6 +210,8 @@ export function useWorkspace() {
         age: ageNum,
         gender: v.gender,
         ward: v.ward.trim(),
+        address: v.address.trim(),
+        phone: v.phone.trim(),
         medications: v.medications
           .split(",")
           .map((s) => s.trim())
