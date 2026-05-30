@@ -16,43 +16,31 @@ import { stripPassword } from "../lib/public.ts";
 import { ConflictError, UnauthorizedError } from "../lib/errors.ts";
 import type { RegisterInput } from "../schemas/auth.ts";
 
+// Cặp token trả về khi đăng nhập/đăng ký: access ngắn hạn + refresh dài hạn.
+export type TokenPair = { token: string; refreshToken: string };
+export type SignTokens = (payload: { sub: string; role: AuthRole }) => TokenPair;
+
 export type LoginResult =
-  | { token: string; role: "doctor"; doctor: DoctorPublic }
-  | { token: string; role: "manager"; manager: ManagerPublic }
-  | { token: string; role: "expert"; expert: ExpertPublic }
-  | { token: string; role: "patient"; patient: PatientPublic };
+  | (TokenPair & { role: "doctor"; doctor: DoctorPublic })
+  | (TokenPair & { role: "manager"; manager: ManagerPublic })
+  | (TokenPair & { role: "expert"; expert: ExpertPublic })
+  | (TokenPair & { role: "patient"; patient: PatientPublic });
 
 function buildResult(
   role: AuthRole,
   account: Doctor | Manager | Expert | Patient,
-  token: string
+  tokens: TokenPair
 ): LoginResult {
   const publicAccount = stripPassword(account);
   switch (role) {
     case "doctor":
-      return {
-        token,
-        role: "doctor",
-        doctor: publicAccount as DoctorPublic,
-      };
+      return { ...tokens, role: "doctor", doctor: publicAccount as DoctorPublic };
     case "manager":
-      return {
-        token,
-        role: "manager",
-        manager: publicAccount as ManagerPublic,
-      };
+      return { ...tokens, role: "manager", manager: publicAccount as ManagerPublic };
     case "expert":
-      return {
-        token,
-        role: "expert",
-        expert: publicAccount as ExpertPublic,
-      };
+      return { ...tokens, role: "expert", expert: publicAccount as ExpertPublic };
     case "patient":
-      return {
-        token,
-        role: "patient",
-        patient: publicAccount as PatientPublic,
-      };
+      return { ...tokens, role: "patient", patient: publicAccount as PatientPublic };
   }
 }
 
@@ -60,13 +48,13 @@ export const authService = {
   async login(
     username: string,
     password: string,
-    sign: (payload: { sub: string; role: AuthRole }) => string
+    signTokens: SignTokens
   ): Promise<LoginResult> {
     for (const role of LOGIN_ORDER) {
       const account = await accountRepo.findByUsername(role, username);
       if (account && verifyPassword(password, account.passwordHash)) {
-        const token = sign({ sub: account.id, role });
-        return buildResult(role, account as never, token);
+        const tokens = signTokens({ sub: account.id, role });
+        return buildResult(role, account as never, tokens);
       }
     }
     throw new UnauthorizedError("Sai tên đăng nhập hoặc mật khẩu");
@@ -75,13 +63,13 @@ export const authService = {
   // Đăng ký công khai — CHỈ tạo bệnh nhân, rồi sign token để đăng nhập ngay.
   async register(
     data: RegisterInput,
-    sign: (payload: { sub: string; role: AuthRole }) => string
+    signTokens: SignTokens
   ): Promise<LoginResult> {
     if (await accountRepo.usernameTaken(data.username)) {
       throw new ConflictError("Tên đăng nhập đã tồn tại, vui lòng chọn tên khác.");
     }
     const patient = await patientService.register(data);
-    const token = sign({ sub: patient.id, role: "patient" });
-    return buildResult("patient", patient, token);
+    const tokens = signTokens({ sub: patient.id, role: "patient" });
+    return buildResult("patient", patient, tokens);
   },
 };

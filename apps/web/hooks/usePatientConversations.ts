@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import { authFetch } from "@/lib/tokenStore";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { dedupedFetch, getCached } from "@/lib/resourceCache";
 
@@ -32,9 +33,7 @@ export function usePatientConversations({ enabled = true }: Options = {}) {
       const data = await dedupedFetch<PatientConversationListItem[]>(
         CACHE_KEY,
         async () => {
-          const res = await fetch(`${API_URL}/api/conversations/patients`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await authFetch(`${API_URL}/api/conversations/patients`);
           if (res.status === 401) {
             logout();
             throw new Error("unauthorized");

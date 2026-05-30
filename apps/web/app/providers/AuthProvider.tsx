@@ -15,6 +15,12 @@ import type {
 } from "@pr_hospitalagent/types";
 import { ACCOUNT_KEY, API_URL, TOKEN_KEY } from "@/lib/api";
 import { clearResourceCache } from "@/lib/resourceCache";
+import {
+  authFetch,
+  clearTokens,
+  getAccessToken,
+  setTokens,
+} from "@/lib/tokenStore";
 
 export type AuthAccount =
   | { role: "doctor"; doctor: DoctorPublic }
@@ -31,7 +37,7 @@ type AuthState = {
   role: "doctor" | "manager" | "patient" | "expert" | null;
   token: string | null;
   isLoading: boolean;
-  login: (token: string, account: AuthAccount) => void;
+  login: (token: string, refreshToken: string, account: AuthAccount) => void;
   logout: () => void;
   updateAccount: (next: AuthAccount) => void;
 };
@@ -53,10 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccount(null);
     setToken(null);
     clearResourceCache();
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(ACCOUNT_KEY);
-    }
+    clearTokens();
   }, []);
 
   useEffect(() => {
@@ -70,9 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${storedToken}` },
-        });
+        // authFetch tự refresh access token nếu hết hạn (refresh còn hạn 2h).
+        const res = await authFetch(`${API_URL}/api/auth/me`);
         if (cancelled) return;
         if (!res.ok) {
           clearAuth();
@@ -87,7 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             : data.role === "expert"
             ? { role: "expert", expert: data.expert }
             : { role: "doctor", doctor: data.doctor };
-        setToken(storedToken);
+        // authFetch có thể đã cập nhật access token mới → đọc lại từ store.
+        setToken(getAccessToken());
         setAccount(next);
         localStorage.setItem(ACCOUNT_KEY, JSON.stringify(next));
       } catch {
@@ -103,19 +106,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearAuth]);
 
   useEffect(() => {
+    // Cross-tab: token bị xoá ở tab khác. Same-tab: refresh hết hạn → auth:expired.
     const onStorage = (e: StorageEvent) => {
       if (e.key === TOKEN_KEY && e.newValue === null) {
         clearAuth();
       }
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("auth:expired", clearAuth);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("auth:expired", clearAuth);
+    };
   }, [clearAuth]);
 
   const login = useCallback(
-    (nextToken: string, nextAccount: AuthAccount) => {
+    (nextToken: string, nextRefreshToken: string, nextAccount: AuthAccount) => {
       clearResourceCache();
-      localStorage.setItem(TOKEN_KEY, nextToken);
+      setTokens(nextToken, nextRefreshToken);
       localStorage.setItem(ACCOUNT_KEY, JSON.stringify(nextAccount));
       setToken(nextToken);
       setAccount(nextAccount);

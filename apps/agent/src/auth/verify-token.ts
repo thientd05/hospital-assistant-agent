@@ -6,8 +6,15 @@ export type AgentRole = "doctor" | "manager" | "patient" | "expert";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: { sub: string; role: AgentRole };
-    user: { sub: string; role: AgentRole; iat: number; exp: number };
+    payload: { sub: string; role: AgentRole; type: "access" | "refresh" };
+    user: {
+      sub: string;
+      role: AgentRole;
+      // Token cũ (trước cơ chế 2-token) không có `type` → coi như access.
+      type?: "access" | "refresh";
+      iat: number;
+      exp: number;
+    };
   }
 }
 
@@ -23,6 +30,11 @@ export async function verifyToken(req: FastifyRequest, reply: FastifyReply) {
   try {
     await req.jwtVerify();
   } catch {
+    reply.code(401).send({ error: "Unauthorized" });
+    return reply;
+  }
+  // Refresh token CHỈ dùng ở /auth/refresh (REST) — không cho vào agent.
+  if (req.user.type === "refresh") {
     reply.code(401).send({ error: "Unauthorized" });
     return reply;
   }

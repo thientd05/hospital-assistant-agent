@@ -9,6 +9,7 @@ import type {
 } from "@pr_hospitalagent/types";
 import { readSSEStream } from "@/lib/stream";
 import { AGENT_URL, API_URL } from "@/lib/api";
+import { authFetch } from "@/lib/tokenStore";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { dedupedFetch, getCached, setCached } from "@/lib/resourceCache";
 
@@ -86,7 +87,7 @@ type UseChatOptions = {
 };
 
 export function useChat(opts: UseChatOptions = {}) {
-  const { token, logout } = useAuth();
+  const { logout } = useAuth();
   const mode: ChatMode = opts.mode ?? "ai";
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -124,9 +125,7 @@ export function useChat(opts: UseChatOptions = {}) {
       }
       try {
         const data = await dedupedFetch<RawConversation>(path, async () => {
-          const res = await fetch(`${API_URL}${path}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await authFetch(`${API_URL}${path}`);
           if (res.status === 401) {
             logout();
             throw new Error("unauthorized");
@@ -142,7 +141,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsLoadingConversation(false);
       }
     },
-    [isStreaming, token, logout, mode]
+    [isStreaming, logout, mode]
   );
 
   const sendMessage = useCallback(
@@ -160,14 +159,11 @@ export function useChat(opts: UseChatOptions = {}) {
         };
         setMessages((prev) => [...prev, optimistic]);
         try {
-          const res = await fetch(
+          const res = await authFetch(
             `${API_URL}/api/conversations/patients/${conversationId}/reply`,
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ message: text }),
             }
           );
@@ -248,12 +244,9 @@ export function useChat(opts: UseChatOptions = {}) {
       };
 
       try {
-        const res = await fetch(`${AGENT_URL}/api/chat`, {
+        const res = await authFetch(`${AGENT_URL}/api/chat`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ conversationId, message: text }),
         });
 
@@ -326,14 +319,11 @@ export function useChat(opts: UseChatOptions = {}) {
               };
             }
             try {
-              await fetch(
+              await authFetch(
                 `${AGENT_URL}/api/chat/tool-callback/${ev.commandId}`,
                 {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
+                  headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ result }),
                 }
               );
@@ -378,7 +368,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [conversationId, isStreaming, token, logout, mode]
+    [conversationId, isStreaming, logout, mode]
   );
 
   return {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import { authFetch } from "@/lib/tokenStore";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { dedupedFetch, getCached } from "@/lib/resourceCache";
 
@@ -27,9 +28,7 @@ export function useConversations() {
       const data = await dedupedFetch<ConversationListItem[]>(
         CACHE_KEY,
         async () => {
-          const res = await fetch(`${API_URL}/api/conversations`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const res = await authFetch(`${API_URL}/api/conversations`);
           if (res.status === 401) {
             logout();
             throw new Error("unauthorized");
@@ -50,9 +49,8 @@ export function useConversations() {
   const deleteConversation = useCallback(
     async (id: string) => {
       if (!token) return;
-      const res = await fetch(`${API_URL}/api/conversations/${id}`, {
+      const res = await authFetch(`${API_URL}/api/conversations/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401) {
         logout();

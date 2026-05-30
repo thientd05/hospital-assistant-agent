@@ -1,4 +1,5 @@
-import { AGENT_URL, API_URL, TOKEN_KEY } from "./api";
+import { AGENT_URL, API_URL } from "./api";
+import { getAccessToken, refreshAccessToken } from "./tokenStore";
 
 export class ApiError extends Error {
   status: number;
@@ -9,11 +10,6 @@ export class ApiError extends Error {
     this.body = body;
     this.name = "ApiError";
   }
-}
-
-function readToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
 }
 
 type ApiInit = Omit<RequestInit, "body"> & {
@@ -27,14 +23,11 @@ function makeApi(baseUrl: string) {
     init: ApiInit = {}
   ): Promise<T> {
     const { token, headers, body, ...rest } = init;
-    const tok = token === undefined ? readToken() : token;
-
-    const finalHeaders: Record<string, string> = {
-      ...(tok ? { Authorization: `Bearer ${tok}` } : {}),
-      ...((headers as Record<string, string>) ?? {}),
-    };
 
     let finalBody: BodyInit | undefined;
+    const baseHeaders: Record<string, string> = {
+      ...((headers as Record<string, string>) ?? {}),
+    };
     if (body !== undefined && body !== null) {
       if (
         typeof body === "string" ||
@@ -45,17 +38,31 @@ function makeApi(baseUrl: string) {
         finalBody = body as BodyInit;
       } else {
         finalBody = JSON.stringify(body);
-        if (!finalHeaders["Content-Type"]) {
-          finalHeaders["Content-Type"] = "application/json";
+        if (!baseHeaders["Content-Type"]) {
+          baseHeaders["Content-Type"] = "application/json";
         }
       }
     }
 
-    const res = await fetch(`${baseUrl}${path}`, {
-      ...rest,
-      headers: finalHeaders,
-      body: finalBody,
-    });
+    // Caller có thể truyền token cố định (token !== undefined) — khi đó KHÔNG
+    // tự refresh. Mặc định dùng access token trong store + refresh-on-401.
+    const explicitToken = token !== undefined;
+
+    const doFetch = (tok: string | null) =>
+      fetch(`${baseUrl}${path}`, {
+        ...rest,
+        headers: {
+          ...(tok ? { Authorization: `Bearer ${tok}` } : {}),
+          ...baseHeaders,
+        },
+        body: finalBody,
+      });
+
+    let res = await doFetch(explicitToken ? token : getAccessToken());
+    if (res.status === 401 && !explicitToken) {
+      const fresh = await refreshAccessToken();
+      if (fresh) res = await doFetch(fresh);
+    }
 
     const text = await res.text();
     let parsed: unknown = null;

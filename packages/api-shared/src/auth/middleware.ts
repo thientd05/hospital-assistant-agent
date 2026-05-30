@@ -26,8 +26,15 @@ declare module "fastify" {
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: { sub: string; role: AuthRole };
-    user: { sub: string; role: AuthRole; iat: number; exp: number };
+    payload: { sub: string; role: AuthRole; type: "access" | "refresh" };
+    user: {
+      sub: string;
+      role: AuthRole;
+      // Token cũ (trước cơ chế 2-token) không có `type` → coi như access.
+      type?: "access" | "refresh";
+      iat: number;
+      exp: number;
+    };
   }
 }
 
@@ -35,6 +42,12 @@ export async function verifyAuth(req: FastifyRequest, reply: FastifyReply) {
   try {
     await req.jwtVerify();
   } catch {
+    reply.code(401).send({ error: "Unauthorized" });
+    return reply;
+  }
+
+  // Refresh token CHỈ dùng ở /auth/refresh — không cho truy cập tài nguyên.
+  if (req.user.type === "refresh") {
     reply.code(401).send({ error: "Unauthorized" });
     return reply;
   }

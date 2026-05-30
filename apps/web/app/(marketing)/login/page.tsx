@@ -23,11 +23,12 @@ import { API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { BrandMark } from "@/components/landing/BrandMark";
 
+type AuthTokens = { token: string; refreshToken: string };
 type LoginResponse =
-  | { token: string; role: "doctor"; doctor: DoctorPublic }
-  | { token: string; role: "manager"; manager: ManagerPublic }
-  | { token: string; role: "patient"; patient: PatientPublic }
-  | { token: string; role: "expert"; expert: ExpertPublic };
+  | (AuthTokens & { role: "doctor"; doctor: DoctorPublic })
+  | (AuthTokens & { role: "manager"; manager: ManagerPublic })
+  | (AuthTokens & { role: "patient"; patient: PatientPublic })
+  | (AuthTokens & { role: "expert"; expert: ExpertPublic });
 
 const HIGHLIGHTS = [
   "Trợ lý AI 24/7 — hỏi đáp bằng tiếng Việt tự nhiên.",
@@ -69,16 +70,16 @@ export default function LoginPage() {
       }
       const data = (await res.json()) as LoginResponse;
       if (data.role === "manager") {
-        login(data.token, { role: "manager", manager: data.manager });
+        login(data.token, data.refreshToken, { role: "manager", manager: data.manager });
         router.replace("/admin/manager");
       } else if (data.role === "patient") {
-        login(data.token, { role: "patient", patient: data.patient });
+        login(data.token, data.refreshToken, { role: "patient", patient: data.patient });
         router.replace("/chat");
       } else if (data.role === "expert") {
-        login(data.token, { role: "expert", expert: data.expert });
+        login(data.token, data.refreshToken, { role: "expert", expert: data.expert });
         router.replace("/admin/expert");
       } else {
-        login(data.token, { role: "doctor", doctor: data.doctor });
+        login(data.token, data.refreshToken, { role: "doctor", doctor: data.doctor });
         router.replace("/chat");
       }
     } catch {

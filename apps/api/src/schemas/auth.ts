@@ -5,6 +5,10 @@ export const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const RefreshSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
 // Đăng ký công khai — CHỈ tạo tài khoản bệnh nhân (bác sĩ/chuyên gia do quản lý cấp thủ công).
 export const RegisterSchema = z.object({
   username: z

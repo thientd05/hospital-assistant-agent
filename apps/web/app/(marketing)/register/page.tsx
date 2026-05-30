@@ -23,6 +23,7 @@ import { BrandMark } from "@/components/landing/BrandMark";
 
 type RegisterResponse = {
   token: string;
+  refreshToken: string;
   role: "patient";
   patient: PatientPublic;
 };
@@ -94,7 +95,7 @@ export default function RegisterPage() {
         return;
       }
       const data = (await res.json()) as RegisterResponse;
-      login(data.token, { role: "patient", patient: data.patient });
+      login(data.token, data.refreshToken, { role: "patient", patient: data.patient });
       router.replace("/chat");
     } catch {
       setError("Không kết nối được tới máy chủ");

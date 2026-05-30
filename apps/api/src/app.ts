@@ -15,7 +15,7 @@ export async function buildApp(): Promise<{
   const app = Fastify({ logger: true });
 
   await registerCors(app, env.corsOrigin);
-  await registerJwt(app, env.jwtSecret);
+  await registerJwt(app, env.jwtSecret, env.jwtRefreshSecret);
   registerErrorHandler(app);
 
   await connectDB();
