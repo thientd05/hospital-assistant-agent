@@ -101,7 +101,7 @@ export function ChatInput({
               type="button"
               onClick={submit}
               disabled={disabled || !value.trim()}
-              className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800 transition-opacity"
+              className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-700 transition-colors"
               aria-label="Gửi"
             >
               <svg

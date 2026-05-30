@@ -100,7 +100,7 @@ export function Sidebar({
             onClick={() => setCollapsed(false)}
             title="Mở rộng sidebar"
             aria-label="Mở rộng sidebar"
-            className="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            className="p-2 rounded-md text-gray-500 hover:bg-brand-50 hover:text-brand-700 transition-colors"
           >
             <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="2" width="16" height="16" rx="2" />
@@ -113,7 +113,7 @@ export function Sidebar({
             disabled={disabled}
             title="Cuộc trò chuyện mới"
             aria-label="Cuộc trò chuyện mới"
-            className="p-2 rounded-md text-gray-500 hover:bg-[#EFEFEB] hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-md text-gray-500 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg viewBox="0 0 20 20" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 4v12" />
@@ -145,7 +145,7 @@ export function Sidebar({
                     ? "Chuyển sang chat với AI"
                     : "Chuyển sang chat với bệnh nhân"
                 }
-                className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-[#EFEFEB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
+                className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
                 <AssistantAvatar size={24} className="shrink-0" />
                 {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
@@ -173,7 +173,7 @@ export function Sidebar({
               onClick={() => setCollapsed(true)}
               title="Thu gọn sidebar"
               aria-label="Thu gọn sidebar"
-              className="hidden lg:block p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="hidden lg:block p-1 rounded-md text-gray-400 hover:text-brand-700 hover:bg-brand-50 transition-colors"
             >
               <svg
                 viewBox="0 0 20 20"
@@ -194,7 +194,7 @@ export function Sidebar({
               onClick={onCloseMobile}
               title="Đóng"
               aria-label="Đóng danh sách"
-              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-brand-700 hover:bg-brand-50 transition-colors"
             >
               <svg
                 viewBox="0 0 20 20"
@@ -217,7 +217,7 @@ export function Sidebar({
                 type="button"
                 onClick={onNew}
                 disabled={disabled}
-                className="w-full text-left text-sm px-3 py-2 rounded-md flex items-center gap-2 text-gray-700 hover:bg-[#EFEFEB] hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full text-left text-sm px-3 py-2 rounded-md flex items-center gap-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -284,7 +284,7 @@ export function Sidebar({
               onClick={() => setSettingsOpen(true)}
               title="Mở cài đặt"
               aria-label="Mở cài đặt"
-              className="flex items-center gap-3 w-full min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-gray-100 transition-colors text-left"
+              className="flex items-center gap-3 w-full min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-brand-50 transition-colors text-left"
             >
               <div className="w-8 h-8 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold shrink-0">
                 {profileName !== "—" ? initials(profileName) : "?"}

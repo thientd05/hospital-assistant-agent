@@ -25,8 +25,8 @@ export function ConversationItem({
   const wrapperBase =
     "group relative w-full rounded-md transition-colors text-sm";
   const wrapperState = isActive
-    ? "bg-[#EFEFEB] border border-gray-200 text-gray-900"
-    : "text-gray-500 hover:bg-[#EFEFEB] hover:text-gray-800";
+    ? "bg-brand-100 border border-brand-200 text-brand-800"
+    : "text-gray-500 hover:bg-brand-50 hover:text-brand-700";
 
   const dotsVisibility = menuOpen
     ? "opacity-100"
@@ -55,7 +55,7 @@ export function ConversationItem({
           aria-label="Tùy chọn hội thoại"
           aria-haspopup="menu"
           aria-expanded={menuOpen}
-          className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-opacity ${dotsVisibility}`}
+          className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-gray-500 hover:bg-brand-100 hover:text-brand-700 transition-opacity ${dotsVisibility}`}
         >
           <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
             <circle cx="4" cy="10" r="1.6" />
