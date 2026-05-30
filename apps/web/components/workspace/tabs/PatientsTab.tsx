@@ -84,6 +84,24 @@ export function PatientsTab({
     onChanged();
   }
 
+  if (role === "doctor" && createForm && createForm.open) {
+    return (
+      <div className="px-5 py-4">
+        <PatientCreateFormControlled
+          values={createForm.values}
+          submitting={createForm.submitting}
+          error={submitError}
+          onChange={createForm.onChange}
+          onClose={() => {
+            setSubmitError(null);
+            createForm.onClose();
+          }}
+          onSubmit={handleSubmitForm}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="px-5 py-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -96,7 +114,7 @@ export function PatientsTab({
           data-agent-role="textbox"
           data-agent-label="Tìm bệnh nhân"
         />
-        {role === "doctor" && createForm && !createForm.open && (
+        {role === "doctor" && createForm && (
           <button
             type="button"
             onClick={() => {
@@ -112,20 +130,6 @@ export function PatientsTab({
           </button>
         )}
       </div>
-
-      {role === "doctor" && createForm && createForm.open && (
-        <PatientCreateFormControlled
-          values={createForm.values}
-          submitting={createForm.submitting}
-          error={submitError}
-          onChange={createForm.onChange}
-          onClose={() => {
-            setSubmitError(null);
-            createForm.onClose();
-          }}
-          onSubmit={handleSubmitForm}
-        />
-      )}
 
       {loading && (
         <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
