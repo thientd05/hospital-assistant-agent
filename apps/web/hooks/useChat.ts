@@ -202,7 +202,11 @@ export function useChat(opts: UseChatOptions = {}) {
           if (!res.ok) throw new Error(`API ${res.status}`);
           return (await res.json()) as RawConversation;
         });
-        setMessages(toMessages(data));
+        // Revalidate nền: nếu data y hệt cache vừa hiển thị thì BỎ QUA setMessages
+        // để khỏi re-render (re-parse markdown) lần hai — chuyển hội thoại đỡ giật.
+        if (!cached || JSON.stringify(cached) !== JSON.stringify(data)) {
+          setMessages(toMessages(data));
+        }
       } catch (err) {
         // Lỗi revalidate → giữ nội dung cache đang hiển thị (nếu có).
         console.error("Failed to load conversation", err);

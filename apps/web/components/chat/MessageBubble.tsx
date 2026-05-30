@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { Message, MessagePart } from "@pr_hospitalagent/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,7 +25,7 @@ function assistantParts(message: Message): MessagePart[] {
   return parts;
 }
 
-export function MessageBubble({ message, bubbles = false }: Props) {
+function MessageBubbleInner({ message, bubbles = false }: Props) {
   const isUser = message.role === "user";
 
   // === Mode tin nhắn trực tiếp 1-1: cả hai phía đều là bong bóng văn bản thuần ===
@@ -83,3 +84,24 @@ export function MessageBubble({ message, bubbles = false }: Props) {
     </div>
   );
 }
+
+// Chữ ký phần render được của assistant message (parts + toolCalls). Dùng để memo
+// bỏ qua re-render khi nội dung không đổi — tránh re-parse markdown thừa (vd lúc
+// revalidate nền trả về data y hệt cache, hay khi component cha re-render).
+function renderSig(m: Message): string {
+  return JSON.stringify(m.parts ?? m.toolCalls ?? null);
+}
+
+// memo theo GIÁ TRỊ (không theo reference) — toMessages() tạo object mới mỗi lần
+// fetch, nên so sánh tham chiếu sẽ luôn fail và parse lại markdown vô ích.
+export const MessageBubble = memo(MessageBubbleInner, (prev, next) => {
+  const a = prev.message;
+  const b = next.message;
+  return (
+    prev.bubbles === next.bubbles &&
+    a.id === b.id &&
+    a.role === b.role &&
+    a.content === b.content &&
+    renderSig(a) === renderSig(b)
+  );
+});
