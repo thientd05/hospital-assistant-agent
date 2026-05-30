@@ -268,7 +268,7 @@ export function PatientDetailTab({
             onChange={(e) =>
               updateDraft("gender", e.target.value as "Nam" | "Nữ")
             }
-            className={`${INLINE_INPUT} w-24`}
+            className="min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0"
             data-agent-ref="patient-detail:gender"
             data-agent-role="combobox"
             data-agent-label="Giới tính"
