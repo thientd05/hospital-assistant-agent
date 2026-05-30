@@ -151,7 +151,7 @@ export function Sidebar({
                 }
                 className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
-                <AssistantAvatar size={24} className="shrink-0" />
+                <AssistantAvatar size={32} className="shrink-0" />
                 {isPatientMode ? directCap : "Trợ Lý Ảo"}
                 <svg
                   viewBox="0 0 20 20"
@@ -168,7 +168,7 @@ export function Sidebar({
               </button>
             ) : (
               <span className="flex items-center gap-2 font-semibold text-gray-900 py-1">
-                <AssistantAvatar size={24} className="shrink-0" />
+                <AssistantAvatar size={32} className="shrink-0" />
                 AI Gia Đình
               </span>
             )}

@@ -47,7 +47,7 @@ export function EmptyGreeting({
   const roleLabel = role ? ROLE_LABEL_VI[role] ?? "" : "";
   return (
     <div className="flex items-center gap-5 text-gray-900">
-      <AssistantAvatar size={35} className="shrink-0" />
+      <AssistantAvatar size={47} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
         Xin chào {roleLabel} {userName}
       </h1>
