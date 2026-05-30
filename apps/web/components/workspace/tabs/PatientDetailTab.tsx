@@ -236,7 +236,7 @@ export function PatientDetailTab({
           <input
             value={draft.name}
             onChange={(e) => updateDraft("name", e.target.value)}
-            className={INLINE_INPUT}
+            className={`${INLINE_INPUT} w-36`}
             data-agent-ref="patient-detail:name"
             data-agent-role="textbox"
             data-agent-label="Họ tên"
@@ -252,7 +252,7 @@ export function PatientDetailTab({
             min={0}
             value={draft.age}
             onChange={(e) => updateDraft("age", e.target.value)}
-            className={`${INLINE_INPUT} w-20`}
+            className={`${INLINE_INPUT} w-10`}
             data-agent-ref="patient-detail:age"
             data-agent-role="textbox"
             data-agent-label="Tuổi"
@@ -288,7 +288,7 @@ export function PatientDetailTab({
           <input
             value={draft.ward}
             onChange={(e) => updateDraft("ward", e.target.value)}
-            className={INLINE_INPUT}
+            className={`${INLINE_INPUT} w-20`}
             data-agent-ref="patient-detail:ward"
             data-agent-role="textbox"
             data-agent-label="Khoa"
@@ -316,7 +316,7 @@ export function PatientDetailTab({
           <input
             value={draft.phone}
             onChange={(e) => updateDraft("phone", e.target.value)}
-            className={INLINE_INPUT}
+            className={`${INLINE_INPUT} w-28`}
             data-agent-ref="patient-detail:phone"
             data-agent-role="textbox"
             data-agent-label="Điện thoại"
@@ -335,7 +335,7 @@ export function PatientDetailTab({
               step="0.1"
               value={draft.spO2}
               onChange={(e) => updateDraft("spO2", e.target.value)}
-              className={`${INLINE_INPUT} w-20`}
+              className={`${INLINE_INPUT} w-16`}
               data-agent-ref="patient-detail:spO2"
               data-agent-role="textbox"
               data-agent-label="SpO2"
@@ -357,7 +357,7 @@ export function PatientDetailTab({
               type="number"
               value={draft.heartRate}
               onChange={(e) => updateDraft("heartRate", e.target.value)}
-              className={`${INLINE_INPUT} w-20`}
+              className={`${INLINE_INPUT} w-16`}
               data-agent-ref="patient-detail:heartRate"
               data-agent-role="textbox"
               data-agent-label="Nhịp tim"
@@ -379,7 +379,7 @@ export function PatientDetailTab({
               value={draft.bloodPressure}
               onChange={(e) => updateDraft("bloodPressure", e.target.value)}
               placeholder="120/80"
-              className={`${INLINE_INPUT} w-24`}
+              className={`${INLINE_INPUT} w-20`}
               data-agent-ref="patient-detail:bloodPressure"
               data-agent-role="textbox"
               data-agent-label="Huyết áp"
@@ -398,7 +398,7 @@ export function PatientDetailTab({
               step="0.1"
               value={draft.temperature}
               onChange={(e) => updateDraft("temperature", e.target.value)}
-              className={`${INLINE_INPUT} w-20`}
+              className={`${INLINE_INPUT} w-16`}
               data-agent-ref="patient-detail:temperature"
               data-agent-role="textbox"
               data-agent-label="Nhiệt độ"
