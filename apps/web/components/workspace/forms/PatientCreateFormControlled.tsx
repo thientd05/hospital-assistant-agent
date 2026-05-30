@@ -2,7 +2,7 @@
 
 import type { PatientFormValues } from "@/hooks/useWorkspace";
 import { Field } from "./Field";
-import { FormHeader, FormError, FormActions } from "./ui";
+import { FormError, FormActions } from "./ui";
 
 type Props = {
   values: PatientFormValues;
@@ -30,10 +30,11 @@ export function PatientCreateFormControlled({
         e.preventDefault();
         onSubmit();
       }}
-      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
-      <FormHeader title="Tạo bệnh nhân mới" />
-      <div className="p-4 space-y-3.5">
+      <h3 className="text-[15px] font-semibold text-gray-900 leading-snug pb-3 mb-1 border-b border-gray-100">
+        Tạo bệnh nhân mới
+      </h3>
+      <div className="space-y-3.5">
       <Field label="Họ tên">
         <input
           value={values.name}
