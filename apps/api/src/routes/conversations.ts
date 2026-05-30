@@ -2,10 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
 import { parseBody } from "../lib/validate.ts";
 import { UnauthorizedError } from "../lib/errors.ts";
-import {
-  ConversationSaveSchema,
-  PatientReplySchema,
-} from "../schemas/conversation.ts";
+import { ConversationSaveSchema } from "../schemas/conversation.ts";
 import { conversationService } from "../services/conversation.service.ts";
 import type { StoredMessage } from "../repositories/conversation.repo.ts";
 
@@ -21,33 +18,6 @@ export async function conversationsRoutes(app: FastifyInstance) {
     "/conversations",
     { preHandler: [verifyAuth, requireRole("doctor", "patient")] },
     async (req) => conversationService.list(ownerId(req))
-  );
-
-  // === Doctor xem hội thoại bệnh nhân ===
-  app.get(
-    "/conversations/patients",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
-    async () => conversationService.listPatients()
-  );
-
-  app.get<{ Params: { id: string } }>(
-    "/conversations/patients/:id",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
-    async (req) => conversationService.getPatient(req.params.id)
-  );
-
-  app.post<{ Params: { id: string } }>(
-    "/conversations/patients/:id/reply",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
-    async (req) => {
-      if (!req.doctor) throw new UnauthorizedError();
-      const { message } = parseBody(PatientReplySchema, req.body);
-      return conversationService.patientReply(
-        req.params.id,
-        req.doctor.fullName,
-        message
-      );
-    }
   );
 
   // === Audit (expert, chỉ đọc) ===

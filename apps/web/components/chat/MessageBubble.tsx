@@ -7,13 +7,9 @@ import { ToolCallCard } from "./ToolCallCard";
 
 type Props = {
   message: Message;
-  flipped?: boolean;
+  /** Bố cục tin nhắn trực tiếp 1-1: tin của mình ("user") phải, đối phương ("assistant") trái — đều bong bóng. */
+  bubbles?: boolean;
 };
-
-// Loại bỏ tiền tố "**Bác sĩ … (nhắn thay AI)**: " mà server tự gắn — chỉ
-// dùng phía bác sĩ để bác sĩ không thấy lại tên mình. DB và phía bệnh nhân
-// vẫn giữ nguyên.
-const DOCTOR_PREFIX_RE = /^\*\*Bác sĩ .+? \(nhắn thay AI\)\*\*:\s*/;
 
 // Suy ra danh sách part có thứ tự cho assistant message. Ưu tiên `parts`
 // (giữ xen kẽ text↔tool đúng thứ tự); nếu thiếu (dữ liệu cũ) thì dựng lại từ
@@ -28,20 +24,31 @@ function assistantParts(message: Message): MessagePart[] {
   return parts;
 }
 
-export function MessageBubble({ message, flipped = false }: Props) {
+export function MessageBubble({ message, bubbles = false }: Props) {
   const isUser = message.role === "user";
 
-  // user-message bên phải bình thường, bên trái khi flipped
-  if (isUser) {
-    if (flipped) {
+  // === Mode tin nhắn trực tiếp 1-1: cả hai phía đều là bong bóng văn bản thuần ===
+  if (bubbles) {
+    if (isUser) {
       return (
-        <div className="flex items-start">
+        <div className="flex items-start justify-end">
           <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
             {message.content}
           </div>
         </div>
       );
     }
+    return (
+      <div className="flex items-start">
+        <div className="bg-brand-50 text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+
+  // user-message bên phải
+  if (isUser) {
     return (
       <div className="flex items-start justify-end">
         <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
@@ -51,38 +58,22 @@ export function MessageBubble({ message, flipped = false }: Props) {
     );
   }
 
-  // assistant-message bên trái bình thường, bên phải khi flipped.
-  // Render các part theo đúng thứ tự để text↔tool xen kẽ chuẩn.
+  // assistant-message bên trái. Render các part theo đúng thứ tự để text↔tool xen kẽ chuẩn.
   const parts = assistantParts(message);
-  let textSeen = false;
   const renderPart = (part: MessagePart, key: string) => {
     if (part.type === "tool") {
       return <ToolCallCard key={key} toolCall={part.toolCall} />;
     }
-    // Strip tiền tố bác sĩ ở text part đầu tiên khi xem flipped.
-    let text = part.text;
-    if (flipped && !textSeen) text = text.replace(DOCTOR_PREFIX_RE, "");
-    textSeen = true;
-    if (!text) return null;
-    const className = flipped
-      ? "bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 break-words markdown-body"
-      : "text-gray-900 break-words leading-relaxed markdown-body";
+    if (!part.text) return null;
     return (
-      <div key={key} className={className}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+      <div
+        key={key}
+        className="text-gray-900 break-words leading-relaxed markdown-body"
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{part.text}</ReactMarkdown>
       </div>
     );
   };
-
-  if (flipped) {
-    return (
-      <div className="flex items-start justify-end">
-        <div className="max-w-[75%] min-w-0 flex flex-col items-end gap-1.5">
-          {parts.map((p, i) => renderPart(p, `${message.id}_${i}`))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-start">

@@ -8,7 +8,6 @@ import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { NotFoundError } from "../lib/errors.ts";
 
-const PATIENT_RE = /^BN\d+$/i;
 const AUDIT_RE = /^(BS|BN)\d+$/i;
 
 type OwnerRole = "doctor" | "patient" | "unknown";
@@ -179,68 +178,6 @@ export const conversationService = {
     const ok = await conversationRepo.delete(id, ownerId);
     if (!ok) throw new NotFoundError("Conversation not found");
     return { ok: true };
-  },
-
-  // === Doctor xem hội thoại bệnh nhân ===
-  async listPatients() {
-    const docs = await conversationRepo.listByPattern(PATIENT_RE);
-    const ownerIds = Array.from(
-      new Set(docs.map((d) => d.doctorId).filter((x): x is string => !!x))
-    );
-    const owners = await patientRepo.listByIds(ownerIds);
-    const nameById = new Map(owners.map((o) => [o.id, o.name]));
-    return {
-      conversations: docs.map((d) => ({
-        id: d.id,
-        title: d.title,
-        updatedAt: d.updatedAt,
-        ownerId: d.doctorId,
-        ownerName: d.doctorId ? nameById.get(d.doctorId) ?? null : null,
-      })),
-    };
-  },
-
-  async getPatient(id: string) {
-    const doc = await conversationRepo.findByPattern(id, PATIENT_RE);
-    if (!doc) throw new NotFoundError("Patient conversation not found");
-    let ownerName: string | null = null;
-    if (doc.doctorId) {
-      const owners = await patientRepo.listByIds([doc.doctorId]);
-      ownerName = owners[0]?.name ?? null;
-    }
-    return {
-      id: doc.id,
-      title: doc.title,
-      ownerId: doc.doctorId ?? null,
-      ownerName,
-      messages: convertMessages(doc.messages ?? [], doc.createdAt),
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
-    };
-  },
-
-  async patientReply(id: string, doctorFullName: string, message: string) {
-    const text = message.trim();
-    if (!text) throw new NotFoundError("Patient conversation not found");
-    const existing = await conversationRepo.findByPattern(id, PATIENT_RE);
-    if (!existing) throw new NotFoundError("Patient conversation not found");
-    // Đính danh tính bác sĩ để các lượt sau hiểu đây là tin nhắn thay AI.
-    const finalText = `**Bác sĩ ${doctorFullName} (nhắn thay AI)**: ${text}`;
-    const now = await conversationRepo.appendMessage(existing.id, {
-      role: "assistant",
-      content: finalText,
-    });
-    const msgCount = (existing.messages?.length ?? 0) + 1;
-    return {
-      ok: true,
-      conversationId: existing.id,
-      message: {
-        id: `msg_${msgCount - 1}`,
-        role: "assistant" as const,
-        content: finalText,
-        createdAt: now,
-      },
-    };
   },
 
   // === Audit (expert, chỉ đọc) ===

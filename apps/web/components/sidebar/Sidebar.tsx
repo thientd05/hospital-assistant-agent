@@ -53,6 +53,10 @@ export function Sidebar({
 }: Props) {
   const isPatientMode = mode === "patient";
   const { doctor, patient } = useAuth();
+  // Mode "tin nhắn" hiển thị đối phương: bác sĩ thấy bệnh nhân, bệnh nhân thấy bác sĩ.
+  const isDoctorViewer = !!doctor;
+  const directCap = isDoctorViewer ? "Bệnh Nhân" : "Bác Sĩ";
+  const directLower = isDoctorViewer ? "bệnh nhân" : "bác sĩ";
   const profileName = doctor?.fullName ?? patient?.name ?? "—";
   const profileSubtitle = doctor
     ? doctor.specialty || doctor.department || ""
@@ -143,12 +147,12 @@ export function Sidebar({
                 aria-label={
                   isPatientMode
                     ? "Chuyển sang chat với AI"
-                    : "Chuyển sang chat với bệnh nhân"
+                    : `Chuyển sang nhắn với ${directLower}`
                 }
                 className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
                 <AssistantAvatar size={24} className="shrink-0" />
-                {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
+                {isPatientMode ? directCap : "Trợ Lý Ảo"}
                 <svg
                   viewBox="0 0 20 20"
                   className="w-3.5 h-3.5 text-gray-400 shrink-0"
@@ -241,7 +245,7 @@ export function Sidebar({
             <div className="px-4 pt-4 pb-1">
               <span className="text-xs text-gray-400">
                 {isPatientMode
-                  ? "Hội thoại bệnh nhân"
+                  ? `Tin nhắn ${directLower}`
                   : "Các đoạn chat gần đây"}
               </span>
             </div>
@@ -250,7 +254,7 @@ export function Sidebar({
               {conversations.length === 0 ? (
                 <p className="text-xs text-gray-400 px-3 py-2">
                   {isPatientMode
-                    ? "Chưa có hội thoại bệnh nhân nào"
+                    ? `Chưa có ${directLower} nào`
                     : "Chưa có hội thoại nào"}
                 </p>
               ) : (

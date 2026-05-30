@@ -13,6 +13,8 @@ type Props = {
   isPanelOpen?: boolean;
   onTogglePanel?: () => void;
   chatMode?: ChatMode;
+  /** Mode "patient": đã chọn 1 đối phương trong sidebar hay chưa. */
+  hasSelection?: boolean;
   /** Mobile (< lg): mở sidebar full-screen. */
   onOpenSidebar?: () => void;
 };
@@ -24,12 +26,17 @@ export function ChatWindow({
   isPanelOpen,
   onTogglePanel,
   chatMode = "ai",
+  hasSelection = false,
   onOpenSidebar,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
   const isPatientMode = chatMode === "patient";
+  // Đối phương trong mode tin nhắn: bác sĩ ↔ bệnh nhân, bệnh nhân ↔ bác sĩ.
+  const isDoctorViewer = !!doctor;
+  const directCap = isDoctorViewer ? "Bệnh Nhân" : "Bác Sĩ";
+  const directLower = isDoctorViewer ? "bệnh nhân" : "bác sĩ";
   const panelIcon = (
     <svg
       className="w-4 h-4"
@@ -70,7 +77,7 @@ export function ChatWindow({
           </svg>
         </button>
         <span className="text-sm font-medium text-gray-700 truncate">
-          {isPatientMode ? "Bệnh Nhân" : "Trợ Lý Ảo"}
+          {isPatientMode ? directCap : "Trợ Lý Ảo"}
         </span>
         {onTogglePanel && !isPanelOpen ? (
           <button
@@ -108,36 +115,47 @@ export function ChatWindow({
         </button>
       )}
 
-      {messages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-6">
-          {isPatientMode ? (
+      {isPatientMode ? (
+        !hasSelection ? (
+          // Chưa chọn đối phương → nhắc chọn ở sidebar.
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
             <p className="text-sm text-gray-500">
-              Chọn một cuộc trò chuyện ở thanh bên để xem nội dung.
+              Chọn một {directLower} ở thanh bên để nhắn tin.
             </p>
-          ) : (
-            <div className="w-full max-w-3xl flex flex-col items-center gap-8">
-              <EmptyGreeting role={role} userName={bareName} />
-              <div className="w-full">
-                <ChatInput
-                  onSend={onSend}
-                  disabled={isStreaming}
-                  role={role}
-                />
+          </div>
+        ) : (
+          // Đã chọn → hiển thị hội thoại (có thể rỗng) + ô nhập để chủ động nhắn.
+          <>
+            {messages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center px-6">
+                <p className="text-sm text-gray-400">
+                  Chưa có tin nhắn nào. Hãy gửi lời nhắn đầu tiên.
+                </p>
               </div>
+            ) : (
+              <MessageList messages={messages} bubbles />
+            )}
+            <ChatInput
+              onSend={onSend}
+              disabled={isStreaming}
+              role={role}
+              placeholder={`Nhắn cho ${directLower}…`}
+            />
+          </>
+        )
+      ) : messages.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="w-full max-w-3xl flex flex-col items-center gap-8">
+            <EmptyGreeting role={role} userName={bareName} />
+            <div className="w-full">
+              <ChatInput onSend={onSend} disabled={isStreaming} role={role} />
             </div>
-          )}
+          </div>
         </div>
       ) : (
         <>
-          <MessageList messages={messages} flipped={isPatientMode} />
-          <ChatInput
-            onSend={onSend}
-            disabled={isStreaming}
-            role={role}
-            placeholder={
-              isPatientMode ? "Trả lời bệnh nhân…" : undefined
-            }
-          />
+          <MessageList messages={messages} />
+          <ChatInput onSend={onSend} disabled={isStreaming} role={role} />
         </>
       )}
     </div>

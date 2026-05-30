@@ -8,7 +8,7 @@ import { WorkspacePanel } from "@/components/workspace/WorkspacePanel";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useChat, type ChatMode } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
-import { usePatientConversations } from "@/hooks/usePatientConversations";
+import { useDirectThreads } from "@/hooks/useDirectThreads";
 import {
   useWorkspace,
   ROLE_TABS,
@@ -52,6 +52,9 @@ export default function ChatPage() {
     patient: null,
   });
   const isDoctor = role === "doctor";
+  // Bác sĩ + bệnh nhân đều có mode "tin nhắn trực tiếp" (đối phương khác nhau).
+  const canDirect = role === "doctor" || role === "patient";
+  const directRole: "doctor" | "patient" = isDoctor ? "doctor" : "patient";
 
   const executeToolCommand = useCallback(
     async (command: string, rawArgs: unknown): Promise<unknown> => {
@@ -96,8 +99,9 @@ export default function ChatPage() {
     onToolCommand: executeToolCommand,
   });
   const aiList = useConversations();
-  const patientList = usePatientConversations({
-    enabled: isDoctor && chatMode === "patient",
+  const directList = useDirectThreads({
+    role: directRole,
+    enabled: canDirect && chatMode === "patient",
   });
 
   useEffect(() => {
@@ -105,20 +109,23 @@ export default function ChatPage() {
     if (!chat.isStreaming) aiList.refresh();
   }, [chatMode, chat.isStreaming, aiList.refresh]);
 
+  // Sau khi gửi tin trực tiếp → cập nhật "tin nhắn cuối" trong sidebar.
+  useEffect(() => {
+    if (chatMode !== "patient") return;
+    if (!chat.isStreaming) directList.refresh();
+  }, [chatMode, chat.isStreaming, directList.refresh]);
+
   const sidebarConversations = useMemo(() => {
     if (chatMode === "patient") {
-      return patientList.conversations.map((c) => ({
-        id: c.id,
-        title: c.ownerName
-          ? `${c.ownerName} · ${c.title}`
-          : c.ownerId
-          ? `${c.ownerId} · ${c.title}`
-          : c.title,
-        updatedAt: c.updatedAt,
+      // Mode tin nhắn: mỗi dòng = đối phương (tên BN với bác sĩ / tên BS với BN).
+      return directList.threads.map((t) => ({
+        id: t.counterpartId,
+        title: t.counterpartName,
+        updatedAt: t.updatedAt ?? "",
       }));
     }
     return aiList.conversations;
-  }, [chatMode, patientList.conversations, aiList.conversations]);
+  }, [chatMode, directList.threads, aiList.conversations]);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -179,14 +186,14 @@ export default function ChatPage() {
         savedConvIdsRef.current.patient = saved.patientConvId ?? null;
       }
       const targetMode: ChatMode =
-        saved.mode === "patient" && isDoctor ? "patient" : "ai";
+        saved.mode === "patient" && canDirect ? "patient" : "ai";
       if (targetMode !== chatMode) {
         prevModeRef.current = targetMode;
         setChatMode(targetMode);
       }
     }
     setIsRestored(true);
-  }, [authLoading, storageKey, isDoctor, chatMode, isRestored]);
+  }, [authLoading, storageKey, canDirect, chatMode, isRestored]);
 
   // Khi mode đổi (hoặc khi restore xong), khôi phục cuộc trò chuyện đã lưu của mode đó.
   // Trước restore, không gọi gì để tránh ghi đè state đang chờ khôi phục.
@@ -245,7 +252,7 @@ export default function ChatPage() {
         onDelete={handleDelete}
         disabled={chat.isStreaming}
         mode={chatMode}
-        onModeChange={isDoctor ? handleChatModeChange : undefined}
+        onModeChange={canDirect ? handleChatModeChange : undefined}
         mobileActive={mobileView === "sidebar"}
         onCloseMobile={() => setMobileView("chat")}
       />
@@ -263,6 +270,7 @@ export default function ChatPage() {
             : undefined
         }
         chatMode={chatMode}
+        hasSelection={chat.conversationId !== null}
         onOpenSidebar={() => setMobileView("sidebar")}
       />
       <WorkspacePanel

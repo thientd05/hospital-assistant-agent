@@ -11,6 +11,7 @@ import { utilitiesRoutes } from "./utilities.ts";
 import { payrollRoutes } from "./payroll.ts";
 import { revenueRoutes } from "./revenue.ts";
 import { conversationsRoutes } from "./conversations.ts";
+import { directMessagesRoutes } from "./directMessages.ts";
 import { workspaceRoutes } from "./workspace.ts";
 import { bootsRoutes } from "./boots.ts";
 import { skillsRoutes } from "./skills.ts";
@@ -28,6 +29,7 @@ const modules = [
   payrollRoutes,
   revenueRoutes,
   conversationsRoutes,
+  directMessagesRoutes,
   workspaceRoutes,
   bootsRoutes,
   skillsRoutes,

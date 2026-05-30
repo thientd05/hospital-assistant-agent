@@ -128,6 +128,34 @@ export type Conversation = {
   updatedAt: Date;
 };
 
+// ───────────────────────────── Tin nhắn trực tiếp 1-1 bác sĩ ↔ bệnh nhân ───
+// Mỗi cặp (doctorId, patientId) = đúng MỘT thread. `sender` cho biết ai gửi.
+export type DirectSender = "doctor" | "patient";
+
+export type DirectMessage = {
+  sender: DirectSender;
+  content: string;
+  createdAt: Date;
+};
+
+export type DirectThread = {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  messages: DirectMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Một dòng trong sidebar (theo góc nhìn 1 phía): đối phương + tin cuối.
+export type DirectThreadSummary = {
+  // id đối phương: patientId (góc nhìn bác sĩ) | doctorId (góc nhìn bệnh nhân).
+  counterpartId: string;
+  counterpartName: string;
+  lastMessage: string | null;
+  updatedAt: Date | null;
+};
+
 export type AppointmentStatus = "Chờ duyệt" | "Đã duyệt" | "Thành công";
 
 export type Appointment = {

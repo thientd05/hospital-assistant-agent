@@ -18,10 +18,25 @@ import { dedupedFetch, getCached, setCached } from "@/lib/resourceCache";
 type RawMessage = Omit<Message, "createdAt"> & { createdAt: string };
 type RawConversation = { id: string; messages: RawMessage[] };
 
-function convPath(mode: ChatMode, id: string): string {
-  return mode === "patient"
-    ? `/api/conversations/patients/${id}`
-    : `/api/conversations/${id}`;
+// Tin nhắn trực tiếp lưu dạng { sender, content, createdAt } — KHÁC hội thoại AI.
+type DirectRole = "doctor" | "patient";
+type RawDirectMessage = {
+  sender: DirectRole;
+  content: string;
+  createdAt: string;
+};
+type RawDirect = { messages: RawDirectMessage[] };
+
+// Hội thoại AI (mode "ai") theo conversationId.
+function aiPath(id: string): string {
+  return `/api/conversations/${id}`;
+}
+
+// Thread tin nhắn trực tiếp (mode "patient") theo id đối phương; route phụ vai trò.
+function directPath(role: DirectRole, counterpartId: string): string {
+  const base =
+    role === "doctor" ? "/api/direct-messages" : "/api/me/direct-messages";
+  return `${base}/${counterpartId}`;
 }
 
 function toMessages(raw: RawConversation): Message[] {
@@ -33,6 +48,27 @@ function toRaw(id: string, messages: Message[]): RawConversation {
     id,
     messages: messages.map((m) => ({
       ...m,
+      createdAt: m.createdAt.toISOString(),
+    })),
+  };
+}
+
+// Tin của chính mình (sender === role) → bubble phải ("user"); đối phương → trái.
+function directToMessages(raw: RawDirect, role: DirectRole): Message[] {
+  return raw.messages.map((m, i) => ({
+    id: `dm_${i}`,
+    role: m.sender === role ? "user" : "assistant",
+    content: m.content,
+    createdAt: new Date(m.createdAt),
+  }));
+}
+
+function toRawDirect(messages: Message[], role: DirectRole): RawDirect {
+  const other: DirectRole = role === "doctor" ? "patient" : "doctor";
+  return {
+    messages: messages.map((m) => ({
+      sender: m.role === "user" ? role : other,
+      content: m.content,
       createdAt: m.createdAt.toISOString(),
     })),
   };
@@ -87,7 +123,9 @@ type UseChatOptions = {
 };
 
 export function useChat(opts: UseChatOptions = {}) {
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
+  // Vai trò cho route tin nhắn trực tiếp (chỉ doctor/patient ở mode "patient").
+  const directRole: DirectRole = role === "doctor" ? "doctor" : "patient";
   const mode: ChatMode = opts.mode ?? "ai";
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -112,7 +150,38 @@ export function useChat(opts: UseChatOptions = {}) {
         setConversationId(null);
         return;
       }
-      const path = convPath(mode, id);
+      // === Mode "patient" = tin nhắn trực tiếp 1-1 (id = đối phương) ===
+      if (mode === "patient") {
+        const path = directPath(directRole, id);
+        const cached = getCached<RawDirect>(path);
+        setConversationId(id);
+        if (cached) {
+          setMessages(directToMessages(cached, directRole));
+          setIsLoadingConversation(false);
+        } else {
+          setMessages([]);
+          setIsLoadingConversation(true);
+        }
+        try {
+          const data = await dedupedFetch<RawDirect>(path, async () => {
+            const res = await authFetch(`${API_URL}${path}`);
+            if (res.status === 401) {
+              logout();
+              throw new Error("unauthorized");
+            }
+            if (!res.ok) throw new Error(`API ${res.status}`);
+            return (await res.json()) as RawDirect;
+          });
+          setMessages(directToMessages(data, directRole));
+        } catch (err) {
+          console.error("Failed to load direct thread", err);
+        } finally {
+          setIsLoadingConversation(false);
+        }
+        return;
+      }
+
+      const path = aiPath(id);
       // Có cache → hiện nội dung ngay, revalidate nền (không hiện "đang tải").
       const cached = getCached<RawConversation>(path);
       setConversationId(id);
@@ -141,7 +210,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsLoadingConversation(false);
       }
     },
-    [isStreaming, logout, mode]
+    [isStreaming, logout, mode, directRole]
   );
 
   const sendMessage = useCallback(
@@ -151,16 +220,17 @@ export function useChat(opts: UseChatOptions = {}) {
       if (mode === "patient") {
         if (!conversationId) return;
         setIsStreaming(true);
+        // Tin của mình → bubble phải ("user").
         const optimistic: Message = {
           id: newId(),
-          role: "assistant",
+          role: "user",
           content: text,
           createdAt: new Date(),
         };
         setMessages((prev) => [...prev, optimistic]);
         try {
           const res = await authFetch(
-            `${API_URL}/api/conversations/patients/${conversationId}/reply`,
+            `${API_URL}${directPath(directRole, conversationId)}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -174,28 +244,14 @@ export function useChat(opts: UseChatOptions = {}) {
           if (!res.ok) {
             throw new Error(`API ${res.status}: ${await res.text()}`);
           }
-          const data = (await res.json()) as {
-            ok: boolean;
-            message?: { content?: string };
-          };
-          const finalContent = data.message?.content;
+          await res.json();
+          // Lưu cache để mở lại thread thấy ngay lượt vừa gửi.
           setMessages((prev) => {
-            const updated =
-              typeof finalContent === "string" && finalContent !== text
-                ? prev.map((m) =>
-                    m.id === optimistic.id
-                      ? { ...m, content: finalContent }
-                      : m
-                  )
-                : prev;
-            // Lưu cache để mở lại hội thoại không hiện bản cũ thiếu lượt vừa gửi.
-            if (conversationId) {
-              setCached(
-                convPath("patient", conversationId),
-                toRaw(conversationId, updated)
-              );
-            }
-            return updated;
+            setCached(
+              directPath(directRole, conversationId),
+              toRawDirect(prev, directRole)
+            );
+            return prev;
           });
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
@@ -336,7 +392,7 @@ export function useChat(opts: UseChatOptions = {}) {
             setIsStreaming(false);
             // Cập nhật cache nội dung hội thoại để lần sau mở lại thấy bản mới nhất.
             setMessages((prev) => {
-              setCached(convPath(mode, cid), toRaw(cid, prev));
+              setCached(aiPath(cid), toRaw(cid, prev));
               return prev;
             });
           } else if (ev.type === "error") {
@@ -368,7 +424,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [conversationId, isStreaming, logout, mode]
+    [conversationId, isStreaming, logout, mode, directRole]
   );
 
   return {

@@ -33,6 +33,7 @@ import type {
   PayrollStatus,
   Revenue,
   RevenueSource,
+  DirectThread,
 } from "@pr_hospitalagent/types";
 import { periodKey, lastNPeriods } from "../lib/period.ts";
 
@@ -736,6 +737,103 @@ function buildWorkspaces(): Workspace[] {
   return docs;
 }
 
+// ───────────────────────── Tin nhắn trực tiếp 1-1 bác sĩ ↔ bệnh nhân ───────
+// Mỗi cặp (doctorId, patientId) = 1 thread. `sender` = "doctor" | "patient".
+// Chỉ seed vài cặp có hội thoại; các BN quản lý còn lại để trống (bác sĩ chủ
+// động hỏi sau). minutesAgo: tin cũ → mới dần theo thứ tự trong mảng.
+function dm(minutesAgo: number): Date {
+  return new Date(now.getTime() - minutesAgo * 60_000);
+}
+
+const directMessageSeeds: DirectThread[] = [
+  {
+    id: "DM001",
+    doctorId: "BS001",
+    patientId: "BN001",
+    messages: [
+      {
+        sender: "doctor",
+        content:
+          "Chào bác A, tôi là BS. Trần Quang Minh. Huyết áp sáng nay bác đo được bao nhiêu ạ?",
+        createdAt: dm(180),
+      },
+      {
+        sender: "patient",
+        content: "Chào bác sĩ, sáng nay tôi đo được 150/95, hơi cao bác sĩ ạ.",
+        createdAt: dm(150),
+      },
+      {
+        sender: "doctor",
+        content:
+          "Bác nhớ uống Amlodipine đều mỗi sáng nhé, giảm muối trong bữa ăn. Tuần sau tái khám tôi sẽ điều chỉnh liều nếu cần.",
+        createdAt: dm(140),
+      },
+      {
+        sender: "patient",
+        content: "Vâng tôi cảm ơn bác sĩ.",
+        createdAt: dm(120),
+      },
+    ],
+    createdAt: dm(180),
+    updatedAt: dm(120),
+  },
+  {
+    id: "DM002",
+    doctorId: "BS001",
+    patientId: "BN002",
+    messages: [
+      {
+        sender: "doctor",
+        content:
+          "Chào chị B, sau đợt nhồi máu cơ tim chị thấy còn đau ngực hay khó thở khi gắng sức không ạ?",
+        createdAt: dm(90),
+      },
+      {
+        sender: "patient",
+        content: "Dạ thỉnh thoảng leo cầu thang em vẫn hơi mệt bác sĩ ạ.",
+        createdAt: dm(60),
+      },
+    ],
+    createdAt: dm(90),
+    updatedAt: dm(60),
+  },
+  {
+    id: "DM003",
+    doctorId: "BS002",
+    patientId: "BN005",
+    messages: [
+      {
+        sender: "patient",
+        content:
+          "Chào bác sĩ Hương, mấy hôm nay trời lạnh em ho nhiều và hơi khó thở.",
+        createdAt: dm(45),
+      },
+      {
+        sender: "doctor",
+        content:
+          "Anh E giữ ấm ngực và cổ, dùng thuốc xịt đúng liều. Nếu SpO2 dưới 92% hoặc khó thở tăng thì báo tôi ngay hoặc đến phòng khám nhé.",
+        createdAt: dm(30),
+      },
+    ],
+    createdAt: dm(45),
+    updatedAt: dm(30),
+  },
+  {
+    id: "DM004",
+    doctorId: "BS003",
+    patientId: "BN008",
+    messages: [
+      {
+        sender: "doctor",
+        content: "Chào anh H, kết quả xét nghiệm của anh đã ổn. Anh còn triệu chứng gì không ạ?",
+        createdAt: dm(20),
+      },
+    ],
+    createdAt: dm(20),
+    updatedAt: dm(20),
+  },
+];
+
 // ───────────────────────────────────────────────────────── Runner
 async function seed() {
   const db = await connectDB();
@@ -830,6 +928,16 @@ async function seed() {
   const workspaceDocs = buildWorkspaces();
   await workspaces.insertMany(workspaceDocs);
 
+  // 13. Tin nhắn trực tiếp 1-1 bác sĩ ↔ bệnh nhân.
+  const directMessages = db.collection<DirectThread>("directmessages");
+  await directMessages.deleteMany({});
+  await directMessages.createIndex({ id: 1 }, { unique: true });
+  await directMessages.createIndex(
+    { doctorId: 1, patientId: 1 },
+    { unique: true }
+  );
+  await directMessages.insertMany(directMessageSeeds);
+
   // Tổng kết
   console.log("✓ Seed hoàn tất — đã xoá sạch và insert lại:");
   console.log(`  patients     ${patientDocs.length}`);
@@ -844,6 +952,7 @@ async function seed() {
   console.log(`  boots        ${bootDocs.length}`);
   console.log(`  skills       ${skillDocs.length}`);
   console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
+  console.log(`  directmsgs   ${directMessageSeeds.length}`);
   console.log("\nTài khoản:");
   console.log("  bs001..bs003 / matkhau001..003   (bác sĩ)");
   console.log("  ql001        / matkhauql001       (quản lý)");

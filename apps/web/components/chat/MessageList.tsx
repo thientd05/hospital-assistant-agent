@@ -7,10 +7,11 @@ import { AssistantAvatar } from "@/components/AssistantAvatar";
 
 type Props = {
   messages: Message[];
-  flipped?: boolean;
+  /** Bố cục tin nhắn trực tiếp 1-1: tin của mình bên phải, đối phương bên trái (đều có bong bóng). */
+  bubbles?: boolean;
 };
 
-export function MessageList({ messages, flipped }: Props) {
+export function MessageList({ messages, bubbles }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function MessageList({ messages, flipped }: Props) {
     <div className="flex-1 overflow-y-auto thin-scrollbar px-6 py-6">
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} flipped={flipped} />
+          <MessageBubble key={m.id} message={m} bubbles={bubbles} />
         ))}
         <div ref={endRef} />
       </div>
