@@ -297,7 +297,7 @@ export function PatientDetailTab({
           <ValueText>{data.ward || "—"}</ValueText>
         )}
       </InfoRow>
-      <InfoRow label="Địa chỉ" top>
+      <InfoRow label="Địa chỉ" top valueClassName={editing ? "ml-[3ch]" : ""}>
         {editing && draft ? (
           <input
             value={draft.address}
@@ -493,10 +493,12 @@ function InfoRow({
   children,
   // top: căn nhãn theo dòng ĐẦU của giá trị (cho giá trị nhiều dòng như địa chỉ).
   top = false,
+  valueClassName = "",
 }: {
   label: string;
   children: React.ReactNode;
   top?: boolean;
+  valueClassName?: string;
 }) {
   return (
     <div
@@ -508,7 +510,7 @@ function InfoRow({
       <div
         className={`flex justify-end gap-1 min-w-0 ${
           top ? "items-start" : "items-center"
-        }`}
+        } ${valueClassName}`}
       >
         {children}
       </div>
