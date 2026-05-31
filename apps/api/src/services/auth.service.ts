@@ -51,7 +51,7 @@ export const authService = {
     signTokens: SignTokens
   ): Promise<LoginResult> {
     for (const role of LOGIN_ORDER) {
-      const account = await accountRepo.findByUsername(role, username);
+      const account = await accountRepo.findByCredential(role, username);
       if (account && verifyPassword(password, account.passwordHash)) {
         const tokens = signTokens({ sub: account.id, role });
         return buildResult(role, account as never, tokens);
@@ -65,8 +65,10 @@ export const authService = {
     data: RegisterInput,
     signTokens: SignTokens
   ): Promise<LoginResult> {
-    if (await accountRepo.usernameTaken(data.username)) {
-      throw new ConflictError("Tên đăng nhập đã tồn tại, vui lòng chọn tên khác.");
+    if (await accountRepo.phoneTaken(data.phone)) {
+      throw new ConflictError(
+        "Số điện thoại đã được đăng ký, vui lòng đăng nhập hoặc dùng số khác."
+      );
     }
     const patient = await patientService.register(data);
     const tokens = signTokens({ sub: patient.id, role: "patient" });

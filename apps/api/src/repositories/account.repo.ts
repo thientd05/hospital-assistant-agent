@@ -3,7 +3,7 @@ import { connectDB } from "@pr_hospitalagent/api-shared";
 
 type AccountDoc = {
   id: string;
-  username: string;
+  username?: string;
   passwordHash: string;
 } & Record<string, unknown>;
 
@@ -27,20 +27,25 @@ export const accountRepo = {
     return ROLE_COLLECTION[role];
   },
 
-  async findByUsername(role: AuthRole, username: string) {
+  // Tra cứu theo "định danh đăng nhập": nhân viên (doctor/manager/expert) dùng
+  // username; bệnh nhân tự đăng ký KHÔNG có username nên đăng nhập bằng `phone`
+  // (BN do bác sĩ tạo vẫn có username = id → khớp $or).
+  async findByCredential(role: AuthRole, credential: string) {
     const db = await connectDB();
-    return db
-      .collection<AccountDoc>(ROLE_COLLECTION[role])
-      .findOne({ username });
+    const filter =
+      role === "patient"
+        ? { $or: [{ username: credential }, { phone: credential }] }
+        : { username: credential };
+    return db.collection<AccountDoc>(ROLE_COLLECTION[role]).findOne(filter);
   },
 
-  // Username phải unique cross-collection (cùng thứ tự với login chain).
-  async usernameTaken(username: string) {
-    for (const role of LOGIN_ORDER) {
-      const found = await accountRepo.findByUsername(role, username);
-      if (found) return true;
-    }
-    return false;
+  // SĐT đã có bệnh nhân nào dùng chưa (khoá đăng nhập của BN → phải unique).
+  async phoneTaken(phone: string) {
+    const db = await connectDB();
+    const found = await db
+      .collection<AccountDoc>(ROLE_COLLECTION.patient)
+      .findOne({ phone });
+    return found !== null;
   },
 
   async findById(role: AuthRole, id: string) {

@@ -95,27 +95,20 @@ export const patientService = {
     return stripPassword(patient);
   },
 
-  // Bệnh nhân tự đăng ký — username/password do BN chọn, chưa có bác sĩ quản lý.
-  // ward (Khoa) để trống — bác sĩ phân khoa khi nhận. Trả full Patient để sign token ngay.
-  async register(data: {
-    username: string;
-    password: string;
-    name: string;
-    age: number;
-    gender: "Nam" | "Nữ";
-    address: string;
-    phone: string;
-  }): Promise<Patient> {
+  // Bệnh nhân tự đăng ký — CHỈ cần SĐT + mật khẩu (SĐT là khoá đăng nhập, không có
+  // username). Họ tên/tuổi/giới/địa chỉ để trống → AI thu thập trong chat hoặc BN tự
+  // sửa trong cài đặt sau. ward (Khoa) trống → bác sĩ phân khi nhận. Trả full Patient
+  // để sign token đăng nhập ngay.
+  async register(data: { phone: string; password: string }): Promise<Patient> {
     const id = await patientRepo.nextId();
     const patient: Patient = {
       id,
-      username: data.username,
       passwordHash: hashPassword(data.password),
-      name: data.name,
-      age: data.age,
-      gender: data.gender,
+      name: "",
+      age: 0,
+      gender: "Nam",
       ward: "",
-      address: data.address,
+      address: "",
       phone: data.phone,
       diagnoses: [],
       medications: [],

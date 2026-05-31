@@ -9,7 +9,7 @@
 //   Bác sĩ:     bs001..bs003 / matkhau001..matkhau003
 //   Quản lý:    ql001        / matkhauql001
 //   Chuyên gia: cg001..cg003 / matkhaucg001..matkhaucg003
-//   Bệnh nhân:  bn001..bn010 / matkhaubn001..matkhaubn010
+//   Bệnh nhân:  SĐT 0901234001..010 / matkhaubn001..matkhaubn010 (đăng nhập bằng SĐT)
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { connectDB, client, hashPassword } from "@pr_hospitalagent/api-shared";
@@ -49,14 +49,14 @@ function rand(seed: number): number {
 const ANCHOR = new Date(2026, 4, 10);
 
 // ───────────────────────────────────────────────────────── Bệnh nhân (BN00X)
-type PatientSeedSpec = Omit<Patient, "passwordHash" | "homeVitals"> & {
+// Bệnh nhân KHÔNG có username — đăng nhập bằng `phone` (vd 0901234001 / matkhaubn001).
+type PatientSeedSpec = Omit<Patient, "username" | "passwordHash" | "homeVitals"> & {
   password: string;
 };
 
 const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN001",
-    username: "bn001",
     password: "matkhaubn001",
     name: "Nguyễn Văn A",
     age: 58,
@@ -76,7 +76,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN002",
-    username: "bn002",
     password: "matkhaubn002",
     name: "Trần Thị B",
     age: 45,
@@ -95,7 +94,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN003",
-    username: "bn003",
     password: "matkhaubn003",
     name: "Lê Minh C",
     age: 32,
@@ -114,7 +112,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN004",
-    username: "bn004",
     password: "matkhaubn004",
     name: "Phạm Thị D",
     age: 67,
@@ -134,7 +131,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN005",
-    username: "bn005",
     password: "matkhaubn005",
     name: "Hoàng Văn E",
     age: 71,
@@ -154,7 +150,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN006",
-    username: "bn006",
     password: "matkhaubn006",
     name: "Vũ Thị F",
     age: 29,
@@ -174,7 +169,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN007",
-    username: "bn007",
     password: "matkhaubn007",
     name: "Đặng Minh G",
     age: 8,
@@ -194,7 +188,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN008",
-    username: "bn008",
     password: "matkhaubn008",
     name: "Bùi Văn H",
     age: 64,
@@ -214,7 +207,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN009",
-    username: "bn009",
     password: "matkhaubn009",
     name: "Ngô Thị I",
     age: 52,
@@ -234,7 +226,6 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN010",
-    username: "bn010",
     password: "matkhaubn010",
     name: "Đỗ Văn K",
     age: 74,
@@ -841,8 +832,12 @@ async function seed() {
   // 1. Bệnh nhân
   const patients = db.collection<Patient>("patients");
   await patients.deleteMany({});
+  // Bỏ index username unique cũ (seed đời trước) — BN nay không có username, nhiều
+  // doc username=null sẽ vi phạm unique. dropIndex an toàn nếu index không tồn tại.
+  await patients.dropIndex("username_1").catch(() => {});
   await patients.createIndex({ id: 1 }, { unique: true });
-  await patients.createIndex({ username: 1 }, { unique: true });
+  // BN đăng nhập bằng SĐT → index phone (KHÔNG unique: BN do bác sĩ tạo có thể để trống).
+  await patients.createIndex({ phone: 1 });
   const patientDocs = buildPatients();
   await patients.insertMany(patientDocs);
 
@@ -957,7 +952,7 @@ async function seed() {
   console.log("  bs001..bs003 / matkhau001..003   (bác sĩ)");
   console.log("  ql001        / matkhauql001       (quản lý)");
   console.log("  cg001..cg003 / matkhaucg001..003  (chuyên gia)");
-  console.log("  bn001..bn010 / matkhaubn001..010  (bệnh nhân)");
+  console.log("  SĐT 0901234001..010 / matkhaubn001..010  (bệnh nhân — đăng nhập bằng SĐT)");
 
   await client.close();
 }

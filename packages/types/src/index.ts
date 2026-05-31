@@ -52,7 +52,9 @@ export type HomeVital = {
 
 export type Patient = {
   id: string;
-  username: string;
+  // Bệnh nhân tự đăng ký KHÔNG có username — đăng nhập bằng `phone`. Username chỉ
+  // còn cho BN do bác sĩ tạo (username = id) để vẫn đăng nhập được → optional.
+  username?: string;
   passwordHash: string;
   name: string;
   age: number;

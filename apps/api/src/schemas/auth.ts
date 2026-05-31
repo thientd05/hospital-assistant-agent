@@ -10,24 +10,14 @@ export const RefreshSchema = z.object({
 });
 
 // Đăng ký công khai — CHỈ tạo tài khoản bệnh nhân (bác sĩ/chuyên gia do quản lý cấp thủ công).
+// Bệnh nhân chỉ cần SĐT + mật khẩu; họ tên/tuổi/giới/địa chỉ do AI thu thập sau
+// trong đoạn chat hoặc bệnh nhân tự sửa trong cài đặt. SĐT là khoá đăng nhập.
 export const RegisterSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Tên đăng nhập phải có ít nhất 3 ký tự.")
-    .max(30, "Tên đăng nhập tối đa 30 ký tự.")
-    .regex(
-      /^[a-z0-9._]+$/,
-      "Tên đăng nhập chỉ gồm chữ thường, số, dấu chấm hoặc gạch dưới."
-    ),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự."),
-  name: z.string().min(1, "Vui lòng nhập họ tên."),
-  age: z.number().int().nonnegative("Tuổi không hợp lệ."),
-  gender: z.enum(["Nam", "Nữ"]),
-  address: z.string().min(1, "Vui lòng nhập địa chỉ."),
   phone: z
     .string()
     .min(8, "Số điện thoại không hợp lệ.")
     .regex(/^[0-9+\s.-]+$/, "Số điện thoại chỉ gồm chữ số và ký tự + - . cách."),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự."),
 });
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;

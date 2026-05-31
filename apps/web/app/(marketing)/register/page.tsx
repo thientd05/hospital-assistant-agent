@@ -10,11 +10,8 @@ import {
   EyeOff,
   Loader2,
   Lock,
-  MapPin,
   Phone,
   Sparkles,
-  User,
-  UserPlus,
 } from "lucide-react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { API_URL } from "@/lib/api";
@@ -37,12 +34,7 @@ const HIGHLIGHTS = [
 export default function RegisterPage() {
   const router = useRouter();
   const { doctor, manager, patient, expert, isLoading, login } = useAuth();
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState<"Nam" | "Nữ">("Nam");
-  const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -65,11 +57,6 @@ export default function RegisterPage() {
       setError("Mật khẩu nhập lại không khớp.");
       return;
     }
-    const ageNum = Number(age);
-    if (!Number.isInteger(ageNum) || ageNum < 0 || ageNum > 150) {
-      setError("Tuổi không hợp lệ.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -77,13 +64,8 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: username.trim().toLowerCase(),
-          password,
-          name: name.trim(),
-          age: ageNum,
-          gender,
-          address: address.trim(),
           phone: phone.trim(),
+          password,
         }),
       });
       if (!res.ok) {
@@ -180,92 +162,13 @@ export default function RegisterPage() {
                 Đăng nhập
               </Link>
             </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Chỉ cần số điện thoại và mật khẩu. Họ tên, tuổi, giới tính, địa chỉ sẽ
+              được trợ lý AI hỏi trong lúc trò chuyện hoặc bạn tự cập nhật trong cài đặt.
+            </p>
           </div>
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">
-            <div>
-              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Họ và tên
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                  <User className="h-4 w-4" />
-                </span>
-                <input
-                  id="name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={submitting}
-                  placeholder="vd. Nguyễn Văn A"
-                  className={`${inputClass} pl-9`}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="age" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Tuổi
-                </label>
-                <input
-                  id="age"
-                  type="number"
-                  min={0}
-                  max={150}
-                  required
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  disabled={submitting}
-                  placeholder="vd. 32"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="gender"
-                  className="mb-1.5 block text-sm font-medium text-slate-700"
-                >
-                  Giới tính
-                </label>
-                <select
-                  id="gender"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value as "Nam" | "Nữ")}
-                  disabled={submitting}
-                  className={inputClass}
-                >
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="address"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
-              >
-                Địa chỉ
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                  <MapPin className="h-4 w-4" />
-                </span>
-                <input
-                  id="address"
-                  type="text"
-                  required
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  disabled={submitting}
-                  placeholder="vd. 12 Nguyễn Trãi, Phường Bến Thành, Quận 1, TP.HCM"
-                  className={`${inputClass} pl-9`}
-                />
-              </div>
-            </div>
-
             <div>
               <label
                 htmlFor="phone"
@@ -289,33 +192,8 @@ export default function RegisterPage() {
                   className={`${inputClass} pl-9`}
                 />
               </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="username"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
-              >
-                Tên đăng nhập
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                  <UserPlus className="h-4 w-4" />
-                </span>
-                <input
-                  id="username"
-                  type="text"
-                  autoComplete="username"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={submitting}
-                  placeholder="vd. nguyenvana"
-                  className={`${inputClass} pl-9`}
-                />
-              </div>
               <p className="mt-1 text-xs text-slate-400">
-                Chữ thường, số, dấu chấm hoặc gạch dưới — ít nhất 3 ký tự.
+                Số điện thoại là tên đăng nhập của bạn.
               </p>
             </div>
 

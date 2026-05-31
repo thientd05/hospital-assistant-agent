@@ -186,7 +186,7 @@ export default function LoginPage() {
                 htmlFor="username"
                 className="mb-1.5 block text-sm font-medium text-slate-700"
               >
-                Tên đăng nhập
+                Tên đăng nhập hoặc số điện thoại
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -200,7 +200,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={submitting}
-                  placeholder="vd. bs001"
+                  placeholder="vd. bs001 hoặc 0901234567"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pl-9 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 disabled:bg-slate-50"
                 />
               </div>
