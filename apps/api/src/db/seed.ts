@@ -933,6 +933,12 @@ async function seed() {
   );
   await directMessages.insertMany(directMessageSeeds);
 
+  // 14. Conversations — KHÔNG seed nội dung, chỉ XOÁ SẠCH.
+  // Bắt buộc: register cấp mã BN bằng nextId (tái dùng BN011, BN012… sau mỗi seed).
+  // Nếu không dọn, BN mới trùng mã sẽ thừa hưởng hội thoại của BN cũ cùng mã
+  // (lọc theo doctorId=ownerId) → sidebar hiện hội thoại "ma" của deploy trước.
+  await db.collection("conversations").deleteMany({});
+
   // Tổng kết
   console.log("✓ Seed hoàn tất — đã xoá sạch và insert lại:");
   console.log(`  patients     ${patientDocs.length}`);
@@ -948,6 +954,7 @@ async function seed() {
   console.log(`  skills       ${skillDocs.length}`);
   console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
   console.log(`  directmsgs   ${directMessageSeeds.length}`);
+  console.log(`  conversations 0  (xoá sạch)`);
   console.log("\nTài khoản:");
   console.log("  bs001..bs003 / matkhau001..003   (bác sĩ)");
   console.log("  ql001        / matkhauql001       (quản lý)");
