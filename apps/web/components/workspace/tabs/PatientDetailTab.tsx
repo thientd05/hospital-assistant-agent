@@ -312,7 +312,7 @@ export function PatientDetailTab({
           <ValueText>{data.age}</ValueText>
         )}
       </InfoRow>
-      <InfoRow label="Giới tính">
+      <InfoRow label="Giới tính" alignLeft={editing && canEdit("gender")}>
         {editing && draft && canEdit("gender") ? (
           <select
             value={draft.gender}
@@ -334,7 +334,7 @@ export function PatientDetailTab({
       <InfoRow label="Mã BN">
         <ValueText>{data.id}</ValueText>
       </InfoRow>
-      <InfoRow label="Khoa">
+      <InfoRow label="Khoa" alignLeft={editing && canEdit("ward")}>
         {editing && draft && canEdit("ward") ? (
           <select
             value={draft.ward}
@@ -550,9 +550,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 const INLINE_INPUT =
   "min-w-[2ch] text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
-// Select sửa tại chỗ — cùng kiểu gạch chân nét liền với INLINE_INPUT.
+// Select sửa tại chỗ — KHÔNG gạch chân, căn trái, giữ mũi tên native của select.
 const INLINE_SELECT =
-  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B]";
+  "min-w-0 text-left text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
@@ -560,11 +560,14 @@ function InfoRow({
   children,
   // top: căn nhãn theo dòng ĐẦU của giá trị (cho giá trị nhiều dòng như địa chỉ).
   top = false,
+  // alignLeft: căn trái vùng giá trị (dùng cho ô select khi sửa).
+  alignLeft = false,
   valueClassName = "",
 }: {
   label: string;
   children: React.ReactNode;
   top?: boolean;
+  alignLeft?: boolean;
   valueClassName?: string;
 }) {
   return (
@@ -575,9 +578,9 @@ function InfoRow({
     >
       <span className="text-gray-500 shrink-0">{label}</span>
       <div
-        className={`flex justify-end gap-1 min-w-0 ${
-          top ? "items-start" : "items-center"
-        } ${valueClassName}`}
+        className={`flex gap-1 min-w-0 ${
+          alignLeft ? "flex-1 justify-start" : "justify-end"
+        } ${top ? "items-start" : "items-center"} ${valueClassName}`}
       >
         {children}
       </div>
