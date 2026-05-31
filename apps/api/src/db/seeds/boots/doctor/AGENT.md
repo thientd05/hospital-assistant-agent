@@ -119,7 +119,7 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │
 ├─ tab:appointments                         (tab) "Lịch hẹn" — CHỈ XEM/duyệt, KHÔNG tạo. Có 2 tab con.
 │   └─(click tab:appointments)── tab Lịch hẹn
-│       ├─ appointment-subtab:pending       (tab) "Chờ duyệt" — mặc định; xếp theo giờ hẹn gần→xa
+│       ├─ appointment-subtab:pending       (tab) "Chờ duyệt" — mặc định; lịch của mình ở trên, dưới dải "Hàng chờ chung" là lịch chưa ai nhận (doctorId=""); xếp theo giờ hẹn gần→xa
 │       ├─ appointment-subtab:approved      (tab) "Đã duyệt"
 │       ├─ appointment:<id>:approve         (button, ĐỘNG) ở tab Chờ duyệt — "Duyệt" (hoặc "Nhận" nếu hàng chờ chung) → Đã duyệt
 │       └─ appointment:<id>:cancel          (button, ĐỘNG) ở tab Đã duyệt — "Huỷ" → quay về Chờ duyệt (không xoá, không ConfirmModal)
