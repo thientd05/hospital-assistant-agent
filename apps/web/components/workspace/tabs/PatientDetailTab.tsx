@@ -550,10 +550,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 const INLINE_INPUT =
   "min-w-[2ch] text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
-// Select sửa tại chỗ — KHÔNG gạch chân, giữ mũi tên native. Giá trị hiển thị
-// căn phải như các trường khác; chỉ danh sách option khi mở mới căn trái.
+// Select sửa tại chỗ — KHÔNG gạch chân, giữ mũi tên native. field-sizing:content
+// → hộp co đúng theo giá trị đang chọn nên chữ nằm sát mũi tên (không bị độn theo
+// option rộng nhất). Chỉ danh sách option khi mở mới căn trái.
 const INLINE_SELECT =
-  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [&>option]:text-left";
+  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
