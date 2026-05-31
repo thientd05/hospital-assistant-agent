@@ -478,7 +478,7 @@ export function PatientDetailTab({
           value={draft.diagnoses}
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full"
+          className="ws-input-sm w-full text-[#087E8B]"
           data-agent-ref="patient-detail:diagnoses"
           data-agent-role="textbox"
           data-agent-label="Chẩn đoán"
@@ -501,7 +501,7 @@ export function PatientDetailTab({
           value={draft.medications}
           onChange={(e) => updateDraft("medications", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full"
+          className="ws-input-sm w-full text-[#087E8B]"
           data-agent-ref="patient-detail:medications"
           data-agent-role="textbox"
           data-agent-label="Thuốc"
@@ -548,13 +548,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // field-sizing:content → ô (và gạch chân) co đúng bằng độ dài giá trị đang gõ.
 // [appearance:textfield] + ẩn spin-button → bỏ mũi tên tăng/giảm ở input số.
 const INLINE_INPUT =
-  "min-w-[2ch] text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+  "min-w-[2ch] text-right text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
 // Select sửa tại chỗ — KHÔNG gạch chân, giữ mũi tên native. field-sizing:content
 // → hộp co đúng theo giá trị đang chọn nên chữ nằm sát mũi tên (không bị độn theo
 // option rộng nhất). Chỉ danh sách option khi mở mới căn trái.
 const INLINE_SELECT =
-  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left";
+  "min-w-0 text-right text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
