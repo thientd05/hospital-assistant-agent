@@ -7,34 +7,48 @@ description: Đặt lịch khám giúp bệnh nhân (tab Lịch hẹn). Dùng kh
 
 Kích hoạt khi bệnh nhân có **tín hiệu muốn đặt lịch khám** (nói thẳng "đặt lịch", hoặc gián tiếp: "muốn đi khám", "cần gặp bác sĩ", "khi nào khám được", "tôi bị … muốn khám"…).
 
-## Bước 0 (BẮT BUỘC TRƯỚC TIÊN) — hoàn thiện hồ sơ cá nhân
+## ⚡ Ràng buộc hiệu năng — ĐỌC TRƯỚC
 
-Trước khi mở form đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhân:
+Mỗi lượt trả lời chạy trong giới hạn thời gian ngắn của server, nên:
 
-1. Mở `open_panel({ tab: "my-record" })`, đọc snapshot xem trường nào đã có / còn trống.
-2. **BẮT BUỘC có TÊN.** Nếu chưa có tên → hỏi cho bằng được, chưa đặt lịch khi chưa có tên.
-3. Hỏi thêm **càng nhiều càng tốt**: tuổi, giới tính, địa chỉ, số điện thoại. Hỏi lại để
-   **xác nhận** trước khi lưu. Chỉ điền thông tin bệnh nhân thực sự cung cấp.
-4. Điền & lưu hồ sơ theo skill `collect-patient-info` (chỉ 5 trường: name/age/gender/
-   address/phone, trong MỘT batch `act`, kết thúc bằng `patient-detail:save`).
-5. **Nếu bệnh nhân tỏ ý không muốn cung cấp thêm** ("thôi đủ rồi", giục đặt lịch, lảng
-   tránh) → **tự lưu form hồ sơ luôn** với những gì đã có (miễn là đã có TÊN), đừng ép hỏi tiếp.
+- **Mỗi nhiệm vụ panel chỉ dùng ĐÚNG 1 batch `act`** (gộp mọi thao tác vào một mảng). Đừng chia nhỏ thành nhiều lần `act`, đừng `read_panel` thừa.
+- **TÁCH làm 2 lượt riêng:** (A) lưu hồ sơ, (B) đặt lịch. Làm xong (A) thì **dừng lại, nói một câu cho bệnh nhân** rồi mới sang (B) ở lượt sau. TUYỆT ĐỐI không thao tác cả hai chuỗi panel trong cùng một lượt trả lời.
+- Việc **hỏi và xác nhận thông tin làm bằng lời** (không cần panel) — chỉ chạm panel khi đã đủ dữ liệu để điền.
 
-## Bước 1 — hỏi thông tin đặt lịch
+## Bước 0 (lượt A) — hoàn thiện & LƯU hồ sơ cá nhân
 
-Hỏi bệnh nhân:
-- **Thời gian mong muốn** (ngày/tháng/năm + giờ).
-- **Lý do khám** (bắt buộc — vd "đau họng, ho 3 ngày").
-- **Bác sĩ**: nếu họ đã có bác sĩ quản lý, mặc định chọn bác sĩ đó; nếu chưa hoặc không
-  có yêu cầu cụ thể, để trống ("" = "Để phòng khám sắp xếp", ai duyệt trước nhận).
+Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhân:
 
-## Bước 2 — điền & gửi form đặt lịch
+1. **Hỏi bằng lời** (chưa mở panel): **BẮT BUỘC có TÊN** — chưa có tên thì hỏi cho bằng
+   được, chưa đặt lịch. Hỏi thêm **càng nhiều càng tốt**: tuổi, giới tính, địa chỉ, SĐT.
+   **Hỏi lại để xác nhận** trước khi lưu. Chỉ điền thông tin bệnh nhân thực sự cung cấp.
+2. **Nếu bệnh nhân tỏ ý không muốn cung cấp thêm** ("thôi đủ rồi", giục đặt lịch, lảng
+   tránh) → **lưu luôn** với những gì đã có (miễn là có TÊN), đừng ép hỏi tiếp.
+3. Lưu hồ sơ trong **MỘT batch `act`** (theo skill `collect-patient-info`):
+   ```
+   open_panel({ tab: "my-record" })
+   act({ actions: [
+     { action: "click",  ref: "patient-detail:edit" },
+     { action: "type",   ref: "patient-detail:name",    value: "<họ tên>" },
+     { action: "type",   ref: "patient-detail:age",     value: "<tuổi>" },
+     { action: "select", ref: "patient-detail:gender",  value: "Nam" },
+     { action: "type",   ref: "patient-detail:address", value: "<địa chỉ>" },
+     { action: "type",   ref: "patient-detail:phone",   value: "<sđt>" },
+     { action: "click",  ref: "patient-detail:save" }
+   ]})
+   ```
+   Chỉ `type`/`select` trường nào có dữ liệu. Form đóng = đã lưu.
+4. **DỪNG LƯỢT:** báo "Đã lưu hồ sơ. Giờ mình đặt lịch nhé — bạn muốn khám ngày nào,
+   mấy giờ, vì lý do gì?" rồi chờ bệnh nhân trả lời. **Không** đặt lịch ngay trong lượt này.
+
+## Bước 1 (lượt B) — điền & gửi form đặt lịch
+
+Khi đã có thời gian + lý do, làm trong **MỘT batch `act`**:
 
 ```
 open_panel({ tab: "my-appointments" })
 act({ actions: [
   { action: "click",  ref: "appointment:create" },
-  { action: "select", ref: "booking-form:doctorId", value: "<id bác sĩ hoặc bỏ qua để dùng mặc định>" },
   { action: "type",   ref: "booking-form:day",    value: "<DD>" },
   { action: "type",   ref: "booking-form:month",  value: "<MM>" },
   { action: "type",   ref: "booking-form:year",   value: "<YYYY>" },
@@ -45,12 +59,17 @@ act({ actions: [
 ```
 
 - `booking-form:time` định dạng "HH:MM" 24 giờ (vd "09:30", "14:00").
-- Bỏ qua bước `select doctorId` nếu muốn giữ mặc định (bác sĩ quản lý, hoặc "" khi chưa có).
+- **Bác sĩ:** mặc định form đã chọn sẵn bác sĩ quản lý (hoặc "" = phòng khám sắp xếp).
+  Chỉ thêm bước `{ action: "select", ref: "booking-form:doctorId", value: "<id>" }`
+  khi bệnh nhân yêu cầu bác sĩ cụ thể khác mặc định.
 - Form đóng = đã đặt lịch thành công.
 
 ## Badcase
-- **Submit lỗi** (snapshot còn `booking-form:error`): đọc nội dung. Thường gặp:
-  thiếu thời gian/lý do, hoặc ngày tháng không hợp lệ/không tồn tại → hỏi lại bệnh nhân
-  con số đúng rồi sửa trường tương ứng và click `booking-form:submit` lại.
-- **Bệnh nhân đổi ý giữa chừng:** click `booking-form:cancel` để đóng form.
+- **Submit lỗi** (snapshot còn `booking-form:error` hoặc `patient-detail:error`): đọc
+  nội dung, sửa đúng trường rồi click submit/save lại — **một lần**. Nếu vẫn lỗi, báo
+  bệnh nhân bằng lời, đừng lặp vô hạn.
+- **`act` trả timeout / "panel không phản hồi":** ĐỪNG gọi lại ngay. Báo bệnh nhân
+  "thao tác bị chậm, bạn thử lại giúp mình nhé" và dừng lượt — gọi lại liên tục chỉ
+  làm hết thời gian server.
+- **Bệnh nhân đổi ý:** click `booking-form:cancel` / `patient-detail:cancel` để đóng form.
 - **Không nói rõ thời gian:** hỏi cụ thể ngày + giờ trước khi điền, đừng tự đoán.

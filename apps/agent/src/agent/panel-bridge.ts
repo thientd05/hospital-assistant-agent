@@ -18,9 +18,12 @@ type Pending = {
   timer: NodeJS.Timeout;
 };
 
-// 60s: một lần `act` có thể gồm nhiều bước + độ trễ quan sát giữa mỗi bước,
-// nên cần dài hơn các command đơn lẻ trước đây.
-const TIMEOUT_MS = 60_000;
+// 30s: PHẢI nhỏ hơn maxDuration của serverless function (Vercel agent = 60s).
+// Nếu để bằng 60s, khi panel không phản hồi thì function bị Vercel giết ĐÚNG
+// lúc timeout sắp fire → agent chết im lặng, không kịp trả lỗi/đóng stream.
+// Đặt 30s cho agent kịp nhận lỗi graceful, báo lại, rồi lưu hội thoại trong
+// phần ngân sách 60s còn lại. Một batch `act` bình thường chỉ mất vài giây.
+const TIMEOUT_MS = 30_000;
 const pending = new Map<string, Pending>();
 
 export function createPanelClient(
