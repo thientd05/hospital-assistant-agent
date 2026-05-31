@@ -22,6 +22,6 @@
       "read_skill",
       "update_workspace_file"
     ],
-    "skills": ["collect-patient-info"]
+    "skills": ["collect-patient-info", "book-appointment"]
   }
 }
