@@ -64,7 +64,7 @@ export default function ChatPage() {
         // Mobile: đưa panel lên full-screen để bác sĩ thấy agent thao tác.
         setMobileView("panel");
         const tab = args.tab;
-        const validTabs = ROLE_TABS.doctor ?? [];
+        const validTabs = (role && ROLE_TABS[role]) || [];
         if (
           typeof tab === "string" &&
           validTabs.includes(tab as WorkspaceTab)
@@ -90,7 +90,7 @@ export default function ChatPage() {
       }
       return { error: `Unknown tool command: ${command}` };
     },
-    [openPanel, setTab]
+    [openPanel, setTab, role]
   );
 
   const chat = useChat({

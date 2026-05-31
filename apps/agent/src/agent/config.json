@@ -15,7 +15,13 @@
     ]
   },
   "patient": {
-    "tools": ["update_workspace_file"],
-    "skills": []
+    "tools": [
+      "open_panel",
+      "read_panel",
+      "act",
+      "read_skill",
+      "update_workspace_file"
+    ],
+    "skills": ["collect-patient-info"]
   }
 }

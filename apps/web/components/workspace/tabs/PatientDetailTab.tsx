@@ -3,7 +3,21 @@
 import { useEffect, useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { usePatient, patientsApi } from "@/hooks/usePatients";
+import { http } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
+
+// Khi selfMode (bệnh nhân tự sửa hồ sơ mình), CHỈ các trường này biến thành ô
+// nhập — khớp PatientProfileSchema backend. Còn lại (mã BN, Khoa, sinh hiệu,
+// chẩn đoán, thuốc) giữ read-only ngay cả khi đang sửa.
+const SELF_EDITABLE = new Set([
+  "name",
+  "age",
+  "gender",
+  "address",
+  "phone",
+]);
+
+type SelfProfileResponse = { role: "patient"; patient: PatientPublic };
 
 type Props = {
   patientId: string | null;
@@ -59,7 +73,7 @@ export function PatientDetailTab({
   onChanged,
   selfMode = false,
 }: Props) {
-  const { patient: authPatient } = useAuth();
+  const { patient: authPatient, updateAccount } = useAuth();
   const fetched = usePatient(patientId, version, active && !selfMode);
   const data = selfMode ? authPatient : fetched.data;
   const loading = selfMode ? false : fetched.loading;
@@ -115,7 +129,44 @@ export function PatientDetailTab({
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
+  // Doctor: sửa được mọi trường. selfMode (bệnh nhân): chỉ 5 trường cho phép.
+  const canEdit = (field: string) => !selfMode || SELF_EDITABLE.has(field);
+
+  // Bệnh nhân tự sửa hồ sơ mình → endpoint /auth/me/profile, chỉ 5 trường.
+  async function handleSelfSave() {
+    if (!draft || !data) return;
+    const ageNum = Number(draft.age);
+    if (!draft.name.trim() || !Number.isInteger(ageNum) || ageNum < 0) {
+      setEditError("Vui lòng nhập đủ Họ tên và Tuổi (số nguyên ≥ 0).");
+      return;
+    }
+    const body = {
+      name: draft.name.trim(),
+      age: ageNum,
+      gender: draft.gender,
+      address: draft.address.trim(),
+      phone: draft.phone.trim(),
+    };
+    setSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await http.patch<SelfProfileResponse>(
+        "/api/auth/me/profile",
+        body
+      );
+      updateAccount({ role: "patient", patient: res.patient });
+      setEditing(false);
+      setDraft(null);
+      onChanged();
+    } catch (e) {
+      setEditError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSave() {
+    if (selfMode) return handleSelfSave();
     if (!draft || !data) return;
     const ageNum = Number(draft.age);
     if (
@@ -186,11 +237,7 @@ export function PatientDetailTab({
             {data.gender} · {data.age} tuổi · {data.ward}
           </div>
         </div>
-        {selfMode ? (
-          <span className="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 text-gray-500 shrink-0">
-            Chỉ xem
-          </span>
-        ) : editing ? (
+        {editing ? (
           <div className="flex gap-1.5">
             <button
               type="button"
@@ -284,7 +331,7 @@ export function PatientDetailTab({
         <ValueText>{data.id}</ValueText>
       </InfoRow>
       <InfoRow label="Khoa">
-        {editing && draft ? (
+        {editing && draft && canEdit("ward") ? (
           <input
             value={draft.ward}
             onChange={(e) => updateDraft("ward", e.target.value)}
@@ -328,7 +375,7 @@ export function PatientDetailTab({
 
       <SectionLabel>Sinh hiệu</SectionLabel>
       <InfoRow label="SpO2">
-        {editing && draft ? (
+        {editing && draft && canEdit("spO2") ? (
           <>
             <input
               type="number"
@@ -351,7 +398,7 @@ export function PatientDetailTab({
         )}
       </InfoRow>
       <InfoRow label="Nhịp tim">
-        {editing && draft ? (
+        {editing && draft && canEdit("heartRate") ? (
           <>
             <input
               type="number"
@@ -373,7 +420,7 @@ export function PatientDetailTab({
         )}
       </InfoRow>
       <InfoRow label="Huyết áp">
-        {editing && draft ? (
+        {editing && draft && canEdit("bloodPressure") ? (
           <>
             <input
               value={draft.bloodPressure}
@@ -391,7 +438,7 @@ export function PatientDetailTab({
         )}
       </InfoRow>
       <InfoRow label="Nhiệt độ">
-        {editing && draft ? (
+        {editing && draft && canEdit("temperature") ? (
           <>
             <input
               type="number"
@@ -411,7 +458,7 @@ export function PatientDetailTab({
       </InfoRow>
 
       <SectionLabel>Chẩn đoán</SectionLabel>
-      {editing && draft ? (
+      {editing && draft && canEdit("diagnoses") ? (
         <input
           value={draft.diagnoses}
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
@@ -434,7 +481,7 @@ export function PatientDetailTab({
       )}
 
       <SectionLabel>Thuốc</SectionLabel>
-      {editing && draft ? (
+      {editing && draft && canEdit("medications") ? (
         <input
           value={draft.medications}
           onChange={(e) => updateDraft("medications", e.target.value)}
