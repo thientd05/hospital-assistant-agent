@@ -1,26 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePatients, patientsApi } from "@/hooks/usePatients";
-import type {
-  PatientFormValues,
-  SubmitPatientResult,
-} from "@/hooks/useWorkspace";
-import { PatientCreateFormControlled } from "../forms/PatientCreateFormControlled";
-import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
-
-type CreateFormControl = {
-  open: boolean;
-  values: PatientFormValues;
-  submitting: boolean;
-  onOpen: () => void;
-  onClose: () => void;
-  onChange: <K extends keyof PatientFormValues>(
-    key: K,
-    value: PatientFormValues[K]
-  ) => void;
-  onSubmit: () => Promise<SubmitPatientResult>;
-};
+import { usePatients } from "@/hooks/usePatients";
 
 type Props = {
   version: number;
@@ -28,22 +9,11 @@ type Props = {
   role: "doctor" | "manager";
   onSelect?: (id: string) => void;
   onChanged: () => void;
-  createForm?: CreateFormControl;
 };
 
-export function PatientsTab({
-  version,
-  active,
-  role,
-  onSelect,
-  onChanged,
-  createForm,
-}: Props) {
-  const { data, loading, error, refetch } = usePatients(version, active);
+export function PatientsTab({ version, active, role, onSelect }: Props) {
+  const { data, loading, error } = usePatients(version, active);
   const [filter, setFilter] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const list =
     data?.patients.filter((p) => {
@@ -57,51 +27,6 @@ export function PatientsTab({
       );
     }) ?? [];
 
-  async function confirmDelete() {
-    if (!confirmId) return;
-    const id = confirmId;
-    setBusy(id);
-    try {
-      await patientsApi.remove(id);
-      setConfirmId(null);
-      refetch();
-      onChanged();
-    } catch (e) {
-      alert(`Xoá thất bại: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function handleSubmitForm() {
-    if (!createForm) return;
-    setSubmitError(null);
-    const result = await createForm.onSubmit();
-    if (!result.ok) {
-      setSubmitError(result.error);
-      return;
-    }
-    onChanged();
-  }
-
-  if (role === "doctor" && createForm && createForm.open) {
-    return (
-      <div className="px-5 py-4">
-        <PatientCreateFormControlled
-          values={createForm.values}
-          submitting={createForm.submitting}
-          error={submitError}
-          onChange={createForm.onChange}
-          onClose={() => {
-            setSubmitError(null);
-            createForm.onClose();
-          }}
-          onSubmit={handleSubmitForm}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="px-5 py-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -114,21 +39,6 @@ export function PatientsTab({
           data-agent-role="textbox"
           data-agent-label="Tìm bệnh nhân"
         />
-        {role === "doctor" && createForm && (
-          <button
-            type="button"
-            onClick={() => {
-              setSubmitError(null);
-              createForm.onOpen();
-            }}
-            className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671]"
-            data-agent-ref="patients:create"
-            data-agent-role="button"
-            data-agent-label="Tạo bệnh nhân mới"
-          >
-            + Tạo
-          </button>
-        )}
       </div>
 
       {loading && (
@@ -173,8 +83,8 @@ export function PatientsTab({
                 ))}
               </div>
             )}
-            <div className="mt-2 flex items-center justify-end gap-2">
-              {role === "doctor" && onSelect && (
+            {role === "doctor" && onSelect && (
+              <div className="mt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => onSelect(p.id)}
@@ -185,35 +95,11 @@ export function PatientsTab({
                 >
                   Mở hồ sơ
                 </button>
-              )}
-              {role === "doctor" && (
-                <button
-                  type="button"
-                  disabled={busy === p.id}
-                  onClick={() => setConfirmId(p.id)}
-                  data-agent-ref={`patient:${p.id}:delete`}
-                  data-agent-role="button"
-                  data-agent-label={`Xoá ${p.name}`}
-                  className="text-[11px] px-2.5 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                >
-                  {busy === p.id ? "Đang xoá…" : "Xoá"}
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </li>
         ))}
       </ul>
-
-      <ConfirmModal
-        open={confirmId !== null}
-        title="Xoá bệnh nhân"
-        message={`Bạn có chắc muốn xoá bệnh nhân ${confirmId ?? ""}? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xoá"
-        cancelLabel="Huỷ"
-        busy={busy !== null && busy === confirmId}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmId(null)}
-      />
     </div>
   );
 }

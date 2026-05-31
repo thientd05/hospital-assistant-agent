@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  ROLE_TABS,
-  type PatientFormValues,
-  type SubmitPatientResult,
-  type WorkspaceTab,
-} from "@/hooks/useWorkspace";
+import { ROLE_TABS, type WorkspaceTab } from "@/hooks/useWorkspace";
 import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { LabsTab } from "./tabs/LabsTab";
@@ -30,19 +25,6 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   "home-vitals": "Chỉ số tại nhà",
 };
 
-type PatientFormControl = {
-  open: boolean;
-  values: PatientFormValues;
-  submitting: boolean;
-  onOpen: (partial?: Partial<PatientFormValues>) => void;
-  onClose: () => void;
-  onChange: <K extends keyof PatientFormValues>(
-    key: K,
-    value: PatientFormValues[K]
-  ) => void;
-  onSubmit: () => Promise<SubmitPatientResult>;
-};
-
 type Props = {
   isOpen: boolean;
   activeTab: WorkspaceTab;
@@ -55,7 +37,6 @@ type Props = {
   onTabChange: (tab: WorkspaceTab) => void;
   onSelectPatient: (id: string | null) => void;
   bumpTab: (tab: WorkspaceTab) => void;
-  patientFormControl?: PatientFormControl;
   /** Bác sĩ duyệt/nhận lịch hẹn → chuyển sang chat trực tiếp với BN đó. */
   onAcceptAppointment?: (patientId: string) => void;
 };
@@ -71,7 +52,6 @@ export function WorkspacePanel({
   onTabChange,
   onSelectPatient,
   bumpTab,
-  patientFormControl,
   onAcceptAppointment,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
@@ -213,19 +193,6 @@ export function WorkspacePanel({
               active={isOpen && activeTab === "patients"}
               onSelect={handleSelectPatient}
               onChanged={onChanged}
-              createForm={
-                patientFormControl
-                  ? {
-                      open: patientFormControl.open,
-                      values: patientFormControl.values,
-                      submitting: patientFormControl.submitting,
-                      onOpen: () => patientFormControl.onOpen(),
-                      onClose: patientFormControl.onClose,
-                      onChange: patientFormControl.onChange,
-                      onSubmit: patientFormControl.onSubmit,
-                    }
-                  : undefined
-              }
             />
           )}
           {role === "doctor" && activeTab === "patient" && (

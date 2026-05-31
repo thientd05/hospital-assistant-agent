@@ -62,12 +62,6 @@ export const patientRepo = {
     return res.matchedCount > 0;
   },
 
-  async delete(id: string) {
-    const c = await coll();
-    const res = await c.deleteOne({ id });
-    return res.deletedCount > 0;
-  },
-
   async getLabResults(id: string) {
     const c = await coll();
     return c.findOne(

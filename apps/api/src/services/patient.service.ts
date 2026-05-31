@@ -8,9 +8,7 @@ import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
 import { buildSet, assertHasUpdates } from "../lib/patch.ts";
-import { stripPassword } from "../lib/public.ts";
 import type {
-  PatientCreate,
   PatientUpdate,
   LabInput,
   HomeVitalInput,
@@ -23,16 +21,9 @@ const VITAL_DEFAULTS = {
   temperature: 0,
 };
 
-const PATCH_KEYS = [
-  "name",
-  "age",
-  "gender",
-  "ward",
-  "address",
-  "phone",
-  "diagnoses",
-  "medications",
-] as const;
+// Bác sĩ chỉ sửa phần lâm sàng (vitals xử lý riêng bên dưới). Thông tin cá nhân
+// do bệnh nhân tự sửa qua /auth/me/profile; mã BN không ai sửa.
+const PATCH_KEYS = ["ward", "diagnoses", "medications"] as const;
 
 export const patientService = {
   // doctorId có → chỉ BN bác sĩ đó quản lý; không có (manager) → toàn bộ.
@@ -58,41 +49,6 @@ export const patientService = {
       throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     }
     return patient;
-  },
-
-  async create(
-    data: PatientCreate,
-    creatingDoctorId?: string
-  ): Promise<Omit<Patient, "passwordHash">> {
-    const id = await patientRepo.nextId();
-    const username = id.toLowerCase();
-    const password = `matkhau${username}`;
-    const patient: Patient = {
-      id,
-      username,
-      passwordHash: hashPassword(password),
-      name: data.name,
-      age: data.age,
-      gender: data.gender,
-      ward: data.ward,
-      address: data.address ?? "",
-      phone: data.phone ?? "",
-      diagnoses: data.diagnoses ?? [],
-      medications: data.medications ?? [],
-      vitals: {
-        ...VITAL_DEFAULTS,
-        ...(data.vitals ?? {}),
-        recordedAt: new Date(),
-      },
-      labResults: [],
-      homeVitals: [],
-    };
-    await patientRepo.insert(patient);
-    // Bác sĩ tạo BN thì quản lý BN đó luôn.
-    if (creatingDoctorId) {
-      await doctorRepo.addManagedPatient(creatingDoctorId, id);
-    }
-    return stripPassword(patient);
   },
 
   // Bệnh nhân tự đăng ký — CHỈ cần SĐT + mật khẩu (SĐT là khoá đăng nhập, không có
@@ -133,12 +89,6 @@ export const patientService = {
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     const updated = await patientRepo.findById(id);
     return updated!;
-  },
-
-  async delete(id: string) {
-    const ok = await patientRepo.delete(id);
-    if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
-    return { ok: true, deleted: id };
   },
 
   async listLabs(id: string) {

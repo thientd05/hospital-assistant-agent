@@ -1,7 +1,6 @@
 "use client";
 
 import type {
-  PatientCreateInput,
   PatientPublic,
   PatientUpdateInput,
   LabResult,
@@ -60,12 +59,8 @@ export function useLabs(
 }
 
 export const patientsApi = {
-  create: (body: PatientCreateInput) =>
-    http.post<PatientPublic>("/api/patients", body),
   update: (id: string, body: PatientUpdateInput) =>
     http.patch<PatientPublic>(`/api/patients/${id}`, body),
-  remove: (id: string) =>
-    http.delete<{ ok: boolean; deleted: string }>(`/api/patients/${id}`),
   addLab: (id: string, lab: LabResult) =>
     http.post<{ ok: boolean; lab: LabResult }>(
       `/api/patients/${id}/labs`,

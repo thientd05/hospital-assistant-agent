@@ -186,23 +186,15 @@ export type ToolRefresh =
   | "skill"
   | false;
 
-export type PatientCreateInput = {
-  id?: string;
-  name: string;
-  age: number;
-  gender: "Nam" | "Nữ";
-  ward: string;
-  address?: string;
-  phone?: string;
+// Bác sĩ chỉ sửa phần lâm sàng (khớp PatientUpdateSchema backend). Thông tin cá
+// nhân do bệnh nhân tự sửa qua /auth/me/profile; mã BN không ai sửa. Không còn
+// PatientCreateInput — bệnh nhân tự đăng ký, bác sĩ KHÔNG tạo/xoá bệnh nhân.
+export type PatientUpdateInput = {
+  ward?: string;
   diagnoses?: string[];
   medications?: string[];
   vitals?: Partial<Vital>;
-  labResults?: LabResult[];
 };
-
-export type PatientUpdateInput = Partial<
-  Omit<Patient, "id" | "username" | "passwordHash" | "vitals">
-> & { vitals?: Partial<Vital> };
 
 // Bệnh nhân tự nhập 1 bản ghi chỉ số tại nhà (recordedAt do server gán).
 export type HomeVitalInput = Omit<HomeVital, "recordedAt">;

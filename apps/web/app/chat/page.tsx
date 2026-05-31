@@ -310,19 +310,6 @@ export default function ChatPage() {
         onSelectPatient={workspace.selectPatient}
         bumpTab={workspace.bumpTab}
         onAcceptAppointment={isDoctor ? goToDirectChat : undefined}
-        patientFormControl={
-          role === "doctor"
-            ? {
-                open: workspace.patientFormOpen,
-                values: workspace.patientFormValues,
-                submitting: workspace.patientFormSubmitting,
-                onOpen: workspace.openPatientForm,
-                onClose: workspace.closePatientForm,
-                onChange: workspace.setPatientFormField,
-                onSubmit: workspace.submitPatientForm,
-              }
-            : undefined
-        }
       />
     </>
   );

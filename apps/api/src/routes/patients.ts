@@ -1,7 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
 import {
-  PatientCreateSchema,
   PatientUpdateSchema,
   LabSchema,
   HomeVitalSchema,
@@ -75,16 +74,6 @@ export async function patientsRoutes(app: FastifyInstance) {
     }
   );
 
-  app.post(
-    "/patients",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
-    async (req) =>
-      patientService.create(
-        parseBody(PatientCreateSchema, req.body),
-        req.doctor!.id
-      )
-  );
-
   app.patch<{ Params: { id: string } }>(
     "/patients/:id",
     { preHandler: [verifyAuth, requireRole("doctor")] },
@@ -94,15 +83,6 @@ export async function patientsRoutes(app: FastifyInstance) {
         req.params.id,
         parseBody(PatientUpdateSchema, req.body)
       );
-    }
-  );
-
-  app.delete<{ Params: { id: string } }>(
-    "/patients/:id",
-    { preHandler: [verifyAuth, requireRole("doctor")] },
-    async (req) => {
-      await patientService.assertManagedBy(req.doctor!.id, req.params.id);
-      return patientService.delete(req.params.id);
     }
   );
 

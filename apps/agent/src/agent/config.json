@@ -8,7 +8,6 @@
       "update_workspace_file"
     ],
     "skills": [
-      "create-patient",
       "add-lab-result",
       "update-patient-record",
       "check-drug-interaction"

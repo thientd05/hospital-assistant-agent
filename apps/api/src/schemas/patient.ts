@@ -42,33 +42,19 @@ export const HomeVitalSchema = z
     { message: "Cần nhập ít nhất một chỉ số." }
   );
 
-export const PatientCreateSchema = z.object({
-  name: z.string().min(1),
-  age: z.number().int().nonnegative(),
-  gender: z.enum(["Nam", "Nữ"]),
-  ward: z.string().min(1),
-  address: z.string().optional().default(""),
-  phone: z.string().optional().default(""),
-  diagnoses: z.array(z.string()).optional().default([]),
-  medications: z.array(z.string()).optional().default([]),
-  vitals: VitalSchema.optional(),
-});
-
+// Bác sĩ CHỈ sửa được phần lâm sàng: Khoa, chẩn đoán, thuốc, sinh hiệu.
+// Thông tin cá nhân (name/age/gender/address/phone) do BỆNH NHÂN tự sửa qua
+// /auth/me/profile (PatientProfileSchema); mã BN (id) không ai sửa. .strict()
+// chặn lớp 2 nếu FE/agent lỡ gửi trường cấm.
 export const PatientUpdateSchema = z
   .object({
-    name: z.string().min(1).optional(),
-    age: z.number().int().nonnegative().optional(),
-    gender: z.enum(["Nam", "Nữ"]).optional(),
     ward: z.string().min(1).optional(),
-    address: z.string().optional(),
-    phone: z.string().optional(),
     diagnoses: z.array(z.string()).optional(),
     medications: z.array(z.string()).optional(),
     vitals: VitalSchema.optional(),
   })
   .strict();
 
-export type PatientCreate = z.infer<typeof PatientCreateSchema>;
 export type PatientUpdate = z.infer<typeof PatientUpdateSchema>;
 export type LabInput = z.infer<typeof LabSchema>;
 export type HomeVitalInput = z.infer<typeof HomeVitalSchema>;
