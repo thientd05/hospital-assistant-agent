@@ -15,7 +15,7 @@ description: Cập nhật phần lâm sàng của hồ sơ bệnh nhân đang ch
      { action: "click", ref: "patient-detail:save" }
    ]})
    ```
-   Chỉ `type` các field cần đổi: `ward` (Khoa, text), `spO2`/`heartRate`/`bloodPressure`/`temperature` (sinh hiệu), `diagnoses`/`medications` (danh sách, cách nhau dấu phẩy). KHÔNG có ô nào khác — đó là tất cả những gì bác sĩ sửa được.
+   Chỉ thao tác field cần đổi: `ward` (Khoa) là **combobox** → dùng `{ action: "select", ref: "patient-detail:ward", value: "<tên khoa>" }` (giá trị phải khớp một option, vd "Nội Tim mạch"; để trống = "" là "Chưa phân khoa"); `spO2`/`heartRate`/`bloodPressure`/`temperature` (sinh hiệu) và `diagnoses`/`medications` (danh sách, cách nhau dấu phẩy) dùng `type`. KHÔNG có ô nào khác — đó là tất cả những gì bác sĩ sửa được.
 3. Form đóng = đã lưu.
 
 ## Badcase

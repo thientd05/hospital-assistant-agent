@@ -20,6 +20,20 @@ const DOCTOR_EDITABLE = new Set([
   "temperature",
 ]);
 
+// Danh sách khoa cố định (khớp seed) cho dropdown khi bác sĩ sửa hồ sơ.
+const WARDS = [
+  "Nội Tim mạch",
+  "Nội Tổng quát",
+  "Nội Thận",
+  "Hô hấp",
+  "Tiêu hóa",
+  "Thần kinh",
+  "Truyền nhiễm",
+  "Cấp cứu",
+  "Sản",
+  "Nhi",
+];
+
 type SelfProfileResponse = { role: "patient"; patient: PatientPublic };
 
 type Props = {
@@ -305,7 +319,7 @@ export function PatientDetailTab({
             onChange={(e) =>
               updateDraft("gender", e.target.value as "Nam" | "Nữ")
             }
-            className="min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0"
+            className={INLINE_SELECT}
             data-agent-ref="patient-detail:gender"
             data-agent-role="combobox"
             data-agent-label="Giới tính"
@@ -322,14 +336,25 @@ export function PatientDetailTab({
       </InfoRow>
       <InfoRow label="Khoa">
         {editing && draft && canEdit("ward") ? (
-          <input
+          <select
             value={draft.ward}
             onChange={(e) => updateDraft("ward", e.target.value)}
-            className={INLINE_INPUT}
+            className={INLINE_SELECT}
             data-agent-ref="patient-detail:ward"
-            data-agent-role="textbox"
+            data-agent-role="combobox"
             data-agent-label="Khoa"
-          />
+          >
+            <option value="">— Chưa phân khoa —</option>
+            {/* Giữ giá trị hiện tại nếu nằm ngoài danh sách cố định. */}
+            {draft.ward && !WARDS.includes(draft.ward) && (
+              <option value={draft.ward}>{draft.ward}</option>
+            )}
+            {WARDS.map((w) => (
+              <option key={w} value={w}>
+                {w}
+              </option>
+            ))}
+          </select>
         ) : (
           <ValueText>{data.ward || "—"}</ValueText>
         )}
@@ -519,10 +544,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 // Sửa tại chỗ: giữ y nguyên kiểu chữ + vị trí của giá trị, chỉ thêm gạch chân
-// mờ để đánh dấu edit được — KHÔNG vẽ ô (tránh xô lệch layout).
+// nét liền để đánh dấu edit được — KHÔNG vẽ ô (tránh xô lệch layout).
 // field-sizing:content → ô (và gạch chân) co đúng bằng độ dài giá trị đang gõ.
+// [appearance:textfield] + ẩn spin-button → bỏ mũi tên tăng/giảm ở input số.
 const INLINE_INPUT =
-  "min-w-[2ch] text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-dashed border-gray-300 focus:border-[#087E8B] [field-sizing:content]";
+  "min-w-[2ch] text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+
+// Select sửa tại chỗ — cùng kiểu gạch chân nét liền với INLINE_INPUT.
+const INLINE_SELECT =
+  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B]";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
