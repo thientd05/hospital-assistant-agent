@@ -158,7 +158,7 @@ export type DirectThreadSummary = {
   updatedAt: Date | null;
 };
 
-export type AppointmentStatus = "Chờ duyệt" | "Đã duyệt" | "Thành công";
+export type AppointmentStatus = "Chờ duyệt" | "Đã duyệt";
 
 export type Appointment = {
   id: string;

@@ -23,7 +23,6 @@ import { formatVND, formatVNDCompact, formatPeriod } from "@/lib/format";
 const STATUS_STYLES: Record<AppointmentStatus, string> = {
   "Chờ duyệt": "bg-amber-50 text-amber-700 ring-amber-200",
   "Đã duyệt": "bg-blue-50 text-blue-700 ring-blue-200",
-  "Thành công": "bg-emerald-50 text-emerald-700 ring-emerald-200",
 };
 
 const AGE_GROUPS = ["0-17", "18-39", "40-59", "60+"] as const;

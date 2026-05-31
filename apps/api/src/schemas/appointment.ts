@@ -1,11 +1,7 @@
 import { z } from "zod";
 import { DateLike } from "./common.ts";
 
-export const AppointmentStatusEnum = z.enum([
-  "Chờ duyệt",
-  "Đã duyệt",
-  "Thành công",
-]);
+export const AppointmentStatusEnum = z.enum(["Chờ duyệt", "Đã duyệt"]);
 
 export const AppointmentUpdateSchema = z
   .object({

@@ -1,17 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import type {
-  Appointment,
-  AppointmentStatus,
-} from "@pr_hospitalagent/types";
-import {
-  useAppointments,
-  appointmentsApi,
-} from "@/hooks/useAppointments";
-import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
+import { useMemo, useState } from "react";
+import { useAppointments, appointmentsApi } from "@/hooks/useAppointments";
 import { formatDateTime as fmt } from "@/lib/format";
-import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
 
 type Props = {
   version: number;
@@ -21,6 +12,13 @@ type Props = {
   onAccepted?: (patientId: string) => void;
 };
 
+type SubTab = "pending" | "approved";
+
+const SUB_TABS: { key: SubTab; label: string }[] = [
+  { key: "pending", label: "Chờ duyệt" },
+  { key: "approved", label: "Đã duyệt" },
+];
+
 export function AppointmentsTab({
   version,
   active,
@@ -29,20 +27,21 @@ export function AppointmentsTab({
 }: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
   const [busy, setBusy] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [subTab, setSubTab] = useState<SubTab>("pending");
 
-  async function handleStatus(id: string, next: AppointmentStatus) {
-    setBusy(id);
-    try {
-      await appointmentsApi.update(id, { status: next });
-      refetch();
-      onChanged();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
-    }
-  }
+  // Mỗi tab con sắp xếp theo thời gian hẹn TĂNG DẦN (gần nhất → xa nhất).
+  const byStatus = useMemo(() => {
+    const sort = (rows: typeof data) =>
+      [...(rows ?? [])].sort(
+        (a, b) =>
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+      );
+    return {
+      pending: sort((data ?? []).filter((a) => a.status === "Chờ duyệt")),
+      approved: sort((data ?? []).filter((a) => a.status === "Đã duyệt")),
+    };
+  }, [data]);
+
   // Duyệt/nhận lịch (gồm cả hàng chờ chung): ai duyệt trước thì nhận bệnh nhân.
   async function handleAccept(id: string, patientId: string) {
     setBusy(id);
@@ -58,13 +57,12 @@ export function AppointmentsTab({
       setBusy(null);
     }
   }
-  async function confirmDelete() {
-    if (!confirmId) return;
-    const id = confirmId;
+
+  // Huỷ duyệt: đưa lịch "Đã duyệt" quay về "Chờ duyệt" (không xoá).
+  async function handleRevert(id: string) {
     setBusy(id);
     try {
-      await appointmentsApi.remove(id);
-      setConfirmId(null);
+      await appointmentsApi.update(id, { status: "Chờ duyệt" });
       refetch();
       onChanged();
     } catch (e) {
@@ -74,13 +72,36 @@ export function AppointmentsTab({
     }
   }
 
+  const rows = byStatus[subTab];
+
   return (
     <div className="px-5 py-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wider text-gray-400 font-medium">
-          {data?.length ?? 0} cuộc hẹn
-        </div>
+      {/* Tab con: Chờ duyệt | Đã duyệt */}
+      <div className="flex gap-1 border-b border-gray-200">
+        {SUB_TABS.map((t) => {
+          const isActive = t.key === subTab;
+          const count = byStatus[t.key].length;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setSubTab(t.key)}
+              data-agent-ref={`appointment-subtab:${t.key}`}
+              data-agent-role="tab"
+              data-agent-label={t.label}
+              data-agent-active={isActive ? "true" : undefined}
+              className={`text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
+                isActive
+                  ? "border-[#087E8B] text-gray-900 font-medium"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {t.label} · {count}
+            </button>
+          );
+        })}
       </div>
+
       {loading && (
         <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
       )}
@@ -89,8 +110,13 @@ export function AppointmentsTab({
           {error}
         </div>
       )}
+      {!loading && rows.length === 0 && (
+        <div className="text-sm text-gray-400 text-center py-4">
+          Không có lịch hẹn nào.
+        </div>
+      )}
       <ul className="space-y-2">
-        {(data ?? []).map((a) => (
+        {rows.map((a) => (
           <li
             key={a.id}
             className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
@@ -99,18 +125,11 @@ export function AppointmentsTab({
               <div className="text-xs text-gray-500 font-medium tabular-nums">
                 {fmt(a.scheduledAt)}
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {a.doctorId === "" && (
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset bg-purple-50 text-purple-700 ring-purple-200">
-                    Hàng chờ chung
-                  </span>
-                )}
-                <span
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_STYLES[a.status]}`}
-                >
-                  {a.status}
+              {a.doctorId === "" && (
+                <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset bg-purple-50 text-purple-700 ring-purple-200">
+                  Hàng chờ chung
                 </span>
-              </div>
+              )}
             </div>
             <div className="mt-1 text-sm text-gray-900 font-medium">
               {a.patientName ? `${a.patientName} · ${a.patientId}` : a.patientId}
@@ -118,63 +137,37 @@ export function AppointmentsTab({
             <div className="mt-0.5 text-xs text-gray-500 line-clamp-2">
               {a.reason}
             </div>
-            {a.status !== "Thành công" && (
-              <div className="mt-2 flex items-center justify-end gap-1.5">
-                {a.status === "Chờ duyệt" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => handleAccept(a.id, a.patientId)}
-                    data-agent-ref={`appointment:${a.id}:approve`}
-                    data-agent-role="button"
-                    data-agent-label={`Duyệt lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
-                  >
-                    {a.doctorId === "" ? "Nhận" : "Duyệt"}
-                  </button>
-                )}
-                {a.status === "Đã duyệt" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => handleStatus(a.id, "Thành công")}
-                    data-agent-ref={`appointment:${a.id}:complete`}
-                    data-agent-role="button"
-                    data-agent-label={`Hoàn tất lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-                  >
-                    Hoàn tất
-                  </button>
-                )}
-                {a.doctorId !== "" && (
-                  <button
-                    type="button"
-                    disabled={busy === a.id}
-                    onClick={() => setConfirmId(a.id)}
-                    data-agent-ref={`appointment:${a.id}:cancel`}
-                    data-agent-role="button"
-                    data-agent-label={`Huỷ lịch hẹn ${a.id}`}
-                    className="text-[11px] px-2 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    Huỷ
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="mt-2 flex items-center justify-end gap-1.5">
+              {subTab === "pending" && (
+                <button
+                  type="button"
+                  disabled={busy === a.id}
+                  onClick={() => handleAccept(a.id, a.patientId)}
+                  data-agent-ref={`appointment:${a.id}:approve`}
+                  data-agent-role="button"
+                  data-agent-label={`Duyệt lịch hẹn ${a.id}`}
+                  className="text-[11px] px-2 py-1 rounded-md border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+                >
+                  {a.doctorId === "" ? "Nhận" : "Duyệt"}
+                </button>
+              )}
+              {subTab === "approved" && (
+                <button
+                  type="button"
+                  disabled={busy === a.id}
+                  onClick={() => handleRevert(a.id)}
+                  data-agent-ref={`appointment:${a.id}:cancel`}
+                  data-agent-role="button"
+                  data-agent-label={`Huỷ duyệt lịch hẹn ${a.id}`}
+                  className="text-[11px] px-2 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  Huỷ
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
-
-      <ConfirmModal
-        open={confirmId !== null}
-        title="Huỷ lịch hẹn"
-        message={`Bạn có chắc muốn huỷ lịch hẹn ${confirmId ?? ""}?`}
-        confirmLabel="Huỷ lịch"
-        cancelLabel="Đóng"
-        busy={busy !== null && busy === confirmId}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmId(null)}
-      />
     </div>
   );
 }

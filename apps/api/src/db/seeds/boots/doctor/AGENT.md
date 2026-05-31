@@ -117,11 +117,12 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │           ├─ lab-form:cancel              (button) "Huỷ"
 │           └─ lab-form:error               (alert) chỉ khi lỗi
 │
-├─ tab:appointments                         (tab) "Lịch hẹn" — CHỈ XEM/duyệt, KHÔNG tạo
+├─ tab:appointments                         (tab) "Lịch hẹn" — CHỈ XEM/duyệt, KHÔNG tạo. Có 2 tab con.
 │   └─(click tab:appointments)── tab Lịch hẹn
-│       ├─ appointment:<id>:approve         (button, ĐỘNG) chỉ khi "Chờ duyệt" (Nhận nếu hàng chờ chung)
-│       ├─ appointment:<id>:complete        (button, ĐỘNG) chỉ khi "Đã duyệt"
-│       └─ appointment:<id>:cancel          (button, ĐỘNG) khi chưa "Thành công" → ConfirmModal
+│       ├─ appointment-subtab:pending       (tab) "Chờ duyệt" — mặc định; xếp theo giờ hẹn gần→xa
+│       ├─ appointment-subtab:approved      (tab) "Đã duyệt"
+│       ├─ appointment:<id>:approve         (button, ĐỘNG) ở tab Chờ duyệt — "Duyệt" (hoặc "Nhận" nếu hàng chờ chung) → Đã duyệt
+│       └─ appointment:<id>:cancel          (button, ĐỘNG) ở tab Đã duyệt — "Huỷ" → quay về Chờ duyệt (không xoá, không ConfirmModal)
 │
 └─ tab:drug-check                           (tab) "Tương tác thuốc"
     └─(click tab:drug-check)── tab Tương tác thuốc
@@ -130,13 +131,13 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
         ├─ drug-check:result                (alert) hiện sau khi kiểm tra — đọc để biết kết quả
         └─ drug-check:error                 (alert) khi lỗi
 
-ConfirmModal (ẩn; mở khi click một nút Xoá/Huỷ ở trên:
-              patient:<id>:delete · lab:<index>:delete · appointment:<id>:cancel)
+ConfirmModal (ẩn; mở khi click một nút Xoá ở trên:
+              patient:<id>:delete · lab:<index>:delete)
 ├─ confirm:ok                               (button) xác nhận — hành động bất khả hồi CHỈ chạy sau bước này
 └─ confirm:cancel                           (button) đóng, không làm gì
 ```
 
-Hành động bất khả hồi (xoá hồ sơ/xét nghiệm, huỷ lịch) chỉ thực hiện qua `confirm:ok`, và chỉ khi bác sĩ đã yêu cầu rõ ràng.
+Hành động bất khả hồi (xoá hồ sơ/xét nghiệm) chỉ thực hiện qua `confirm:ok`, và chỉ khi bác sĩ đã yêu cầu rõ ràng. (Huỷ duyệt lịch hẹn KHÔNG bất khả hồi — chỉ đưa về Chờ duyệt, không cần ConfirmModal.)
 
 # Quy tắc chung
 
