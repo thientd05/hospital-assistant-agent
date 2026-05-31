@@ -56,6 +56,8 @@ type Props = {
   onSelectPatient: (id: string | null) => void;
   bumpTab: (tab: WorkspaceTab) => void;
   patientFormControl?: PatientFormControl;
+  /** Bác sĩ duyệt/nhận lịch hẹn → chuyển sang chat trực tiếp với BN đó. */
+  onAcceptAppointment?: (patientId: string) => void;
 };
 
 export function WorkspacePanel({
@@ -70,6 +72,7 @@ export function WorkspacePanel({
   onSelectPatient,
   bumpTab,
   patientFormControl,
+  onAcceptAppointment,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -246,6 +249,7 @@ export function WorkspacePanel({
               version={versions.appointments}
               active={isOpen && activeTab === "appointments"}
               onChanged={onChanged}
+              onAccepted={onAcceptAppointment}
             />
           )}
           {role === "doctor" && activeTab === "drug-check" && <DrugCheckTab />}

@@ -138,6 +138,28 @@ export default function ChatPage() {
     [chat, aiList, chatMode]
   );
 
+  // Bác sĩ duyệt/nhận lịch hẹn → mở ngay đoạn chat trực tiếp với BN đó.
+  // Lần đầu ghép cặp: thread chưa có cache → selectConversation hiện "đang tải"
+  // rồi nạp thread (rỗng) khi xong; đã ghép trước đó → có cache, chuyển tức thì.
+  const goToDirectChat = useCallback(
+    (patientId: string) => {
+      if (!isDoctor || chat.isStreaming) return;
+      // Ghi trước để effect [chatMode] + persistence chọn đúng BN.
+      savedConvIdsRef.current.patient = patientId;
+      setMobileView("chat");
+      if (chatMode === "patient") {
+        // Đã ở chế độ tin nhắn → đổi thread + làm mới danh sách (BN mới xuất hiện).
+        directList.refresh();
+        chat.selectConversation(patientId);
+      } else {
+        // Đổi sang chế độ tin nhắn; effect [chatMode] tự chọn savedConvIdsRef.current.patient,
+        // và useDirectThreads tự refresh khi enabled bật.
+        setChatMode("patient");
+      }
+    },
+    [isDoctor, chat, chatMode, directList]
+  );
+
   const handleChatModeChange = useCallback(
     (mode: ChatMode) => {
       if (chat.isStreaming) return;
@@ -287,6 +309,7 @@ export default function ChatPage() {
         onTabChange={workspace.setTab}
         onSelectPatient={workspace.selectPatient}
         bumpTab={workspace.bumpTab}
+        onAcceptAppointment={isDoctor ? goToDirectChat : undefined}
         patientFormControl={
           role === "doctor"
             ? {

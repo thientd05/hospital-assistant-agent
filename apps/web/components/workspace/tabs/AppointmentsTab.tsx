@@ -17,9 +17,16 @@ type Props = {
   version: number;
   active: boolean;
   onChanged: () => void;
+  /** Sau khi duyệt/nhận → chuyển sang đoạn chat trực tiếp với BN này. */
+  onAccepted?: (patientId: string) => void;
 };
 
-export function AppointmentsTab({ version, active, onChanged }: Props) {
+export function AppointmentsTab({
+  version,
+  active,
+  onChanged,
+  onAccepted,
+}: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -37,12 +44,14 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
     }
   }
   // Duyệt/nhận lịch (gồm cả hàng chờ chung): ai duyệt trước thì nhận bệnh nhân.
-  async function handleAccept(id: string) {
+  async function handleAccept(id: string, patientId: string) {
     setBusy(id);
     try {
       await appointmentsApi.accept(id);
       refetch();
       onChanged();
+      // Đã nhận BN → mở đoạn chat trực tiếp với họ ngay.
+      onAccepted?.(patientId);
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     } finally {
@@ -115,7 +124,7 @@ export function AppointmentsTab({ version, active, onChanged }: Props) {
                   <button
                     type="button"
                     disabled={busy === a.id}
-                    onClick={() => handleAccept(a.id)}
+                    onClick={() => handleAccept(a.id, a.patientId)}
                     data-agent-ref={`appointment:${a.id}:approve`}
                     data-agent-role="button"
                     data-agent-label={`Duyệt lịch hẹn ${a.id}`}
