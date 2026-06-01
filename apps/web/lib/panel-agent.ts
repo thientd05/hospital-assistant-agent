@@ -10,7 +10,7 @@ const ELEMENT_ATTR = "data-agent-ref";
 // Delay between steps so the user can watch the agent operate. Giữ NHỎ: trên
 // serverless (Vercel Hobby, function 60s) cả lượt agent phải gói trong 60s, nên
 // mỗi batch `act` cần chạy nhanh — một batch đặt lịch ~8 bước × 120ms ≈ 1s.
-const STEP_DELAY_MS = 120;
+const STEP_DELAY_MS = 200;
 const ELEMENT_WAIT_MS = 1500;
 // Chờ nút submit hết "busy" (đang gọi REST). 6s đủ cho Atlas; nhỏ hơn 8s cũ để
 // không ngốn ngân sách 60s khi mạng chậm.
