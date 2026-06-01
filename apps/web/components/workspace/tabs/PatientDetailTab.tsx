@@ -478,7 +478,7 @@ export function PatientDetailTab({
           value={draft.diagnoses}
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full text-[#087E8B]"
+          className="ws-input-sm w-full !text-[#087E8B]"
           data-agent-ref="patient-detail:diagnoses"
           data-agent-role="textbox"
           data-agent-label="Chẩn đoán"
@@ -501,7 +501,7 @@ export function PatientDetailTab({
           value={draft.medications}
           onChange={(e) => updateDraft("medications", e.target.value)}
           placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full text-[#087E8B]"
+          className="ws-input-sm w-full !text-[#087E8B]"
           data-agent-ref="patient-detail:medications"
           data-agent-role="textbox"
           data-agent-label="Thuốc"
