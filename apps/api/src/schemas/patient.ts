@@ -9,20 +9,21 @@ export const VitalSchema = z
   })
   .partial();
 
-export const LabSchema = z.object({
-  name: z.string().min(1),
-  value: z.union([z.string(), z.number()]),
-  unit: z.string(),
-  referenceRange: z.string(),
-  isAbnormal: z.boolean(),
-  recordedAt: z
-    .union([z.string(), z.date()])
-    .optional()
-    .transform((v) => {
-      if (!v) return new Date();
-      return v instanceof Date ? v : new Date(v);
-    }),
-});
+// Bác sĩ CHỈ nhập tên + kết quả. Đơn vị, khoảng tham chiếu và cờ bất thường do
+// server tự suy từ danh mục (LAB_CATALOG) trong service — KHÔNG nhận từ client.
+export const LabSchema = z
+  .object({
+    name: z.string().min(1),
+    value: z.union([z.string(), z.number()]),
+    recordedAt: z
+      .union([z.string(), z.date()])
+      .optional()
+      .transform((v) => {
+        if (!v) return new Date();
+        return v instanceof Date ? v : new Date(v);
+      }),
+  })
+  .strict();
 
 export const HomeVitalSchema = z
   .object({

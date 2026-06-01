@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { LabResult } from "@pr_hospitalagent/types";
+import { LAB_CATALOG, findLabEntry } from "@pr_hospitalagent/types";
 import { useLabs, patientsApi } from "@/hooks/usePatients";
 import { useMyLabs } from "@/hooks/useMyLabs";
 import { ConfirmModal } from "@/components/sidebar/ConfirmModal";
@@ -199,31 +199,23 @@ function LabAddForm({
 }) {
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
-  const [unit, setUnit] = useState("");
-  const [referenceRange, setReferenceRange] = useState("");
-  const [isAbnormal, setIsAbnormal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const entry = name ? findLabEntry(name) : undefined;
+  const qualitative = entry?.normal !== undefined;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!name.trim() || !unit.trim() || !referenceRange.trim() || !value) {
-      setError("Cần nhập đủ các trường.");
+    if (!name.trim() || !value.trim()) {
+      setError("Chọn xét nghiệm và nhập kết quả.");
       return;
     }
-    const numeric = Number(value);
-    const lab: LabResult = {
-      name: name.trim(),
-      value: Number.isFinite(numeric) && value.trim() !== "" ? numeric : value,
-      unit: unit.trim(),
-      referenceRange: referenceRange.trim(),
-      isAbnormal,
-      recordedAt: new Date(),
-    };
     setSubmitting(true);
     try {
-      await patientsApi.addLab(patientId, lab);
+      // Chỉ gửi tên + kết quả; đơn vị/khoảng tham chiếu/bất thường do server suy.
+      await patientsApi.addLab(patientId, { name: name.trim(), value: value.trim() });
       onSaved();
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : String(e2));
@@ -240,63 +232,56 @@ function LabAddForm({
       <FormHeader title="Thêm xét nghiệm" />
       <div className="p-4 space-y-3.5">
       <Lbl label="Tên xét nghiệm">
-        <input
+        <select
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="ws-input"
           required
           data-agent-ref="lab-form:name"
-          data-agent-role="textbox"
+          data-agent-role="combobox"
           data-agent-label="Tên xét nghiệm"
-        />
+        >
+          <option value="">— Chọn xét nghiệm —</option>
+          {LAB_CATALOG.map((e) => (
+            <option key={e.name} value={e.name}>
+              {e.name}
+              {e.unit ? ` (${e.unit})` : ""}
+            </option>
+          ))}
+        </select>
       </Lbl>
-      <div className="grid grid-cols-2 gap-3">
-        <Lbl label="Kết quả">
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="ws-input"
-            required
-            data-agent-ref="lab-form:value"
-            data-agent-role="textbox"
-            data-agent-label="Kết quả"
-          />
-        </Lbl>
-        <Lbl label="Đơn vị">
-          <input
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            className="ws-input"
-            required
-            data-agent-ref="lab-form:unit"
-            data-agent-role="textbox"
-            data-agent-label="Đơn vị"
-          />
-        </Lbl>
-      </div>
-      <Lbl label="Khoảng tham chiếu">
+      <Lbl label={qualitative ? "Kết quả" : "Kết quả (giá trị)"}>
         <input
-          value={referenceRange}
-          onChange={(e) => setReferenceRange(e.target.value)}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           className="ws-input"
           required
-          data-agent-ref="lab-form:referenceRange"
+          placeholder={
+            entry
+              ? qualitative
+                ? `vd: ${entry.normal}`
+                : `Đơn vị: ${entry.unit || "—"}`
+              : "Chọn xét nghiệm trước"
+          }
+          data-agent-ref="lab-form:value"
           data-agent-role="textbox"
-          data-agent-label="Khoảng tham chiếu"
+          data-agent-label="Kết quả"
         />
       </Lbl>
-      <label className="flex items-center gap-2 text-sm text-gray-700">
-        <input
-          type="checkbox"
-          checked={isAbnormal}
-          onChange={(e) => setIsAbnormal(e.target.checked)}
-          className="h-4 w-4 accent-[#087E8B]"
-          data-agent-ref="lab-form:isAbnormal"
-          data-agent-role="checkbox"
-          data-agent-label="Bất thường"
-        />
-        Bất thường
-      </label>
+      {entry && (
+        <div className="text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 space-y-0.5">
+          <div>
+            Đơn vị: <span className="text-gray-700">{entry.unit || "—"}</span>
+          </div>
+          <div>
+            Khoảng tham chiếu:{" "}
+            <span className="text-gray-700">{entry.referenceRange}</span>
+          </div>
+          <div className="text-gray-400">
+            Hệ thống tự xác định bất thường theo khoảng tham chiếu.
+          </div>
+        </div>
+      )}
       {error && (
         <FormError agentRef="lab-form:error" agentLabel="Lỗi form xét nghiệm">
           {error}

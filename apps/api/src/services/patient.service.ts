@@ -1,7 +1,8 @@
-import type {
-  LabResult,
-  Patient,
-  PatientPublic,
+import {
+  computeLab,
+  type LabResult,
+  type Patient,
+  type PatientPublic,
 } from "@pr_hospitalagent/types";
 import { hashPassword } from "@pr_hospitalagent/api-shared";
 import { patientRepo } from "../repositories/patient.repo.ts";
@@ -102,7 +103,8 @@ export const patientService = {
   },
 
   async addLab(id: string, input: LabInput) {
-    const lab = input as LabResult;
+    // Server tự suy đơn vị / khoảng tham chiếu / cờ bất thường từ danh mục.
+    const lab = computeLab(input.name, input.value, input.recordedAt);
     const ok = await patientRepo.pushLab(id, lab);
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     return { ok: true, lab };

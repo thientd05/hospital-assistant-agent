@@ -61,7 +61,8 @@ export function useLabs(
 export const patientsApi = {
   update: (id: string, body: PatientUpdateInput) =>
     http.patch<PatientPublic>(`/api/patients/${id}`, body),
-  addLab: (id: string, lab: LabResult) =>
+  // Chỉ gửi tên + kết quả; server tự suy đơn vị/khoảng tham chiếu/bất thường.
+  addLab: (id: string, lab: { name: string; value: number | string }) =>
     http.post<{ ok: boolean; lab: LabResult }>(
       `/api/patients/${id}/labs`,
       lab

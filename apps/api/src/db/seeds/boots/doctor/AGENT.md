@@ -90,11 +90,9 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │       ├─ lab:add                          (button) "+ Thêm" — chỉ hiện khi form đóng
 │       ├─ lab:<index>:delete               (button, ĐỘNG) → mở ConfirmModal
 │       └─(click lab:add)── form Thêm xét nghiệm (ẩn mặc định)
-│           ├─ lab-form:name                (textbox)
-│           ├─ lab-form:value               (textbox)
-│           ├─ lab-form:unit                (textbox)
-│           ├─ lab-form:referenceRange      (textbox)
-│           ├─ lab-form:isAbnormal          (checkbox) bất thường
+│           ├─ lab-form:name                (combobox) chọn tên XN trong danh mục
+│           ├─ lab-form:value               (textbox) kết quả — chỉ tên + kết quả,
+│           │                                đơn vị/tham chiếu/bất thường máy tự suy
 │           ├─ lab-form:submit              (button) "Lưu"
 │           ├─ lab-form:cancel              (button) "Huỷ"
 │           └─ lab-form:error               (alert) chỉ khi lỗi
