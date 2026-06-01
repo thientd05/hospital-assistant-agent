@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-
-// Sau khi tích thuốc xong, GIỮ form mở thêm 1 giây trước khi lưu+đóng, để bác sĩ
-// kịp quan sát lựa chọn của agent (engine panel chờ `data-agent-busy` này hết).
-const SAVE_HOLD_MS = 1000;
 import type { Medication, MedicationCategory } from "@pr_hospitalagent/types";
+
+// Khi agent tích một thuốc đang KHUẤT khỏi tầm nhìn (nằm dưới danh sách), diễn
+// hoạt cho bác sĩ quan sát: cuộn tới → CHỜ rồi mới tích (hiệu ứng "sáng lên") →
+// nán lại một chút. `data-agent-busy` giữ cho engine panel chờ hết chuỗi này mới
+// chạy bước kế (tích thuốc tiếp theo / lưu form). Thuốc đang hiện thì tích ngay.
+const SCROLL_WAIT_MS = 1000; // cuộn xong, chờ 1s cho bác sĩ nhìn rồi mới tích
+const CLICK_LINGER_MS = 700; // tích xong nán lại để kịp thấy hiệu ứng click
 
 // Thứ tự nhóm hiển thị (nhóm lạ rơi xuống cuối). Trong mỗi nhóm sắp theo TÊN.
 const CATEGORY_ORDER: MedicationCategory[] = [
@@ -45,15 +48,19 @@ export function MedicationPicker({
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
-  const [saving, setSaving] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // > 0 khi đang diễn hoạt chọn thuốc (cuộn + chờ); lộ ra data-agent-busy.
+  const [busy, setBusy] = useState(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Mỗi lần mở: nạp lại lựa chọn hiện tại + xoá ô tìm kiếm + bỏ trạng thái lưu.
+  // Mỗi lần mở: nạp lại lựa chọn hiện tại + xoá ô tìm kiếm + reset diễn hoạt.
   useEffect(() => {
     if (open) {
       setSelected(new Set(initialSelected));
       setQuery("");
-      setSaving(false);
+      setBusy(0);
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -61,17 +68,10 @@ export function MedicationPicker({
   // Dọn timer nếu component unmount giữa chừng.
   useEffect(
     () => () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
+      timers.current.forEach(clearTimeout);
     },
     []
   );
-
-  // Giữ form mở 1s rồi mới commit (để bác sĩ kịp thấy thuốc vừa được tích/cuộn tới).
-  function handleSave() {
-    if (saving) return;
-    setSaving(true);
-    saveTimer.current = setTimeout(() => onSave([...selected]), SAVE_HOLD_MS);
-  }
 
   // Gom nhóm + sắp theo tên + lọc theo từ khoá.
   const groups = useMemo(() => {
@@ -111,9 +111,36 @@ export function MedicationPicker({
     });
   }
 
+  // Phần tử có đang nằm trong vùng nhìn thấy của danh sách cuộn không?
+  function isInView(el: HTMLElement): boolean {
+    const container = scrollRef.current;
+    if (!container) return true;
+    const r = el.getBoundingClientRect();
+    const c = container.getBoundingClientRect();
+    return r.top >= c.top && r.bottom <= c.bottom;
+  }
+
+  // Thuốc khuất tầm nhìn: cuộn tới → chờ → mới tích → nán lại (giữ busy suốt).
+  function selectWithReveal(name: string, label: HTMLElement) {
+    label.scrollIntoView({ behavior: "smooth", block: "center" });
+    setBusy((n) => n + 1);
+    const t1 = setTimeout(() => {
+      toggle(name);
+      const t2 = setTimeout(
+        () => setBusy((n) => Math.max(0, n - 1)),
+        CLICK_LINGER_MS
+      );
+      timers.current.push(t2);
+    }, SCROLL_WAIT_MS);
+    timers.current.push(t1);
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="flex w-full max-w-[520px] max-h-[85dvh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+      <div
+        className="flex w-full max-w-[520px] max-h-[85dvh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+        data-agent-busy={busy > 0 ? "true" : undefined}
+      >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-gray-100">
           <div>
@@ -151,7 +178,7 @@ export function MedicationPicker({
         </div>
 
         {/* Danh sách thuốc theo nhóm */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           {groups.length === 0 ? (
             <div className="text-sm text-gray-400 text-center py-6">
               Không tìm thấy thuốc phù hợp.
@@ -174,13 +201,15 @@ export function MedicationPicker({
                         className="peer sr-only"
                         checked={selected.has(m.name)}
                         onChange={(e) => {
-                          toggle(m.name);
-                          // Khi agent tích thuốc nằm khuất bên dưới, tự cuộn tới
-                          // đúng thuốc đó để bác sĩ quan sát được lựa chọn.
-                          e.currentTarget.parentElement?.scrollIntoView({
-                            behavior: "smooth",
-                            block: "center",
-                          });
+                          const label = e.currentTarget
+                            .parentElement as HTMLElement | null;
+                          // Đang hiện (người dùng, hoặc thuốc trong tầm nhìn) →
+                          // tích ngay. Khuất → cuộn tới rồi mới tích để bác sĩ thấy.
+                          if (!label || isInView(label)) {
+                            toggle(m.name);
+                          } else {
+                            selectWithReveal(m.name, label);
+                          }
                         }}
                         data-agent-ref={`med-picker:med:${m.id}`}
                         data-agent-role="checkbox"
@@ -202,7 +231,6 @@ export function MedicationPicker({
           <button
             type="button"
             onClick={onClose}
-            disabled={saving}
             className="ws-btn-ghost"
             data-agent-ref="med-picker:cancel-btn"
             data-agent-role="button"
@@ -212,15 +240,13 @@ export function MedicationPicker({
           </button>
           <button
             type="button"
-            onClick={handleSave}
-            disabled={saving}
+            onClick={() => onSave([...selected])}
             className="ws-btn-primary"
             data-agent-ref="med-picker:save"
             data-agent-role="button"
             data-agent-label="Lưu thuốc đã chọn"
-            data-agent-busy={saving ? "true" : undefined}
           >
-            {saving ? "Đang lưu…" : "Lưu"}
+            Lưu
           </button>
         </div>
       </div>
