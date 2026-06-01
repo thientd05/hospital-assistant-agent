@@ -6,7 +6,6 @@ import type { ToolCall } from "@pr_hospitalagent/types";
 // Tên tool hiển thị bằng tiếng Việt
 const TOOL_LABELS: Record<string, string> = {
   read_skill: "Đọc kỹ năng",
-  open_panel: "Mở cửa sổ làm việc",
   read_panel: "Đọc cửa sổ làm việc",
   act: "Thao tác",
 };

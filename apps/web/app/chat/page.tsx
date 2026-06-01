@@ -59,7 +59,8 @@ export default function ChatPage() {
   const executeToolCommand = useCallback(
     async (command: string, rawArgs: unknown): Promise<unknown> => {
       const args = (rawArgs ?? {}) as Record<string, unknown>;
-      if (command === "open_panel") {
+      if (command === "read_panel") {
+        // Luôn đọc được panel: nếu đang đóng thì tự mở. Tuỳ chọn chuyển tab.
         openPanel();
         // Mobile: đưa panel lên full-screen để bác sĩ thấy agent thao tác.
         setMobileView("panel");
@@ -74,9 +75,6 @@ export default function ChatPage() {
         await waitForRoot();
         // Cho React render xong nội dung tab vừa chuyển trước khi chụp snapshot.
         await new Promise((r) => setTimeout(r, 200));
-        return buildSnapshot();
-      }
-      if (command === "read_panel") {
         return buildSnapshot();
       }
       if (command === "act") {

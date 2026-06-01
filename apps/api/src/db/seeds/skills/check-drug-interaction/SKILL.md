@@ -6,7 +6,7 @@ description: Kiểm tra tương tác giữa các thuốc (tab Tương tác thu�
 # Kiểm tra tương tác thuốc
 
 ## Chuỗi lệnh
-1. `open_panel({ tab: "drug-check" })`.
+1. `read_panel({ tab: "drug-check" })`.
 2. Gộp trong MỘT batch `act`:
    ```
    act({ actions: [

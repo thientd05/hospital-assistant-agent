@@ -5,8 +5,6 @@ import {
   type AuthRole,
 } from "./access.ts";
 import type { PanelClient } from "./panel-bridge.ts";
-import { definition as openPanelDef } from "./tools/open_panel/definitions.ts";
-import { handleOpenPanel } from "./tools/open_panel/handlers.ts";
 import { definition as readPanelDef } from "./tools/read_panel/definitions.ts";
 import { handleReadPanel } from "./tools/read_panel/handlers.ts";
 import { definition as actDef } from "./tools/act/definitions.ts";
@@ -18,7 +16,6 @@ import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handler
 import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
 
 const tools: Anthropic.Tool[] = [
-  openPanelDef,
   readPanelDef,
   actDef,
   readSkillDef,
@@ -90,8 +87,6 @@ async function dispatchTool(
   }
   try {
     switch (name) {
-      case "open_panel":
-        return await handleOpenPanel(input, panel);
       case "read_panel":
         return await handleReadPanel(input, panel);
       case "act":

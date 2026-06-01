@@ -26,7 +26,7 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
    tránh) → **lưu luôn** với những gì đã có (miễn là có TÊN), đừng ép hỏi tiếp.
 3. Lưu hồ sơ trong **MỘT batch `act`** (theo skill `collect-patient-info`):
    ```
-   open_panel({ tab: "my-record" })
+   read_panel({ tab: "my-record" })
    act({ actions: [
      { action: "click",  ref: "patient-detail:edit" },
      { action: "type",   ref: "patient-detail:name",    value: "<họ tên>" },
@@ -46,7 +46,7 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
 Khi đã có thời gian + lý do, làm trong **MỘT batch `act`**:
 
 ```
-open_panel({ tab: "my-appointments" })
+read_panel({ tab: "my-appointments" })
 act({ actions: [
   { action: "click",  ref: "appointment:create" },
   { action: "type",   ref: "booking-form:day",    value: "<DD>" },

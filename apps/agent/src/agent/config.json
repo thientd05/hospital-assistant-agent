@@ -1,7 +1,6 @@
 {
   "doctor": {
     "tools": [
-      "open_panel",
       "read_panel",
       "act",
       "read_skill",
@@ -15,7 +14,6 @@
   },
   "patient": {
     "tools": [
-      "open_panel",
       "read_panel",
       "act",
       "read_skill",

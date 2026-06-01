@@ -617,7 +617,7 @@ function ExpertMain() {
           description: Tạo bệnh nhân mới qua panel.
         </div>
         <div className="mt-2 text-slate-400">## Quy trình</div>
-        <div>1. <span className="text-brand-300">open_panel</span>(&quot;Bệnh nhân&quot;)</div>
+        <div>1. <span className="text-brand-300">read_panel</span>(&quot;Bệnh nhân&quot;)</div>
         <div>2. <span className="text-brand-300">act</span>([click <span className="text-amber-300">&quot;Tạo&quot;</span>, type họ tên…])</div>
         <div>3. Đọc snapshot xác nhận form đóng.</div>
       </div>
