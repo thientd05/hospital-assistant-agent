@@ -151,7 +151,15 @@ export function MedicationPicker({
                         type="checkbox"
                         className="peer sr-only"
                         checked={selected.has(m.name)}
-                        onChange={() => toggle(m.name)}
+                        onChange={(e) => {
+                          toggle(m.name);
+                          // Khi agent tích thuốc nằm khuất bên dưới, tự cuộn tới
+                          // đúng thuốc đó để bác sĩ quan sát được lựa chọn.
+                          e.currentTarget.parentElement?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        }}
                         data-agent-ref={`med-picker:med:${m.id}`}
                         data-agent-role="checkbox"
                         data-agent-label={m.name}
