@@ -5,12 +5,21 @@ import type { Revenue, RevenueSource } from "@pr_hospitalagent/types";
 import { useRevenue, revenueApi } from "@/hooks/useRevenue";
 import { RevenueForm } from "../forms/RevenueForm";
 import { formatVND, formatDate, formatPeriod } from "@/lib/format";
+import {
+  StatCard,
+  SectionTitle,
+  Chip,
+  Pill,
+  IdPill,
+  EmptyState,
+  ErrorBox,
+} from "@/components/admin/ui";
 
 const SOURCE_STYLES: Record<RevenueSource, string> = {
-  "Khám bệnh": "bg-teal-50 text-teal-700 ring-teal-200",
-  "Xét nghiệm": "bg-violet-50 text-violet-700 ring-violet-200",
-  "Bán thuốc": "bg-amber-50 text-amber-700 ring-amber-200",
-  "Dịch vụ khác": "bg-gray-100 text-gray-700 ring-gray-200",
+  "Khám bệnh": "bg-teal-50 text-teal-700 ring-1 ring-inset ring-teal-200",
+  "Xét nghiệm": "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200",
+  "Bán thuốc": "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+  "Dịch vụ khác": "bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-200",
 };
 
 const SOURCES: RevenueSource[] = [
@@ -68,7 +77,7 @@ export function RevenueTab({ version, active, onChanged }: Props) {
   );
   const scopeLabel = [
     periodFilter === "all" ? "Mọi kỳ" : formatPeriod(periodFilter),
-    filter === "all" ? null : filter,
+    filter === "all" ? "tất cả nguồn" : filter,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -88,21 +97,20 @@ export function RevenueTab({ version, active, onChanged }: Props) {
   }
 
   return (
-    <div className="px-5 py-4 space-y-3">
-      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-[#C8E7E9]/50 to-white px-4 py-3">
-        <div className="flex items-baseline justify-between gap-2">
-          <div className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">
-            Tổng doanh thu
-          </div>
-          <div className="text-[11px] text-gray-500">{scopeLabel}</div>
-        </div>
-        <div className="mt-0.5 text-2xl font-semibold text-[#087E8B] tabular-nums">
-          {formatVND(totalShown)}
-        </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <StatCard
+          label="Tổng doanh thu (đang lọc)"
+          value={formatVND(totalShown)}
+          subtitle={scopeLabel}
+          tone="accent"
+        />
+        <StatCard label="Số mục" value={String(filtered.length)} />
+        <StatCard label="Số kỳ" value={String(grouped.length)} />
       </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           <Chip active={filter === "all"} onClick={() => setFilter("all")}>
             Tất cả nguồn
           </Chip>
@@ -116,7 +124,7 @@ export function RevenueTab({ version, active, onChanged }: Props) {
           <select
             value={periodFilter}
             onChange={(e) => setPeriodFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-md px-2.5 py-1.5 bg-white"
+            className="ws-input w-auto"
           >
             <option value="all">Mọi kỳ</option>
             {periods.map((p) => (
@@ -128,63 +136,44 @@ export function RevenueTab({ version, active, onChanged }: Props) {
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
+            className="text-sm px-3 py-2 rounded-lg bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
           >
             + Tạo
           </button>
         </div>
       </div>
 
-      {loading && (
-        <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
-      )}
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
-        </div>
-      )}
+      {loading && <EmptyState>Đang tải…</EmptyState>}
+      {error && <ErrorBox>{error}</ErrorBox>}
 
       {grouped.map(([period, items]) => {
         const total = items.reduce((s, r) => s + r.amount, 0);
         return (
-          <section key={period} className="space-y-1.5">
-            <div className="flex items-baseline justify-between text-[11px] uppercase tracking-wider text-gray-400 font-medium">
-              <span>
-                {formatPeriod(period)} · {items.length} mục
-              </span>
-              <span className="text-[#087E8B] tabular-nums normal-case font-semibold">
-                {formatVND(total)}
-              </span>
-            </div>
-            <ul className="space-y-2">
+          <section key={period} className="space-y-2">
+            <SectionTitle right={formatVND(total)}>
+              {formatPeriod(period)} · {items.length} mục
+            </SectionTitle>
+            <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
               {items.map((r) => (
                 <li
                   key={r.id}
-                  className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${SOURCE_STYLES[r.source]}`}
-                      >
-                        {r.source}
-                      </span>
+                      <Pill className={SOURCE_STYLES[r.source]}>{r.source}</Pill>
                       <span className="text-sm text-gray-900 font-medium tabular-nums">
                         {formatVND(r.amount)}
                       </span>
                     </div>
-                    <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums">
-                      {r.id}
-                    </span>
+                    <IdPill>{r.id}</IdPill>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
                     <span>📅 {formatDate(r.date)}</span>
                     {r.patientId && <span>BN {r.patientId}</span>}
                   </div>
                   {r.notes && (
-                    <div className="mt-1 text-xs text-gray-500 italic">
-                      {r.notes}
-                    </div>
+                    <div className="mt-1 text-xs text-gray-500 italic">{r.notes}</div>
                   )}
                   <div className="mt-2 flex items-center justify-end gap-1.5">
                     <button
@@ -210,9 +199,7 @@ export function RevenueTab({ version, active, onChanged }: Props) {
         );
       })}
       {!loading && grouped.length === 0 && (
-        <div className="text-sm text-gray-400 text-center py-6">
-          Chưa có doanh thu nào.
-        </div>
+        <EmptyState>Chưa có doanh thu nào.</EmptyState>
       )}
 
       {showCreate && (
@@ -238,29 +225,5 @@ export function RevenueTab({ version, active, onChanged }: Props) {
         />
       )}
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
-        active
-          ? "bg-[#C8E7E9] border-[#C8E7E9] text-[#066671] font-medium"
-          : "border-gray-200 text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

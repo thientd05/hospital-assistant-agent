@@ -7,6 +7,14 @@ import { useExperts, expertsApi } from "@/hooks/useExperts";
 import { usePatients } from "@/hooks/usePatients";
 import { DoctorForm } from "../forms/DoctorForm";
 import { ExpertForm } from "../forms/ExpertForm";
+import {
+  StatCard,
+  Chip,
+  Pill,
+  IdPill,
+  EmptyState,
+  ErrorBox,
+} from "@/components/admin/ui";
 
 type Props = {
   version: number;
@@ -35,19 +43,19 @@ const ROLE_META: Record<
     label: "Bác sĩ",
     badge: "bg-sky-100 text-sky-700",
     dot: "bg-sky-500",
-    ring: "border-sky-200",
+    ring: "border-l-sky-400",
   },
   expert: {
     label: "Chuyên gia",
     badge: "bg-violet-100 text-violet-700",
     dot: "bg-violet-500",
-    ring: "border-violet-200",
+    ring: "border-l-violet-400",
   },
   patient: {
     label: "Bệnh nhân",
     badge: "bg-amber-100 text-amber-700",
     dot: "bg-amber-500",
-    ring: "border-amber-200",
+    ring: "border-l-amber-400",
   },
 };
 
@@ -170,96 +178,77 @@ export function AccountsTab({ version, active, onChanged }: Props) {
   ];
 
   return (
-    <div className="px-5 py-4 space-y-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard label="Tổng tài khoản" value={String(counts.all)} tone="accent" />
+        <StatCard label="Bác sĩ" value={String(counts.doctor)} />
+        <StatCard label="Chuyên gia" value={String(counts.expert)} />
+        <StatCard label="Bệnh nhân" value={String(counts.patient)} />
+      </div>
+
       <div className="flex items-center gap-2">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm theo tên, mã, khoa, lĩnh vực, SĐT, email…"
-          className="flex-1 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-[#087E8B]"
+          className="ws-input flex-1"
         />
         <button
           type="button"
           onClick={() => setShowCreate("doctor")}
-          className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] whitespace-nowrap"
+          className="text-sm px-3 py-2 rounded-lg bg-[#087E8B] text-white hover:bg-[#066671] whitespace-nowrap"
         >
           + Bác sĩ
         </button>
         <button
           type="button"
           onClick={() => setShowCreate("expert")}
-          className="text-sm px-3 py-1.5 rounded-md bg-violet-600 text-white hover:bg-violet-700 whitespace-nowrap"
+          className="text-sm px-3 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 whitespace-nowrap"
         >
           + Chuyên gia
         </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        {FILTERS.map((f) => {
-          const isActive = roleFilter === f.key;
-          return (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setRoleFilter(f.key)}
-              className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                isActive
-                  ? "border-[#087E8B] bg-[#C8E7E9] text-[#066671] font-medium"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {f.key !== "all" && (
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    ROLE_META[f.key].dot
-                  }`}
-                />
-              )}
-              {f.label}
-              <span className="tabular-nums text-gray-400">
-                {counts[f.key]}
-              </span>
-            </button>
-          );
-        })}
+        {FILTERS.map((f) => (
+          <Chip
+            key={f.key}
+            active={roleFilter === f.key}
+            onClick={() => setRoleFilter(f.key)}
+          >
+            {f.key !== "all" && (
+              <span className={`w-1.5 h-1.5 rounded-full ${ROLE_META[f.key].dot}`} />
+            )}
+            {f.label}
+            <span className="tabular-nums text-gray-400">{counts[f.key]}</span>
+          </Chip>
+        ))}
       </div>
 
-      {loading && (
-        <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
-      )}
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
-        </div>
-      )}
+      {loading && <EmptyState>Đang tải…</EmptyState>}
+      {error && <ErrorBox>{error}</ErrorBox>}
 
       <div className="text-[11px] uppercase tracking-wider text-gray-400 font-medium">
         {filtered.length} / {counts.all} tài khoản
       </div>
 
-      <ul className="space-y-2">
+      <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
         {filtered.map((a) => {
           const meta = ROLE_META[a.kind];
           const editable = a.kind === "patient" ? null : a.kind;
           return (
             <li
               key={`${a.kind}:${a.id}`}
-              className={`rounded-lg border-l-4 ${meta.ring} border border-gray-200 px-3 py-2.5 hover:bg-gray-50`}
+              className={`rounded-xl border border-gray-200 border-l-4 ${meta.ring} bg-white px-3 py-2.5 hover:bg-gray-50`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${meta.badge}`}
-                  >
-                    {meta.label}
-                  </span>
+                  <Pill className={meta.badge}>{meta.label}</Pill>
                   <span className="text-sm text-gray-900 font-medium truncate">
                     {a.name}
                   </span>
                 </div>
-                <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums">
-                  {a.id}
-                </span>
+                <IdPill>{a.id}</IdPill>
               </div>
               {a.subtitle && (
                 <div className="mt-0.5 text-xs text-gray-500">{a.subtitle}</div>
@@ -267,12 +256,9 @@ export function AccountsTab({ version, active, onChanged }: Props) {
               {a.tags.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {a.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-[11px] px-2 py-0.5 rounded-full bg-[#C8E7E9] text-[#087E8B]"
-                    >
+                    <Pill key={t} className="bg-[#C8E7E9] text-[#087E8B]">
                       {t}
-                    </span>
+                    </Pill>
                   ))}
                 </div>
               )}
@@ -304,6 +290,11 @@ export function AccountsTab({ version, active, onChanged }: Props) {
             </li>
           );
         })}
+        {!loading && filtered.length === 0 && (
+          <li className="col-span-full">
+            <EmptyState>Không có tài khoản phù hợp.</EmptyState>
+          </li>
+        )}
       </ul>
 
       {showCreate === "doctor" && (
@@ -353,4 +344,3 @@ export function AccountsTab({ version, active, onChanged }: Props) {
     </div>
   );
 }
-

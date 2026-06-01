@@ -23,6 +23,15 @@ import {
   formatDate,
   formatPeriod,
 } from "@/lib/format";
+import {
+  StatCard,
+  SectionTitle,
+  Chip,
+  Pill,
+  IdPill,
+  EmptyState,
+  ErrorBox,
+} from "@/components/admin/ui";
 
 type Props = {
   version: number;
@@ -34,11 +43,11 @@ type Category = "assets" | "utilities" | "payroll";
 
 const CATEGORY_META: Record<
   Category,
-  { label: string; accent: string; unitLabel: string }
+  { label: string; dot: string; unitLabel: string }
 > = {
-  assets: { label: "Cơ sở vật chất", accent: "#087E8B", unitLabel: "tài sản" },
-  utilities: { label: "Điện nước", accent: "#0284c7", unitLabel: "hoá đơn" },
-  payroll: { label: "Lương", accent: "#7c3aed", unitLabel: "bản lương" },
+  assets: { label: "Cơ sở vật chất", dot: "bg-[#087E8B]", unitLabel: "tài sản" },
+  utilities: { label: "Điện nước", dot: "bg-sky-500", unitLabel: "hoá đơn" },
+  payroll: { label: "Lương", dot: "bg-violet-500", unitLabel: "bản lương" },
 };
 
 export function ExpensesTab({ version, active, onChanged }: Props) {
@@ -86,17 +95,13 @@ export function ExpensesTab({ version, active, onChanged }: Props) {
     ];
 
   return (
-    <div className="px-5 py-4 space-y-4">
-      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-[#C8E7E9]/50 to-white px-4 py-3">
-        <div className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">
-          Tổng chi phí
-        </div>
-        <div className="mt-0.5 text-2xl font-semibold text-gray-900 tabular-nums">
-          {formatVND(summary.grandTotal)}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Tổng chi phí"
+          value={formatVND(summary.grandTotal)}
+          tone="accent"
+        />
         {cards.map((c) => {
           const meta = CATEGORY_META[c.key];
           const isActive = tab === c.key;
@@ -105,30 +110,27 @@ export function ExpensesTab({ version, active, onChanged }: Props) {
               key={c.key}
               type="button"
               onClick={() => setTab(c.key)}
-              className={`text-left rounded-lg border px-3 py-2.5 transition-all ${
+              className={`text-left rounded-xl border bg-white px-4 py-3 transition-colors ${
                 isActive
-                  ? "border-transparent ring-2 shadow-sm bg-white"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+                  ? "border-[#087E8B] ring-1 ring-[#087E8B]"
+                  : "border-gray-200 hover:bg-gray-50"
               }`}
-              style={isActive ? { boxShadow: `0 0 0 2px ${meta.accent}` } : undefined}
             >
               <div className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: meta.accent }}
-                />
-                <span className="text-xs font-medium text-gray-700 truncate">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${meta.dot}`} />
+                <span className="text-[11px] uppercase tracking-wider font-medium text-gray-500 truncate">
                   {meta.label}
                 </span>
               </div>
               <div
-                className="mt-1 text-lg font-semibold tabular-nums"
-                style={{ color: isActive ? meta.accent : "#111827" }}
+                className={`mt-1 text-2xl font-semibold tabular-nums leading-tight ${
+                  isActive ? "text-[#087E8B]" : "text-gray-900"
+                }`}
                 title={formatVND(c.total)}
               >
                 {formatVNDCompact(c.total)}
               </div>
-              <div className="mt-0.5 text-[11px] text-gray-400">
+              <div className="mt-0.5 text-[11px] text-gray-500">
                 {c.count} {meta.unitLabel}
                 {c.unpaid > 0 && (
                   <span className="ml-1 text-rose-600 font-medium">
@@ -141,13 +143,9 @@ export function ExpensesTab({ version, active, onChanged }: Props) {
         })}
       </div>
 
-      <div className="border-t border-gray-100 pt-3">
+      <div>
         {tab === "assets" && (
-          <AssetsPanel
-            data={assets}
-            items={assetItems}
-            onChanged={onChanged}
-          />
+          <AssetsPanel data={assets} items={assetItems} onChanged={onChanged} />
         )}
         {tab === "utilities" && (
           <UtilitiesPanel
@@ -157,11 +155,7 @@ export function ExpensesTab({ version, active, onChanged }: Props) {
           />
         )}
         {tab === "payroll" && (
-          <PayrollPanel
-            data={payroll}
-            items={payrollItems}
-            onChanged={onChanged}
-          />
+          <PayrollPanel data={payroll} items={payrollItems} onChanged={onChanged} />
         )}
       </div>
     </div>
@@ -175,39 +169,29 @@ type PanelState = { loading: boolean; error: string | null; refetch: () => void 
 function PanelStatus({ loading, error }: { loading: boolean; error: string | null }) {
   return (
     <>
-      {loading && (
-        <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
-      )}
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
-        </div>
-      )}
+      {loading && <EmptyState>Đang tải…</EmptyState>}
+      {error && <ErrorBox>{error}</ErrorBox>}
     </>
   );
 }
 
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function CreateButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
-        active
-          ? "bg-[#C8E7E9] border-[#C8E7E9] text-[#066671] font-medium"
-          : "border-gray-200 text-gray-600 hover:bg-gray-50"
-      }`}
+      className="text-sm px-3 py-2 rounded-lg bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
     >
-      {children}
+      + Tạo
     </button>
+  );
+}
+
+function ItemCard({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 hover:bg-gray-50">
+      {children}
+    </li>
   );
 }
 
@@ -242,9 +226,11 @@ function RowActions({
 }
 
 const STATUS_STYLES: Record<UtilityStatus | PayrollStatus, string> = {
-  "Chưa thanh toán": "bg-rose-50 text-rose-700 ring-rose-200",
-  "Đã thanh toán": "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  "Chưa thanh toán": "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
+  "Đã thanh toán": "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
 };
+
+const GRID = "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2.5";
 
 // ─── Assets ──────────────────────────────────────────────────────────────
 
@@ -255,10 +241,10 @@ const ASSET_CATEGORIES: AssetCategory[] = [
   "Khác",
 ];
 const CONDITION_STYLES: Record<AssetCondition, string> = {
-  "Tốt": "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Bình thường": "bg-blue-50 text-blue-700 ring-blue-200",
-  "Cần sửa": "bg-amber-50 text-amber-700 ring-amber-200",
-  "Hỏng": "bg-rose-50 text-rose-700 ring-rose-200",
+  "Tốt": "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+  "Bình thường": "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200",
+  "Cần sửa": "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+  "Hỏng": "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
 };
 
 function AssetsPanel({
@@ -297,7 +283,7 @@ function AssetsPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           <Chip active={filter === "all"} onClick={() => setFilter("all")}>
             Tất cả
           </Chip>
@@ -307,45 +293,28 @@ function AssetsPanel({
             </Chip>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
-        >
-          + Tạo
-        </button>
+        <CreateButton onClick={() => setShowCreate(true)} />
       </div>
 
       <PanelStatus loading={data.loading} error={data.error} />
 
-      <ul className="space-y-2">
+      <ul className={GRID}>
         {filtered.map((a) => (
-          <li
-            key={a.id}
-            className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
-          >
+          <ItemCard key={a.id}>
             <div className="flex items-start justify-between gap-2">
               <div className="text-sm text-gray-900 font-medium">{a.name}</div>
-              <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums">
-                {a.id}
-              </span>
+              <IdPill>{a.id}</IdPill>
             </div>
             <div className="mt-0.5 text-xs text-gray-500">
               {a.category} · {a.location}
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
               <span className="text-gray-700 font-medium tabular-nums">
                 {formatVND(a.purchasePrice)}
               </span>
               <span>📅 {formatDate(a.purchaseDate)}</span>
               <span>KH {a.depreciationYears} năm</span>
-              <span
-                className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${
-                  CONDITION_STYLES[a.condition]
-                }`}
-              >
-                {a.condition}
-              </span>
+              <Pill className={CONDITION_STYLES[a.condition]}>{a.condition}</Pill>
             </div>
             {a.notes && (
               <div className="mt-1 text-xs text-gray-500 italic">{a.notes}</div>
@@ -355,11 +324,11 @@ function AssetsPanel({
               onEdit={() => setEditing(a)}
               onDelete={() => handleDelete(a.id)}
             />
-          </li>
+          </ItemCard>
         ))}
         {!data.loading && filtered.length === 0 && (
-          <li className="text-sm text-gray-400 text-center py-6">
-            Chưa có tài sản nào.
+          <li className="col-span-full">
+            <EmptyState>Chưa có tài sản nào.</EmptyState>
           </li>
         )}
       </ul>
@@ -393,10 +362,10 @@ function AssetsPanel({
 // ─── Utilities ───────────────────────────────────────────────────────────
 
 const UTILITY_TYPE_STYLES: Record<UtilityType, string> = {
-  "Điện": "bg-amber-50 text-amber-700 ring-amber-200",
-  "Nước": "bg-blue-50 text-blue-700 ring-blue-200",
-  Internet: "bg-violet-50 text-violet-700 ring-violet-200",
-  Gas: "bg-orange-50 text-orange-700 ring-orange-200",
+  "Điện": "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
+  "Nước": "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200",
+  Internet: "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200",
+  Gas: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-200",
 };
 
 function UtilitiesPanel({
@@ -442,9 +411,9 @@ function UtilitiesPanel({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           <Chip active={filter === "all"} onClick={() => setFilter("all")}>
             Tất cả
           </Chip>
@@ -454,13 +423,7 @@ function UtilitiesPanel({
             </Chip>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
-        >
-          + Tạo
-        </button>
+        <CreateButton onClick={() => setShowCreate(true)} />
       </div>
 
       <PanelStatus loading={data.loading} error={data.error} />
@@ -468,65 +431,45 @@ function UtilitiesPanel({
       {grouped.map(([period, list]) => {
         const total = list.reduce((s, u) => s + u.amount, 0);
         return (
-          <section key={period} className="space-y-1.5">
-            <div className="flex items-baseline justify-between text-[11px] uppercase tracking-wider text-gray-400 font-medium">
-              <span>{formatPeriod(period)}</span>
-              <span className="text-gray-700 tabular-nums normal-case">
-                {formatVND(total)}
-              </span>
-            </div>
-            <ul className="space-y-2">
+          <section key={period} className="space-y-2">
+            <SectionTitle right={formatVND(total)}>
+              {formatPeriod(period)}
+            </SectionTitle>
+            <ul className={GRID}>
               {list.map((u) => (
-                <li
-                  key={u.id}
-                  className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
-                >
+                <ItemCard key={u.id}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${UTILITY_TYPE_STYLES[u.type]}`}
-                      >
-                        {u.type}
-                      </span>
+                      <Pill className={UTILITY_TYPE_STYLES[u.type]}>{u.type}</Pill>
                       <span className="text-sm text-gray-900 font-medium tabular-nums">
                         {formatVND(u.amount)}
                       </span>
                     </div>
-                    <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums">
-                      {u.id}
-                    </span>
+                    <IdPill>{u.id}</IdPill>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
                     <span>
                       {u.usage} {u.unit}
                     </span>
-                    <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_STYLES[u.status]}`}
-                    >
-                      {u.status}
-                    </span>
+                    <Pill className={STATUS_STYLES[u.status]}>{u.status}</Pill>
                     {u.paidDate && <span>📅 {formatDate(u.paidDate)}</span>}
                   </div>
                   {u.notes && (
-                    <div className="mt-1 text-xs text-gray-500 italic">
-                      {u.notes}
-                    </div>
+                    <div className="mt-1 text-xs text-gray-500 italic">{u.notes}</div>
                   )}
                   <RowActions
                     busy={busy === u.id}
                     onEdit={() => setEditing(u)}
                     onDelete={() => handleDelete(u.id)}
                   />
-                </li>
+                </ItemCard>
               ))}
             </ul>
           </section>
         );
       })}
       {!data.loading && grouped.length === 0 && (
-        <div className="text-sm text-gray-400 text-center py-6">
-          Chưa có hoá đơn nào.
-        </div>
+        <EmptyState>Chưa có hoá đơn nào.</EmptyState>
       )}
 
       {showCreate && (
@@ -616,12 +559,12 @@ function PayrollPanel({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <select
           value={periodFilter}
           onChange={(e) => setPeriodFilter(e.target.value)}
-          className="text-sm border border-gray-200 rounded-md px-2.5 py-1.5 bg-white"
+          className="ws-input w-auto"
         >
           <option value="all">Tất cả kỳ ({items.length})</option>
           {periods.map((p) => (
@@ -630,13 +573,7 @@ function PayrollPanel({
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="text-sm px-3 py-1.5 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] shrink-0"
-        >
-          + Tạo
-        </button>
+        <CreateButton onClick={() => setShowCreate(true)} />
       </div>
 
       <PanelStatus loading={data.loading} error={data.error} />
@@ -645,79 +582,57 @@ function PayrollPanel({
         const totalNet = list.reduce((s, p) => s + p.net, 0);
         const unpaid = list.filter((p) => p.status === "Chưa thanh toán").length;
         return (
-          <section key={period} className="space-y-1.5">
-            <div className="flex items-baseline justify-between text-[11px] uppercase tracking-wider text-gray-400 font-medium">
-              <span>
-                {formatPeriod(period)} · {list.length} người
-                {unpaid > 0 && (
-                  <span className="ml-1.5 text-rose-600 normal-case">
-                    ({unpaid} chưa thanh toán)
-                  </span>
-                )}
-              </span>
-              <span className="text-gray-700 tabular-nums normal-case">
-                {formatVND(totalNet)}
-              </span>
-            </div>
-            <ul className="space-y-2">
+          <section key={period} className="space-y-2">
+            <SectionTitle right={formatVND(totalNet)}>
+              {formatPeriod(period)} · {list.length} người
+              {unpaid > 0 && (
+                <span className="ml-1.5 text-rose-600 normal-case">
+                  ({unpaid} chưa thanh toán)
+                </span>
+              )}
+            </SectionTitle>
+            <ul className={GRID}>
               {list.map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
-                >
+                <ItemCard key={p.id}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="text-sm text-gray-900 font-medium">
                       {p.employeeName}
                     </div>
-                    <span className="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums">
-                      {p.id}
-                    </span>
+                    <IdPill>{p.id}</IdPill>
                   </div>
                   <div className="mt-0.5 text-xs text-gray-500">
                     {ROLE_LABEL[p.employeeRole] ?? p.employeeRole} · {p.employeeId}
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
                     <span className="text-gray-700 font-medium tabular-nums">
                       Thực nhận {formatVND(p.net)}
                     </span>
                     <span>CB {formatVND(p.baseSalary)}</span>
                     {p.bonus > 0 && (
-                      <span className="text-emerald-700">
-                        + {formatVND(p.bonus)}
-                      </span>
+                      <span className="text-emerald-700">+ {formatVND(p.bonus)}</span>
                     )}
                     {p.deduction > 0 && (
-                      <span className="text-rose-700">
-                        − {formatVND(p.deduction)}
-                      </span>
+                      <span className="text-rose-700">− {formatVND(p.deduction)}</span>
                     )}
-                    <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${STATUS_STYLES[p.status]}`}
-                    >
-                      {p.status}
-                    </span>
+                    <Pill className={STATUS_STYLES[p.status]}>{p.status}</Pill>
                     {p.paidDate && <span>📅 {formatDate(p.paidDate)}</span>}
                   </div>
                   {p.notes && (
-                    <div className="mt-1 text-xs text-gray-500 italic">
-                      {p.notes}
-                    </div>
+                    <div className="mt-1 text-xs text-gray-500 italic">{p.notes}</div>
                   )}
                   <RowActions
                     busy={busy === p.id}
                     onEdit={() => setEditing(p)}
                     onDelete={() => handleDelete(p.id)}
                   />
-                </li>
+                </ItemCard>
               ))}
             </ul>
           </section>
         );
       })}
       {!data.loading && grouped.length === 0 && (
-        <div className="text-sm text-gray-400 text-center py-6">
-          Chưa có bản lương nào.
-        </div>
+        <EmptyState>Chưa có bản lương nào.</EmptyState>
       )}
 
       {showCreate && (

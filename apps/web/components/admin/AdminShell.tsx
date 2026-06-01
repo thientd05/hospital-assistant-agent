@@ -6,6 +6,7 @@ import { AdminSidebar, type AdminNavItem } from "./AdminSidebar";
 export type AdminSectionRefresh = {
   version: number;
   bump: () => void;
+  navigate: (key: string) => void;
 };
 
 export type AdminSection = AdminNavItem & {
@@ -43,15 +44,16 @@ export function AdminShell({ title, sections }: Props) {
         activeKey={activeKey}
         onSelect={setActiveKey}
       />
-      <main className="flex-1 min-w-0 overflow-y-auto thin-scrollbar">
+      <main className="flex-1 min-w-0 overflow-y-auto thin-scrollbar bg-gray-50">
         {active && (
-          <div className="max-w-3xl mx-auto py-6 px-2">
-            <h1 className="text-lg font-semibold text-gray-900 px-3 mb-3">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6">
+            <h1 className="text-lg font-semibold text-gray-900 mb-4">
               {active.label}
             </h1>
             {active.render({
               version: versions[active.key] ?? 0,
               bump: () => bump(active.key),
+              navigate: setActiveKey,
             })}
           </div>
         )}

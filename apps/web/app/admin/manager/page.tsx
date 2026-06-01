@@ -7,6 +7,7 @@ import {
   AdminShell,
   type AdminSection,
 } from "@/components/admin/AdminShell";
+import { OverviewTab } from "@/components/workspace/tabs/OverviewTab";
 import { StatsTab } from "@/components/workspace/tabs/StatsTab";
 import { AccountsTab } from "@/components/workspace/tabs/AccountsTab";
 import { ExpensesTab } from "@/components/workspace/tabs/ExpensesTab";
@@ -37,13 +38,20 @@ export default function ManagerAdminPage() {
 
   const sections: AdminSection[] = [
     {
+      key: "overview",
+      label: "Tổng quan",
+      render: ({ version, navigate }) => (
+        <OverviewTab version={version} active={true} navigate={navigate} />
+      ),
+    },
+    {
       key: "stats",
       label: "Thống kê",
       render: ({ version }) => <StatsTab version={version} active={true} />,
     },
     {
       key: "accounts",
-      label: "Quản lý tài khoản",
+      label: "Tài khoản",
       render: ({ version, bump }) => (
         <AccountsTab version={version} active={true} onChanged={bump} />
       ),
