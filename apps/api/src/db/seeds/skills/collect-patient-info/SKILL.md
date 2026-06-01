@@ -10,8 +10,9 @@ han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không t
 
 ## Chuỗi lệnh
 1. `read_panel({ tab: "my-record" })`. Đọc snapshot xem trường nào đã có / còn trống.
-2. Hỏi bệnh nhân những thông tin còn thiếu (họ tên, tuổi, giới tính, địa chỉ, SĐT).
-   Chỉ điền khi bệnh nhân đã cung cấp — KHÔNG suy diễn.
+2. Hỏi bệnh nhân những thông tin còn thiếu (họ tên, tuổi, giới tính, địa chỉ).
+   **KHÔNG hỏi SĐT** — đã có sẵn (tài khoản đăng nhập); chỉ điền `patient-detail:phone`
+   khi bệnh nhân **chủ động** muốn đổi số. Chỉ điền khi bệnh nhân đã cung cấp — KHÔNG suy diễn.
 3. Vào chế độ sửa, điền đúng các trường có dữ liệu trong MỘT batch `act`:
    ```
    act({ actions: [
@@ -20,11 +21,11 @@ han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không t
      { action: "type",   ref: "patient-detail:age",     value: "<tuổi>" },
      { action: "select", ref: "patient-detail:gender",  value: "Nam" },
      { action: "type",   ref: "patient-detail:address", value: "<địa chỉ>" },
-     { action: "type",   ref: "patient-detail:phone",   value: "<số điện thoại>" },
      { action: "click",  ref: "patient-detail:save" }
    ]})
    ```
    Chỉ `type`/`select` trường nào bệnh nhân vừa cung cấp; bỏ qua trường chưa có.
+   **Bỏ qua `patient-detail:phone`** trừ khi bệnh nhân chủ động muốn đổi số (đã có sẵn).
 4. Form đóng = đã lưu.
 
 ## Ràng buộc QUAN TRỌNG

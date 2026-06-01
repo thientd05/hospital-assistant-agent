@@ -125,6 +125,17 @@ export default function ChatPage() {
     return aiList.conversations;
   }, [chatMode, directList.threads, aiList.conversations]);
 
+  // Mode "ai": có hội thoại đang chọn là đủ. Mode "tin nhắn": chỉ coi là đã chọn
+  // khi đối phương THỰC SỰ nằm trong danh sách thread (đã ghép cặp) — tránh ô nhập
+  // trỏ vào đối phương "ma" (id cũ khôi phục từ localStorage khi chưa ai ghép cặp).
+  const hasSelection = useMemo(() => {
+    if (chat.conversationId === null) return false;
+    if (chatMode !== "patient") return true;
+    return directList.threads.some(
+      (t) => t.counterpartId === chat.conversationId
+    );
+  }, [chatMode, chat.conversationId, directList.threads]);
+
   const handleDelete = useCallback(
     async (id: string) => {
       if (chatMode !== "ai") return;
@@ -290,7 +301,7 @@ export default function ChatPage() {
             : undefined
         }
         chatMode={chatMode}
-        hasSelection={chat.conversationId !== null}
+        hasSelection={hasSelection}
         onOpenSidebar={() => setMobileView("sidebar")}
       />
       <WorkspacePanel

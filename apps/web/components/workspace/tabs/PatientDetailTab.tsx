@@ -82,7 +82,7 @@ function toDraft(p: PatientPublic): Draft {
     medications: p.medications.join(", "),
     spO2: String(p.vitals.spO2),
     heartRate: String(p.vitals.heartRate),
-    bloodPressure: p.vitals.bloodPressure,
+    bloodPressure: p.vitals.bloodPressure?.trim() ? p.vitals.bloodPressure : "0",
     temperature: String(p.vitals.temperature),
   };
 }
@@ -455,7 +455,6 @@ export function PatientDetailTab({
             <input
               value={draft.bloodPressure}
               onChange={(e) => updateDraft("bloodPressure", e.target.value)}
-              placeholder="120/80"
               className={INLINE_INPUT}
               data-agent-ref="patient-detail:bloodPressure"
               data-agent-role="textbox"
