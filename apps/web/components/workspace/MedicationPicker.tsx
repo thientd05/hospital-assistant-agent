@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+// Sau khi tích thuốc xong, GIỮ form mở thêm 1 giây trước khi lưu+đóng, để bác sĩ
+// kịp quan sát lựa chọn của agent (engine panel chờ `data-agent-busy` này hết).
+const SAVE_HOLD_MS = 1000;
 import type { Medication, MedicationCategory } from "@pr_hospitalagent/types";
 
 // Thứ tự nhóm hiển thị (nhóm lạ rơi xuống cuối). Trong mỗi nhóm sắp theo TÊN.
@@ -41,15 +45,33 @@ export function MedicationPicker({
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
+  const [saving, setSaving] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Mỗi lần mở: nạp lại lựa chọn hiện tại + xoá ô tìm kiếm.
+  // Mỗi lần mở: nạp lại lựa chọn hiện tại + xoá ô tìm kiếm + bỏ trạng thái lưu.
   useEffect(() => {
     if (open) {
       setSelected(new Set(initialSelected));
       setQuery("");
+      setSaving(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Dọn timer nếu component unmount giữa chừng.
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    },
+    []
+  );
+
+  // Giữ form mở 1s rồi mới commit (để bác sĩ kịp thấy thuốc vừa được tích/cuộn tới).
+  function handleSave() {
+    if (saving) return;
+    setSaving(true);
+    saveTimer.current = setTimeout(() => onSave([...selected]), SAVE_HOLD_MS);
+  }
 
   // Gom nhóm + sắp theo tên + lọc theo từ khoá.
   const groups = useMemo(() => {
@@ -180,6 +202,7 @@ export function MedicationPicker({
           <button
             type="button"
             onClick={onClose}
+            disabled={saving}
             className="ws-btn-ghost"
             data-agent-ref="med-picker:cancel-btn"
             data-agent-role="button"
@@ -189,13 +212,15 @@ export function MedicationPicker({
           </button>
           <button
             type="button"
-            onClick={() => onSave([...selected])}
+            onClick={handleSave}
+            disabled={saving}
             className="ws-btn-primary"
             data-agent-ref="med-picker:save"
             data-agent-role="button"
             data-agent-label="Lưu thuốc đã chọn"
+            data-agent-busy={saving ? "true" : undefined}
           >
-            Lưu
+            {saving ? "Đang lưu…" : "Lưu"}
           </button>
         </div>
       </div>
