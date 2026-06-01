@@ -3,8 +3,18 @@
 import { useEffect, useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { usePatient, patientsApi } from "@/hooks/usePatients";
+import { useMedications } from "@/hooks/useMedications";
+import { MedicationPicker } from "@/components/workspace/MedicationPicker";
 import { http } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
+
+// Tách chuỗi thuốc (phân tách dấu phẩy) ↔ mảng tên, dùng chung cho draft + picker.
+function splitMeds(s: string): string[] {
+  return s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
 
 // Hai tập quyền sửa RỜI NHAU (không giao). Mã BN (id) không ai sửa.
 // Bệnh nhân (selfMode) — thông tin cá nhân, khớp PatientProfileSchema backend.
@@ -100,11 +110,15 @@ export function PatientDetailTab({
   const [draft, setDraft] = useState<Draft | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [medPickerOpen, setMedPickerOpen] = useState(false);
+  // Danh mục thuốc — nạp lười: chỉ khi bác sĩ vào chế độ sửa (không ở selfMode).
+  const meds = useMedications(!selfMode && editing);
 
   useEffect(() => {
     setEditing(false);
     setDraft(null);
     setEditError(null);
+    setMedPickerOpen(false);
   }, [patientId]);
 
   if (!selfMode && !patientId) {
@@ -140,6 +154,7 @@ export function PatientDetailTab({
     setEditing(false);
     setDraft(null);
     setEditError(null);
+    setMedPickerOpen(false);
   }
 
   function updateDraft<K extends keyof Draft>(key: K, value: Draft[K]) {
@@ -497,15 +512,32 @@ export function PatientDetailTab({
 
       <SectionLabel>Thuốc</SectionLabel>
       {editing && draft && canEdit("medications") ? (
-        <input
-          value={draft.medications}
-          onChange={(e) => updateDraft("medications", e.target.value)}
-          placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full !text-[#087E8B]"
-          data-agent-ref="patient-detail:medications"
-          data-agent-role="textbox"
-          data-agent-label="Thuốc"
-        />
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setMedPickerOpen(true)}
+            data-agent-ref="patient-detail:medications-open"
+            data-agent-role="button"
+            data-agent-label="Chọn thuốc"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#087E8B] text-white hover:bg-[#066671]"
+          >
+            <span className="text-sm leading-none">＋</span> Chọn thuốc
+          </button>
+          {splitMeds(draft.medications).length === 0 ? (
+            <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {splitMeds(draft.medications).map((m) => (
+                <span
+                  key={m}
+                  className="text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B]"
+                >
+                  {m}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       ) : data.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
       ) : (
@@ -519,6 +551,19 @@ export function PatientDetailTab({
             </span>
           ))}
         </div>
+      )}
+
+      {editing && draft && canEdit("medications") && (
+        <MedicationPicker
+          open={medPickerOpen}
+          catalog={meds.data?.medications ?? []}
+          initialSelected={splitMeds(draft.medications)}
+          onSave={(names) => {
+            updateDraft("medications", names.join(", "));
+            setMedPickerOpen(false);
+          }}
+          onClose={() => setMedPickerOpen(false)}
+        />
       )}
 
       {editing && editError && (

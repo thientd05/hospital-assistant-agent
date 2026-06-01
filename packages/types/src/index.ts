@@ -429,6 +429,25 @@ export type AssetCreateInput = {
 
 export type AssetUpdateInput = Partial<AssetCreateInput>;
 
+// ───────────────────────────────────────────────── Danh mục thuốc (TH00X)
+// Catalog thuốc dùng chung cho bác sĩ kê đơn (tab Hồ sơ → form chọn thuốc).
+export type MedicationCategory =
+  | "Kháng sinh"
+  | "Tim mạch – Huyết áp"
+  | "Lợi tiểu – Thận"
+  | "Tiểu đường"
+  | "Giảm đau – Hạ sốt"
+  | "Hô hấp"
+  | "Tiêu hóa"
+  | "Dịch truyền – Khác";
+
+export type Medication = {
+  id: string;
+  name: string;
+  category: MedicationCategory;
+  createdAt: Date;
+};
+
 export type UtilityType = "Điện" | "Nước" | "Internet" | "Gas";
 export type UtilityStatus = "Chưa thanh toán" | "Đã thanh toán";
 

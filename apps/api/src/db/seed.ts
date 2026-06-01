@@ -26,6 +26,8 @@ import type {
   Asset,
   AssetCategory,
   AssetCondition,
+  Medication,
+  MedicationCategory,
   Utility,
   UtilityType,
   UtilityStatus,
@@ -416,6 +418,68 @@ const assetSeeds: AssetSeed[] = [
   { name: "Tủ lạnh bảo quản vắc-xin Haier 100L", category: "Thiết bị y tế", location: "Kho vắc-xin", purchaseDate: "2024-07-20", purchasePrice: 35_000_000, depreciationYears: 7, condition: "Tốt" },
 ];
 
+// ─────────────────────────────────────────────────── Danh mục thuốc (TH00X)
+// Catalog thuốc cho form chọn thuốc của bác sĩ. PHẢI bao trùm mọi tên thuốc
+// đang kê cho bệnh nhân ở patientSeeds (để mở picker là khớp đúng, không "mồ côi").
+type MedicationSeed = { name: string; category: MedicationCategory };
+
+const medicationSeeds: MedicationSeed[] = [
+  // Kháng sinh
+  { name: "Amoxicillin 500mg", category: "Kháng sinh" },
+  { name: "Azithromycin 500mg", category: "Kháng sinh" },
+  { name: "Cefuroxime 500mg", category: "Kháng sinh" },
+  { name: "Cefoperazone-sulbactam 2g IV", category: "Kháng sinh" },
+  { name: "Ceftriaxone 2g IV", category: "Kháng sinh" },
+  { name: "Levofloxacin 750mg IV", category: "Kháng sinh" },
+  // Tim mạch – Huyết áp
+  { name: "Amlodipine 5mg", category: "Tim mạch – Huyết áp" },
+  { name: "Amlodipine 10mg", category: "Tim mạch – Huyết áp" },
+  { name: "Losartan 50mg", category: "Tim mạch – Huyết áp" },
+  { name: "Methyldopa 250mg", category: "Tim mạch – Huyết áp" },
+  { name: "Bisoprolol 5mg", category: "Tim mạch – Huyết áp" },
+  { name: "Enalapril 10mg", category: "Tim mạch – Huyết áp" },
+  { name: "Atorvastatin 40mg", category: "Tim mạch – Huyết áp" },
+  { name: "Aspirin 81mg", category: "Tim mạch – Huyết áp" },
+  { name: "Clopidogrel 75mg", category: "Tim mạch – Huyết áp" },
+  { name: "Nitroglycerin PRN", category: "Tim mạch – Huyết áp" },
+  { name: "Alteplase tiêu sợi huyết", category: "Tim mạch – Huyết áp" },
+  // Lợi tiểu – Thận
+  { name: "Furosemide 40mg", category: "Lợi tiểu – Thận" },
+  { name: "Spironolactone 25mg", category: "Lợi tiểu – Thận" },
+  { name: "Hydrochlorothiazide 25mg", category: "Lợi tiểu – Thận" },
+  { name: "Mannitol 20%", category: "Lợi tiểu – Thận" },
+  { name: "Erythropoietin tiêm dưới da", category: "Lợi tiểu – Thận" },
+  { name: "Calcium carbonate 500mg", category: "Lợi tiểu – Thận" },
+  // Tiểu đường
+  { name: "Metformin 500mg", category: "Tiểu đường" },
+  { name: "Gliclazide 30mg", category: "Tiểu đường" },
+  { name: "Insulin Actrapid theo thang", category: "Tiểu đường" },
+  { name: "Insulin glargine tiêm dưới da", category: "Tiểu đường" },
+  // Giảm đau – Hạ sốt
+  { name: "Paracetamol 250mg", category: "Giảm đau – Hạ sốt" },
+  { name: "Paracetamol 500mg", category: "Giảm đau – Hạ sốt" },
+  { name: "Paracetamol 1g IV", category: "Giảm đau – Hạ sốt" },
+  { name: "Ibuprofen 400mg", category: "Giảm đau – Hạ sốt" },
+  { name: "Diclofenac 50mg", category: "Giảm đau – Hạ sốt" },
+  { name: "Pethidine 50mg IM", category: "Giảm đau – Hạ sốt" },
+  // Hô hấp
+  { name: "Salbutamol khí dung", category: "Hô hấp" },
+  { name: "Ipratropium khí dung", category: "Hô hấp" },
+  { name: "Budesonide khí dung", category: "Hô hấp" },
+  { name: "Montelukast 10mg", category: "Hô hấp" },
+  { name: "Methylprednisolone 40mg IV", category: "Hô hấp" },
+  // Tiêu hóa
+  { name: "Omeprazole 20mg", category: "Tiêu hóa" },
+  { name: "Pantoprazole 40mg IV", category: "Tiêu hóa" },
+  { name: "Domperidone 10mg", category: "Tiêu hóa" },
+  { name: "Oresol bù điện giải", category: "Tiêu hóa" },
+  // Dịch truyền – Khác
+  { name: "Ringer lactate truyền tĩnh mạch", category: "Dịch truyền – Khác" },
+  { name: "Magnesium sulfate IV", category: "Dịch truyền – Khác" },
+  { name: "Betamethasone 12mg IM", category: "Dịch truyền – Khác" },
+  { name: "Noradrenaline truyền liên tục", category: "Dịch truyền – Khác" },
+];
+
 // ─────────────────────────────────────────────────── Điện nước (UT00X)
 type UtilityRecipe = {
   type: UtilityType;
@@ -494,6 +558,15 @@ function buildAssets(): Asset[] {
     depreciationYears: s.depreciationYears,
     condition: s.condition,
     notes: s.notes,
+    createdAt: now,
+  }));
+}
+
+function buildMedications(): Medication[] {
+  return medicationSeeds.map((s, i) => ({
+    id: "TH" + String(i + 1).padStart(3, "0"),
+    name: s.name,
+    category: s.category,
     createdAt: now,
   }));
 }
@@ -879,6 +952,14 @@ async function seed() {
   const assetDocs = buildAssets();
   await assets.insertMany(assetDocs);
 
+  // Danh mục thuốc — bác sĩ chọn khi kê đơn (form chọn thuốc tab Hồ sơ).
+  const medications = db.collection<Medication>("medications");
+  await medications.deleteMany({});
+  await medications.createIndex({ id: 1 }, { unique: true });
+  await medications.createIndex({ name: 1 });
+  const medicationDocs = buildMedications();
+  await medications.insertMany(medicationDocs);
+
   // 7. Điện nước
   const utilities = db.collection<Utility>("utilities");
   await utilities.deleteMany({});
@@ -947,6 +1028,7 @@ async function seed() {
   console.log(`  experts      ${expertDocs.length}`);
   console.log(`  appointments ${appointmentSeeds.length}`);
   console.log(`  assets       ${assetDocs.length}`);
+  console.log(`  medications  ${medicationDocs.length}`);
   console.log(`  utilities    ${utilityDocs.length}`);
   console.log(`  payroll      ${payrollDocs.length}`);
   console.log(`  revenue      ${revenueDocs.length}`);
