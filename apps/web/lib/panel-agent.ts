@@ -12,6 +12,10 @@ const ELEMENT_ATTR = "data-agent-ref";
 // mỗi batch `act` cần chạy nhanh — một batch đặt lịch ~8 bước × 120ms ≈ 1s.
 const STEP_DELAY_MS = 200;
 const ELEMENT_WAIT_MS = 1500;
+// Phần tử đích nằm dưới cùng (lab/chẩn đoán/thuốc) thường khuất khỏi vùng panel
+// → cuộn tới rồi CHỜ 1s cho bác sĩ kịp thấy trước khi thao tác (giống cách
+// MedicationPicker tự diễn hoạt khi tích thuốc khuất tầm nhìn).
+const SCROLL_WAIT_MS = 1000;
 // Chờ nút submit hết "busy" (đang gọi REST). 6s đủ cho Atlas; nhỏ hơn 8s cũ để
 // không ngốn ngân sách 60s khi mạng chậm.
 const BUSY_WAIT_MS = 6000;
@@ -77,6 +81,25 @@ function findEl(ref: string): HTMLElement | null {
   const root = getRoot();
   if (!root) return null;
   return root.querySelector<HTMLElement>(`[${ELEMENT_ATTR}="${ref}"]`);
+}
+
+// Phần tử có đang nằm trong vùng nhìn thấy của panel không (so với khung panel
+// root). Khuất → cần cuộn tới trước khi thao tác.
+function isInPanelView(el: HTMLElement): boolean {
+  const root = getRoot();
+  if (!root) return true;
+  const r = el.getBoundingClientRect();
+  const c = root.getBoundingClientRect();
+  return r.top >= c.top && r.bottom <= c.bottom;
+}
+
+// Cuộn phần tử đích vào giữa panel rồi chờ cho bác sĩ kịp thấy. Bỏ qua nếu phần
+// tử nằm trong vùng tự-diễn-hoạt (vd modal chọn thuốc tự cuộn lấy) hoặc đã hiện.
+async function revealIfHidden(el: HTMLElement): Promise<void> {
+  if (el.closest('[data-agent-self-reveal="true"]')) return;
+  if (isInPanelView(el)) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  await sleep(SCROLL_WAIT_MS);
 }
 
 export async function waitForRoot(timeout = ELEMENT_WAIT_MS): Promise<boolean> {
@@ -245,6 +268,8 @@ export async function runActions(
     const a = actions[i]!;
     try {
       const el = await waitForEl(a.ref);
+      // Khuất khỏi vùng panel → cuộn tới + chờ 1s rồi mới thao tác.
+      await revealIfHidden(el);
       performAction(el, a);
       steps.push({ i, action: a, ok: true });
     } catch (e) {

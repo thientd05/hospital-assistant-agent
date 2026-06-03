@@ -140,6 +140,7 @@ export function MedicationPicker({
       <div
         className="flex w-full max-w-[520px] max-h-[85dvh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
         data-agent-busy={busy > 0 ? "true" : undefined}
+        data-agent-self-reveal="true"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-gray-100">
