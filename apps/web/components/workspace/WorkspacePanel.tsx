@@ -16,7 +16,6 @@ const MAX_WIDTH = MIN_WIDTH * 1.5;
 const TAB_LABELS: Record<WorkspaceTab, string> = {
   patients: "Bệnh nhân",
   patient: "Hồ sơ",
-  lab: "Lab",
   appointments: "Lịch hẹn",
   "drug-check": "Tương tác thuốc",
   "my-record": "Hồ sơ",
@@ -107,7 +106,6 @@ export function WorkspacePanel({
     if (role === "doctor") {
       bumpTab("patients");
       bumpTab("patient");
-      bumpTab("lab");
     }
   }, [bumpTab, role]);
 
@@ -200,14 +198,6 @@ export function WorkspacePanel({
               patientId={selectedPatientId}
               version={versions.patient}
               active={isOpen && activeTab === "patient"}
-              onChanged={onChanged}
-            />
-          )}
-          {role === "doctor" && activeTab === "lab" && (
-            <LabsTab
-              patientId={selectedPatientId}
-              version={versions.lab}
-              active={isOpen && activeTab === "lab"}
               onChanged={onChanged}
             />
           )}

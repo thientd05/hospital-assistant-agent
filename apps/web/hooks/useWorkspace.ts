@@ -6,7 +6,6 @@ import type { ToolRefresh } from "@pr_hospitalagent/types";
 export type WorkspaceTab =
   | "patients"
   | "patient"
-  | "lab"
   | "appointments"
   | "drug-check"
   | "my-record"
@@ -15,14 +14,15 @@ export type WorkspaceTab =
   | "home-vitals";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
-  doctor: ["patients", "patient", "lab", "appointments", "drug-check"],
+  doctor: ["patients", "patient", "appointments", "drug-check"],
   patient: ["my-record", "my-labs", "my-appointments", "home-vitals"],
 };
 
 const REFRESH_TO_TAB: Partial<Record<Exclude<ToolRefresh, false>, WorkspaceTab>> = {
   patients: "patients",
   patient: "patient",
-  lab: "lab",
+  // Xét nghiệm đã gộp vào tab Hồ sơ (bác sĩ) → refresh "lab" bump tab Hồ sơ.
+  lab: "patient",
   appointments: "appointments",
 };
 
@@ -31,7 +31,6 @@ type Versions = Record<WorkspaceTab, number>;
 const ZERO_VERSIONS: Versions = {
   patients: 0,
   patient: 0,
-  lab: 0,
   appointments: 0,
   "drug-check": 0,
   "my-record": 0,
