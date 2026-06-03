@@ -864,22 +864,20 @@ export function PatientDetailTab({
           {draft.medications.length === 0 ? (
             <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
           ) : (
-            // Bảng: cột Thuốc | cột Chỉ định dùng (ô nhập) | nút bỏ. Không kẻ viền.
+            // Bảng: cột Thuốc (chip) | cột Chỉ định dùng (ô nhập) | nút bỏ. Không kẻ viền.
             <div>
-              <div className="grid grid-cols-12 gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-medium pb-1">
-                <div className="col-span-5">Thuốc</div>
-                <div className="col-span-7">Chỉ định dùng</div>
-              </div>
               {draft.medications.map((m, i) => (
                 <div
                   key={`${m.name}-${i}`}
                   className="grid grid-cols-12 gap-2 items-center py-1"
                 >
-                  <div
-                    className="col-span-5 min-w-0 truncate text-gray-900 font-medium"
-                    title={m.name}
-                  >
-                    {m.name}
+                  <div className="col-span-5 min-w-0">
+                    <span
+                      className="inline-block max-w-full truncate align-middle text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium"
+                      title={m.name}
+                    >
+                      {m.name}
+                    </span>
                   </div>
                   <div className="col-span-7 min-w-0 flex items-center gap-1">
                     <input
@@ -911,22 +909,20 @@ export function PatientDetailTab({
       ) : data.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
       ) : (
-        // Bảng xem: cột Thuốc | cột Chỉ định dùng. Không kẻ viền; cắt "…" nếu dài.
+        // Bảng xem: cột Thuốc (chip) | cột Chỉ định dùng. Không kẻ viền; cắt "…" nếu dài.
         <div>
-          <div className="grid grid-cols-12 gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-medium pb-1">
-            <div className="col-span-5">Thuốc</div>
-            <div className="col-span-7">Chỉ định dùng</div>
-          </div>
           {data.medications.map((m, i) => (
             <div
               key={`${m.name}-${i}`}
               className="grid grid-cols-12 gap-2 items-center py-1"
             >
-              <div
-                className="col-span-5 min-w-0 truncate text-gray-900 font-medium"
-                title={m.name}
-              >
-                {m.name}
+              <div className="col-span-5 min-w-0">
+                <span
+                  className="inline-block max-w-full truncate align-middle text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium"
+                  title={m.name}
+                >
+                  {m.name}
+                </span>
               </div>
               <div
                 className="col-span-7 min-w-0 truncate text-gray-700"
