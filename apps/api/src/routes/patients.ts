@@ -1,10 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
-import {
-  PatientUpdateSchema,
-  LabSchema,
-  HomeVitalSchema,
-} from "../schemas/patient.ts";
+import { PatientUpdateSchema, LabSchema } from "../schemas/patient.ts";
 import { parseBody } from "../lib/validate.ts";
 import { patientService } from "../services/patient.service.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
@@ -28,27 +24,6 @@ export async function patientsRoutes(app: FastifyInstance) {
     async (req) => {
       if (!req.patient) throw new UnauthorizedError();
       return patientService.listLabs(req.patient.id);
-    }
-  );
-
-  app.get(
-    "/me/home-vitals",
-    { preHandler: [verifyAuth, requireRole("patient")] },
-    async (req) => {
-      if (!req.patient) throw new UnauthorizedError();
-      return patientService.listHomeVitals(req.patient.id);
-    }
-  );
-
-  app.post(
-    "/me/home-vitals",
-    { preHandler: [verifyAuth, requireRole("patient")] },
-    async (req) => {
-      if (!req.patient) throw new UnauthorizedError();
-      return patientService.addHomeVital(
-        req.patient.id,
-        parseBody(HomeVitalSchema, req.body)
-      );
     }
   );
 

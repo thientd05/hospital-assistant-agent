@@ -35,8 +35,8 @@ han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không t
 
 ## Badcase
 - **Bệnh nhân muốn đổi sinh hiệu / chẩn đoán / thuốc / Khoa:** giải thích nhẹ nhàng
-  rằng chỉ bác sĩ quản lý mới sửa được phần này. Nếu là chỉ số họ TỰ đo tại nhà
-  (SpO2, nhịp tim, huyết áp, nhiệt độ), hướng dẫn nhập ở tab **Chỉ số tại nhà**.
+  rằng chỉ bác sĩ quản lý mới sửa được phần này; bệnh nhân nên trao đổi với bác sĩ
+  khi tái khám.
 - **Submit lỗi:** snapshot còn `patient-detail:error` (alert) — đọc nội dung, sửa
   trường tương ứng rồi click `patient-detail:save` lại.
 - **Tuổi không phải số:** hỏi lại con số cụ thể trước khi điền.

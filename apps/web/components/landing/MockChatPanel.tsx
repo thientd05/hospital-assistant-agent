@@ -116,10 +116,10 @@ const CHAT_DATA: Record<
     message: <PatientMessage />,
     inputPlaceholder: "Bạn cần hỏi gì hôm nay?",
     panel: {
-      tabs: ["Hồ sơ", "Xét nghiệm", "Lịch hẹn", "Tại nhà"],
-      activeTab: 3,
-      header: <HomeVitalsHeader />,
-      content: <HomeVitalsList />,
+      tabs: ["Hồ sơ", "Xét nghiệm", "Lịch hẹn"],
+      activeTab: 0,
+      header: <VitalsHeader />,
+      content: <VitalsList />,
     },
   },
 };
@@ -402,7 +402,7 @@ function PatientMessage() {
           <strong>Ưu tiên chất xơ</strong>: rau xanh, gạo lứt, đậu.
         </li>
         <li>
-          <strong>Đo SpO₂ + huyết áp sáng/tối</strong>, ghi vào tab “Tại nhà”.
+          <strong>Đo SpO₂ + huyết áp sáng/tối</strong> và mang theo khi tái khám.
         </li>
       </ul>
 
@@ -425,16 +425,12 @@ function PatientMessage() {
   );
 }
 
-function HomeVitalsHeader() {
+function VitalsHeader() {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="text-[11px] font-semibold text-slate-700">
-        Chỉ số tại nhà
+        Sinh hiệu (bác sĩ ghi)
       </div>
-      <button className="inline-flex items-center gap-1 rounded-md bg-brand-700 px-2.5 py-1 text-[11px] font-medium text-white">
-        <Plus className="h-3 w-3" />
-        Ghi nhận
-      </button>
     </div>
   );
 }
@@ -445,11 +441,11 @@ const VITALS = [
   { date: "27/05 · 06:55", spo2: "93%", bp: "130/84", hr: "80", note: "" },
 ];
 
-function HomeVitalsList() {
+function VitalsList() {
   return (
     <>
       <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        3 lần ghi gần nhất
+        3 lần đo gần nhất
       </div>
       <div className="space-y-2">
         {VITALS.map((v, i) => (

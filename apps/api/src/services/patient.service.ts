@@ -10,11 +10,7 @@ import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { labCatalogService } from "./labCatalog.service.ts";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
 import { buildSet, assertHasUpdates } from "../lib/patch.ts";
-import type {
-  PatientUpdate,
-  LabInput,
-  HomeVitalInput,
-} from "../schemas/patient.ts";
+import type { PatientUpdate, LabInput } from "../schemas/patient.ts";
 
 const VITAL_DEFAULTS = {
   spO2: 0,
@@ -72,7 +68,6 @@ export const patientService = {
       medications: [],
       vitals: { ...VITAL_DEFAULTS, recordedAt: new Date() },
       labResults: [],
-      homeVitals: [],
     };
     await patientRepo.insert(patient);
     return patient;
@@ -149,23 +144,5 @@ export const patientService = {
       labs.filter((_, i) => i !== idx)
     );
     return { ok: true, removedIndex: idx };
-  },
-
-  // Chỉ số tại nhà — bệnh nhân tự đọc/ghi (id lấy từ JWT ở route).
-  async listHomeVitals(patientId: string) {
-    const doc = await patientRepo.getHomeVitals(patientId);
-    if (!doc) throw new NotFoundError(`Không tìm thấy bệnh nhân ${patientId}`);
-    return {
-      patientId: doc.id,
-      vitals: doc.vitals ?? null,
-      homeVitals: doc.homeVitals ?? [],
-    };
-  },
-
-  async addHomeVital(patientId: string, input: HomeVitalInput) {
-    const entry = { ...input, recordedAt: new Date() };
-    const ok = await patientRepo.pushHomeVital(patientId, entry);
-    if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${patientId}`);
-    return { ok: true, homeVital: entry };
   },
 };

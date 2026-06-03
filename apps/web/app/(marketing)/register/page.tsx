@@ -28,7 +28,7 @@ type RegisterResponse = {
 const HIGHLIGHTS = [
   "Tạo tài khoản miễn phí — quản lý hồ sơ sức khoẻ của bạn.",
   "Chat với trợ lý AI và tự đặt lịch khám bất cứ lúc nào.",
-  "Tự nhập chỉ số tại nhà — bác sĩ gia đình luôn theo dõi.",
+  "Xem kết quả xét nghiệm — bác sĩ gia đình luôn theo dõi.",
 ];
 
 export default function RegisterPage() {
@@ -120,8 +120,8 @@ export default function RegisterPage() {
             Bắt đầu hành trình chăm sóc sức khoẻ gia đình bạn.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-brand-100">
-            Tạo tài khoản bệnh nhân để trò chuyện với trợ lý AI, đặt lịch khám và theo dõi sức
-            khoẻ tại nhà. Tài khoản bác sĩ và chuyên gia do phòng khám cấp riêng.
+            Tạo tài khoản bệnh nhân để trò chuyện với trợ lý AI, đặt lịch khám và theo dõi hồ sơ
+            sức khoẻ. Tài khoản bác sĩ và chuyên gia do phòng khám cấp riêng.
           </p>
 
           <ul className="mt-7 space-y-3">

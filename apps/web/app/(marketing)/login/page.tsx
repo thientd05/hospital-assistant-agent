@@ -33,7 +33,7 @@ type LoginResponse =
 const HIGHLIGHTS = [
   "Trợ lý AI 24/7 — hỏi đáp bằng tiếng Việt tự nhiên.",
   "Đặt lịch khám trong 30 giây — nhắc tái khám tự động.",
-  "Theo dõi sức khoẻ tại nhà — bác sĩ luôn cập nhật.",
+  "Hồ sơ sức khoẻ luôn cập nhật — bác sĩ gia đình đồng hành.",
 ];
 
 export default function LoginPage() {
@@ -120,8 +120,8 @@ export default function LoginPage() {
             Chào mừng trở lại — gia đình bạn đang chờ chăm sóc.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-brand-100">
-            Đăng nhập để vào hồ sơ sức khoẻ của bạn, chat với trợ lý AI, đặt lịch khám hoặc theo dõi
-            chỉ số tại nhà. Bác sĩ gia đình của bạn vẫn ở đó — sẵn sàng khi bạn cần.
+            Đăng nhập để vào hồ sơ sức khoẻ của bạn, chat với trợ lý AI, đặt lịch khám hoặc xem kết
+            quả xét nghiệm. Bác sĩ gia đình của bạn vẫn ở đó — sẵn sàng khi bạn cần.
           </p>
 
           <ul className="mt-7 space-y-3">

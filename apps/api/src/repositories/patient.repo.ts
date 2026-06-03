@@ -1,6 +1,5 @@
 import type { Filter } from "mongodb";
 import type {
-  HomeVital,
   LabResult,
   Patient,
   PatientPublic,
@@ -118,19 +117,5 @@ export const patientRepo = {
       )
       .sort({ id: -1 })
       .toArray();
-  },
-
-  async getHomeVitals(id: string) {
-    const c = await coll();
-    return c.findOne(
-      { id },
-      { projection: { _id: 0, id: 1, name: 1, vitals: 1, homeVitals: 1 } }
-    );
-  },
-
-  async pushHomeVital(id: string, entry: HomeVital) {
-    const c = await coll();
-    const res = await c.updateOne({ id }, { $push: { homeVitals: entry } });
-    return res.matchedCount > 0;
   },
 };

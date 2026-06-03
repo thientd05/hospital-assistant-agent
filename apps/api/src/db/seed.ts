@@ -68,7 +68,7 @@ type LabSeed = {
 };
 type PatientSeedSpec = Omit<
   Patient,
-  "username" | "passwordHash" | "homeVitals" | "labResults"
+  "username" | "passwordHash" | "labResults"
 > & {
   password: string;
   labResults: LabSeed[];
@@ -593,7 +593,6 @@ function buildPatients(): Patient[] {
       };
     }),
     passwordHash: hashPassword(password),
-    homeVitals: [],
   }));
 }
 

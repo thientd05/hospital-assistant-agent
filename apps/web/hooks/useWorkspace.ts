@@ -8,15 +8,14 @@ export type WorkspaceTab =
   | "patient"
   | "appointments"
   | "my-record"
-  | "my-appointments"
-  | "home-vitals";
+  | "my-appointments";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
   // "patient" (Hồ sơ) đã gộp vào "patients" (Bệnh nhân): chọn BN → tab Bệnh nhân
   // hiện hồ sơ ngay (master-detail), không còn tab Hồ sơ riêng. Tương tác thuốc
   // không còn là tab — kiểm tra tự động khi lưu form chọn thuốc trong hồ sơ.
   doctor: ["patients", "appointments"],
-  patient: ["my-record", "my-appointments", "home-vitals"],
+  patient: ["my-record", "my-appointments"],
 };
 
 const REFRESH_TO_TAB: Partial<Record<Exclude<ToolRefresh, false>, WorkspaceTab>> = {
@@ -35,7 +34,6 @@ const ZERO_VERSIONS: Versions = {
   appointments: 0,
   "my-record": 0,
   "my-appointments": 0,
-  "home-vitals": 0,
 };
 
 export function useWorkspace() {

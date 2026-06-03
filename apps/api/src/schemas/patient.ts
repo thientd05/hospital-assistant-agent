@@ -25,24 +25,6 @@ export const LabSchema = z
   })
   .strict();
 
-export const HomeVitalSchema = z
-  .object({
-    spO2: z.number().optional(),
-    heartRate: z.number().optional(),
-    bloodPressure: z.string().optional(),
-    temperature: z.number().optional(),
-    note: z.string().optional(),
-  })
-  .strict()
-  .refine(
-    (v) =>
-      v.spO2 !== undefined ||
-      v.heartRate !== undefined ||
-      v.bloodPressure !== undefined ||
-      v.temperature !== undefined,
-    { message: "Cần nhập ít nhất một chỉ số." }
-  );
-
 // Bác sĩ CHỈ sửa được phần lâm sàng: Khoa, chẩn đoán, thuốc, sinh hiệu.
 // Thông tin cá nhân (name/age/gender/address/phone) do BỆNH NHÂN tự sửa qua
 // /auth/me/profile (PatientProfileSchema); mã BN (id) không ai sửa. .strict()
@@ -68,4 +50,3 @@ export const PatientUpdateSchema = z
 
 export type PatientUpdate = z.infer<typeof PatientUpdateSchema>;
 export type LabInput = z.infer<typeof LabSchema>;
-export type HomeVitalInput = z.infer<typeof HomeVitalSchema>;

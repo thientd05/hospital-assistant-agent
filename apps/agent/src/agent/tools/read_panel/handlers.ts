@@ -9,7 +9,6 @@ const TABS = [
   "my-record",
   "my-labs",
   "my-appointments",
-  "home-vitals",
 ];
 
 export async function handleReadPanel(

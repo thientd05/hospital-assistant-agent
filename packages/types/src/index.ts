@@ -130,17 +130,6 @@ export type Prescription = {
   instruction: string;
 };
 
-// Chỉ số bệnh nhân tự nhập tại nhà — lịch sử riêng, tách `vitals` lâm sàng do bác sĩ ghi.
-// Mỗi field chỉ số là optional (BN nhập field nào ghi field đó), recordedAt do server set.
-export type HomeVital = {
-  spO2?: number;
-  heartRate?: number;
-  bloodPressure?: string;
-  temperature?: number;
-  note?: string;
-  recordedAt: Date;
-};
-
 export type Patient = {
   id: string;
   // Bệnh nhân tự đăng ký KHÔNG có username — đăng nhập bằng `phone`. Username chỉ
@@ -157,7 +146,6 @@ export type Patient = {
   vitals: Vital;
   medications: Prescription[];
   labResults: LabResult[];
-  homeVitals: HomeVital[];
 };
 
 export type PatientPublic = Omit<Patient, "passwordHash">;
@@ -286,9 +274,6 @@ export type PatientUpdateInput = {
   medications?: Prescription[];
   vitals?: Partial<Vital>;
 };
-
-// Bệnh nhân tự nhập 1 bản ghi chỉ số tại nhà (recordedAt do server gán).
-export type HomeVitalInput = Omit<HomeVital, "recordedAt">;
 
 // Bệnh nhân tự đặt lịch: không truyền patientId (lấy từ JWT); doctorId tuỳ chọn
 // (rỗng/không truyền = vào hàng chờ chung).

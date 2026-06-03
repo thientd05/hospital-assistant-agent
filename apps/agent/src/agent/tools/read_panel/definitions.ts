@@ -24,10 +24,9 @@ export const definition: Anthropic.Tool = {
           "my-record",
           "my-labs",
           "my-appointments",
-          "home-vitals",
         ],
         description:
-          "Tab muốn xem. Bác sĩ: patients (Bệnh nhân), patient (Hồ sơ), lab (Lab), appointments (Lịch hẹn), drug-check (Tương tác thuốc). Bệnh nhân: my-record (Hồ sơ), my-labs (Xét nghiệm), my-appointments (Lịch hẹn), home-vitals (Chỉ số tại nhà). Bỏ trống để giữ tab hiện tại.",
+          "Tab muốn xem. Bác sĩ: patients (Bệnh nhân), patient (Hồ sơ), lab (Lab), appointments (Lịch hẹn), drug-check (Tương tác thuốc). Bệnh nhân: my-record (Hồ sơ), my-labs (Xét nghiệm), my-appointments (Lịch hẹn). Bỏ trống để giữ tab hiện tại.",
       },
     },
     required: [],

@@ -6,7 +6,6 @@ import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
-import { HomeVitalsTab } from "./tabs/HomeVitalsTab";
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = MIN_WIDTH * 1.5;
@@ -17,7 +16,6 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   appointments: "Lịch hẹn",
   "my-record": "Hồ sơ",
   "my-appointments": "Lịch hẹn",
-  "home-vitals": "Chỉ số tại nhà",
 };
 
 type Props = {
@@ -221,12 +219,6 @@ export function WorkspacePanel({
             <MyAppointmentsTab
               version={versions["my-appointments"]}
               active={isOpen && activeTab === "my-appointments"}
-            />
-          )}
-          {role === "patient" && activeTab === "home-vitals" && (
-            <HomeVitalsTab
-              version={versions["home-vitals"]}
-              active={isOpen && activeTab === "home-vitals"}
             />
           )}
         </div>
