@@ -13,7 +13,9 @@ export type WorkspaceTab =
   | "home-vitals";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
-  doctor: ["patients", "patient", "appointments", "drug-check"],
+  // "patient" (Hồ sơ) đã gộp vào "patients" (Bệnh nhân): chọn BN → tab Bệnh nhân
+  // hiện hồ sơ ngay (master-detail), không còn tab Hồ sơ riêng.
+  doctor: ["patients", "appointments", "drug-check"],
   patient: ["my-record", "my-appointments", "home-vitals"],
 };
 

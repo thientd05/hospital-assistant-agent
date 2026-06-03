@@ -55,6 +55,8 @@ type Props = {
   onChanged: () => void;
   // selfMode: bệnh nhân tự xem hồ sơ CỦA MÌNH (lấy từ /auth/me) — chỉ xem, ẩn nút Sửa.
   selfMode?: boolean;
+  // onBack: hồ sơ gộp trong tab Bệnh nhân (bác sĩ) → nút "← Danh sách" quay về danh sách.
+  onBack?: () => void;
 };
 
 type Draft = {
@@ -101,6 +103,7 @@ export function PatientDetailTab({
   active,
   onChanged,
   selfMode = false,
+  onBack,
 }: Props) {
   const { patient: authPatient, updateAccount } = useAuth();
   const fetched = usePatient(patientId, version, active && !selfMode);
@@ -315,6 +318,18 @@ export function PatientDetailTab({
 
   return (
     <div className="px-5 py-4 text-sm">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          data-agent-ref="patient-detail:back"
+          data-agent-role="button"
+          data-agent-label="Quay lại danh sách bệnh nhân"
+          className="mb-3 inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
+        >
+          ← Danh sách
+        </button>
+      )}
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-lg font-semibold text-gray-900">{data.name}</div>

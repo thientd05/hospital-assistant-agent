@@ -90,11 +90,12 @@ export function WorkspacePanel({
     }
   }, [tabs, activeTab, onTabChange]);
 
-  // Wrap onSelectPatient so doctor list can switch to detail tab
+  // Chọn BN từ danh sách → ở lại tab "Bệnh nhân", nội dung tab đổi sang hồ sơ
+  // chi tiết (master-detail). Đảm bảo đang ở tab patients nếu được gọi từ nơi khác.
   const handleSelectPatient = useCallback(
     (id: string) => {
       onSelectPatient(id);
-      onTabChange("patient");
+      onTabChange("patients");
     },
     [onSelectPatient, onTabChange]
   );
@@ -182,23 +183,25 @@ export function WorkspacePanel({
         </header>
 
         <div className="flex-1 overflow-y-auto">
-          {role === "doctor" && activeTab === "patients" && (
-            <PatientsTab
-              role="doctor"
-              version={versions.patients}
-              active={isOpen && activeTab === "patients"}
-              onSelect={handleSelectPatient}
-              onChanged={onChanged}
-            />
-          )}
-          {role === "doctor" && activeTab === "patient" && (
-            <PatientDetailTab
-              patientId={selectedPatientId}
-              version={versions.patient}
-              active={isOpen && activeTab === "patient"}
-              onChanged={onChanged}
-            />
-          )}
+          {role === "doctor" &&
+            activeTab === "patients" &&
+            (selectedPatientId ? (
+              <PatientDetailTab
+                patientId={selectedPatientId}
+                version={versions.patient}
+                active={isOpen && activeTab === "patients"}
+                onChanged={onChanged}
+                onBack={() => onSelectPatient(null)}
+              />
+            ) : (
+              <PatientsTab
+                role="doctor"
+                version={versions.patients}
+                active={isOpen && activeTab === "patients"}
+                onSelect={handleSelectPatient}
+                onChanged={onChanged}
+              />
+            ))}
           {role === "doctor" && activeTab === "appointments" && (
             <AppointmentsTab
               version={versions.appointments}
