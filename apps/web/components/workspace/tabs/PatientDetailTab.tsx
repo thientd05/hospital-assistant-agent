@@ -8,6 +8,7 @@ import { useMyLabs } from "@/hooks/useMyLabs";
 import { useMedications } from "@/hooks/useMedications";
 import { useLabCatalog } from "@/hooks/useLabCatalog";
 import { MedicationPicker } from "@/components/workspace/MedicationPicker";
+import { drugCheckApi, type DrugCheckResponse } from "@/hooks/useDrugCheck";
 import { http } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
 
@@ -115,6 +116,9 @@ export function PatientDetailTab({
   const [submitting, setSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [medPickerOpen, setMedPickerOpen] = useState(false);
+  // Kết quả kiểm tra tương tác thuốc — chạy TỰ ĐỘNG khi lưu form chọn thuốc (≥2
+  // thuốc), hiện ngay dưới nút "Chọn thuốc". null = chưa kiểm / <2 thuốc.
+  const [interaction, setInteraction] = useState<DrugCheckResponse | null>(null);
   // Danh mục thuốc — nạp lười: chỉ khi bác sĩ vào chế độ sửa (không ở selfMode).
   const meds = useMedications(!selfMode && editing);
   // Danh mục xét nghiệm nạp từ Mongo (qua REST) — chỉ khi bác sĩ vào chế độ sửa.
@@ -143,6 +147,7 @@ export function PatientDetailTab({
     setDraft(null);
     setEditError(null);
     setMedPickerOpen(false);
+    setInteraction(null);
     setNewLabs([]);
     setRemoveLabIdx(new Set());
     setLabEdits({});
@@ -175,6 +180,7 @@ export function PatientDetailTab({
     setDraft(toDraft(data));
     setEditError(null);
     setEditing(true);
+    setInteraction(null);
     // Một dòng xét nghiệm rỗng sẵn sàng để nhập (chỉ bác sĩ dùng).
     setNewLabs([{ name: "", value: "" }]);
     setRemoveLabIdx(new Set());
@@ -186,6 +192,7 @@ export function PatientDetailTab({
     setDraft(null);
     setEditError(null);
     setMedPickerOpen(false);
+    setInteraction(null);
     setNewLabs([]);
     setRemoveLabIdx(new Set());
     setLabEdits({});
@@ -252,6 +259,8 @@ export function PatientDetailTab({
     );
   }
   function removeMed(i: number) {
+    // Bỏ thuốc → kết quả tương tác cũ không còn đúng, xoá đi tránh hiểu nhầm.
+    setInteraction(null);
     setDraft((prev) =>
       prev
         ? { ...prev, medications: prev.medications.filter((_, idx) => idx !== i) }
@@ -861,6 +870,29 @@ export function PatientDetailTab({
           >
             <span className="text-sm leading-none">＋</span> Chọn thuốc
           </button>
+          {interaction && (
+            <div
+              className={`rounded-md px-3 py-2 text-sm border ${
+                interaction.hasInteraction
+                  ? "border-red-200 bg-red-50 text-red-800"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-800"
+              }`}
+              data-agent-ref="patient-detail:med-interaction"
+              data-agent-role="alert"
+              data-agent-label="Kết quả tương tác thuốc"
+            >
+              <div className="font-medium mb-1">
+                {interaction.hasInteraction
+                  ? "⚠ Có tương tác"
+                  : "✓ Không có tương tác đáng kể"}
+              </div>
+              {interaction.interactions.map((m, i) => (
+                <div key={i} className="text-sm">
+                  {m}
+                </div>
+              ))}
+            </div>
+          )}
           {draft.medications.length === 0 ? (
             <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
           ) : (
@@ -943,6 +975,16 @@ export function PatientDetailTab({
           onSave={(names) => {
             mergeMedNames(names);
             setMedPickerOpen(false);
+            // Kiểm tra tương tác TỰ ĐỘNG ngay khi lưu form chọn thuốc. Cần ≥2 thuốc;
+            // ít hơn thì không có gì để đối chiếu → xoá kết quả cũ.
+            if (names.length >= 2) {
+              drugCheckApi
+                .check(names)
+                .then(setInteraction)
+                .catch(() => setInteraction(null));
+            } else {
+              setInteraction(null);
+            }
           }}
           onClose={() => setMedPickerOpen(false)}
         />

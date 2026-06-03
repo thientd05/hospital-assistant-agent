@@ -7,7 +7,7 @@ export const TOOL_REFRESH_MAP: Record<string, ToolRefresh> = {
   read_panel: false,
   act: false,
   // File-read tool: không động DB/panel.
-  read_skill: false,
+  read_skills: false,
   // File-write tool: ghi workspace của user, không động DB/panel.
   update_workspace_file: false,
 };

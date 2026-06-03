@@ -16,7 +16,7 @@ function parseName(params: unknown): string {
 }
 
 export async function skillsRoutes(app: FastifyInstance) {
-  // GET mở cho agent (doctor/patient build skill index + read_skill) lẫn expert (UI).
+  // GET mở cho agent (doctor/patient build skill index + read_skills) lẫn expert (UI).
   app.get(
     "/skills",
     { preHandler: [verifyAuth, requireRole("doctor", "patient", "expert")] },

@@ -7,15 +7,15 @@ export type WorkspaceTab =
   | "patients"
   | "patient"
   | "appointments"
-  | "drug-check"
   | "my-record"
   | "my-appointments"
   | "home-vitals";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
   // "patient" (Hồ sơ) đã gộp vào "patients" (Bệnh nhân): chọn BN → tab Bệnh nhân
-  // hiện hồ sơ ngay (master-detail), không còn tab Hồ sơ riêng.
-  doctor: ["patients", "appointments", "drug-check"],
+  // hiện hồ sơ ngay (master-detail), không còn tab Hồ sơ riêng. Tương tác thuốc
+  // không còn là tab — kiểm tra tự động khi lưu form chọn thuốc trong hồ sơ.
+  doctor: ["patients", "appointments"],
   patient: ["my-record", "my-appointments", "home-vitals"],
 };
 
@@ -33,7 +33,6 @@ const ZERO_VERSIONS: Versions = {
   patients: 0,
   patient: 0,
   appointments: 0,
-  "drug-check": 0,
   "my-record": 0,
   "my-appointments": 0,
   "home-vitals": 0,

@@ -9,8 +9,8 @@ import { definition as readPanelDef } from "./tools/read_panel/definitions.ts";
 import { handleReadPanel } from "./tools/read_panel/handlers.ts";
 import { definition as actDef } from "./tools/act/definitions.ts";
 import { handleAct } from "./tools/act/handlers.ts";
-import { definition as readSkillDef } from "./tools/read_skill/definitions.ts";
-import { handleReadSkill } from "./tools/read_skill/handlers.ts";
+import { definition as readSkillsDef } from "./tools/read_skills/definitions.ts";
+import { handleReadSkills } from "./tools/read_skills/handlers.ts";
 import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_file/definitions.ts";
 import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
 import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
@@ -18,7 +18,7 @@ import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
 const tools: Anthropic.Tool[] = [
   readPanelDef,
   actDef,
-  readSkillDef,
+  readSkillsDef,
   updateWorkspaceFileDef,
 ];
 
@@ -34,7 +34,7 @@ async function buildSkillIndex(
   if (skills.length === 0) return null;
   const lines: string[] = [
     "# Skill khả dụng",
-    "Khi tình huống match một skill bên dưới, bạn PHẢI gọi `read_skill(name)` để đọc body đầy đủ trước khi hành động. Mô tả ở đây chỉ là gợi nhớ, không đủ để theo đúng quy trình.",
+    "Khi tình huống match một (hoặc nhiều) skill bên dưới, bạn PHẢI gọi `read_skills([...])` để đọc body đầy đủ trước khi hành động — một yêu cầu cần nhiều skill thì truyền HẾT tên vào cùng một lần gọi. Mô tả ở đây chỉ là gợi nhớ, không đủ để theo đúng quy trình.",
     "",
   ];
   for (const s of skills) {
@@ -91,8 +91,8 @@ async function dispatchTool(
         return await handleReadPanel(input, panel);
       case "act":
         return await handleAct(input, panel);
-      case "read_skill":
-        return await handleReadSkill(input, role, token);
+      case "read_skills":
+        return await handleReadSkills(input, role, token);
       case "update_workspace_file":
         return await handleUpdateWorkspaceFile(input, token);
       default:

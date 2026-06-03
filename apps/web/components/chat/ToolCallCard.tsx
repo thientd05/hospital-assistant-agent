@@ -5,25 +5,32 @@ import type { ToolCall } from "@pr_hospitalagent/types";
 
 // Tên tool hiển thị bằng tiếng Việt
 const TOOL_LABELS: Record<string, string> = {
-  read_skill: "Đọc kỹ năng",
+  read_skills: "Đọc kỹ năng",
   read_panel: "Đọc cửa sổ làm việc",
   act: "Thao tác",
 };
 
-// Tên kỹ năng (read_skill) bằng tiếng Việt — hiển thị dưới tên tool
+// Tên kỹ năng bằng tiếng Việt — hiển thị dưới tên tool
 const SKILL_LABELS: Record<string, string> = {
-  "create-patient": "Tạo bệnh nhân",
-  "add-lab-result": "Thêm kết quả xét nghiệm",
-  "update-patient-record": "Cập nhật hồ sơ bệnh nhân",
-  "create-appointment": "Tạo lịch hẹn",
-  "check-drug-interaction": "Kiểm tra tương tác thuốc",
+  "edit-lab-results": "Sửa kết quả xét nghiệm",
+  "edit-vitals": "Sửa sinh hiệu",
+  "edit-diagnoses": "Sửa chẩn đoán",
+  "prescribe-medications": "Chọn thuốc & chỉ định dùng",
+  "assign-ward": "Phân khoa",
+  "collect-patient-info": "Thu thập thông tin bệnh nhân",
+  "book-appointment": "Đặt lịch khám",
 };
 
-// Dòng phụ dưới tên tool (chỉ read_skill hiển thị tên kỹ năng; còn lại để trống)
+// Dòng phụ dưới tên tool (chỉ read_skills hiển thị tên (các) kỹ năng; còn lại để trống)
 function subtitleFor(toolCall: ToolCall): string {
-  if (toolCall.name === "read_skill") {
-    const name = toolCall.input?.name;
-    if (typeof name === "string") return SKILL_LABELS[name] ?? name;
+  if (toolCall.name === "read_skills") {
+    const names = toolCall.input?.names;
+    if (Array.isArray(names)) {
+      return names
+        .filter((n): n is string => typeof n === "string")
+        .map((n) => SKILL_LABELS[n] ?? n)
+        .join(", ");
+    }
   }
   return "";
 }

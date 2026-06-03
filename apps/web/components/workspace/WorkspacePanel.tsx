@@ -5,7 +5,6 @@ import { ROLE_TABS, type WorkspaceTab } from "@/hooks/useWorkspace";
 import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
-import { DrugCheckTab } from "./tabs/DrugCheckTab";
 import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
 import { HomeVitalsTab } from "./tabs/HomeVitalsTab";
 
@@ -16,7 +15,6 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   patients: "Bệnh nhân",
   patient: "Hồ sơ",
   appointments: "Lịch hẹn",
-  "drug-check": "Tương tác thuốc",
   "my-record": "Hồ sơ",
   "my-appointments": "Lịch hẹn",
   "home-vitals": "Chỉ số tại nhà",
@@ -210,7 +208,6 @@ export function WorkspacePanel({
               onAccepted={onAcceptAppointment}
             />
           )}
-          {role === "doctor" && activeTab === "drug-check" && <DrugCheckTab />}
           {role === "patient" && activeTab === "my-record" && (
             <PatientDetailTab
               selfMode

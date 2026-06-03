@@ -3,20 +3,22 @@
     "tools": [
       "read_panel",
       "act",
-      "read_skill",
+      "read_skills",
       "update_workspace_file"
     ],
     "skills": [
-      "add-lab-result",
-      "update-patient-record",
-      "check-drug-interaction"
+      "edit-lab-results",
+      "edit-vitals",
+      "edit-diagnoses",
+      "prescribe-medications",
+      "assign-ward"
     ]
   },
   "patient": {
     "tools": [
       "read_panel",
       "act",
-      "read_skill",
+      "read_skills",
       "update_workspace_file"
     ],
     "skills": ["collect-patient-info", "book-appointment"]
