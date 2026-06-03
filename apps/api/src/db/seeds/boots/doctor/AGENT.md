@@ -105,8 +105,9 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │
 └─ tab:drug-check                           (tab) "Tương tác thuốc"
     └─(click tab:drug-check)── tab Tương tác thuốc
-        ├─ drug-check:input                 (textbox) danh sách thuốc, cách nhau dấu phẩy/xuống dòng
-        ├─ drug-check:submit                (button) "Kiểm tra"
+        ├─ drug-check:drug:<id>             (checkbox, ĐỘNG) mỗi thuốc 1 ô; chọn từ danh sách (label=tên thuốc), KHÔNG gõ tự do
+        ├─ drug-check:clear                 (button) "Bỏ chọn" — bỏ tick tất cả (chỉ hiện khi đã chọn)
+        ├─ drug-check:submit                (button) "Kiểm tra" — cần ≥2 thuốc
         ├─ drug-check:result                (alert) hiện sau khi kiểm tra — đọc để biết kết quả
         └─ drug-check:error                 (alert) khi lỗi
 

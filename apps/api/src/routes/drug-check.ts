@@ -5,6 +5,12 @@ import { parseBody } from "../lib/validate.ts";
 import { drugCheckService } from "../services/drug-check.service.ts";
 
 export async function drugCheckRoutes(app: FastifyInstance) {
+  app.get(
+    "/drug-check/drugs",
+    { preHandler: [verifyAuth, requireRole("doctor")] },
+    async () => drugCheckService.catalog()
+  );
+
   app.post(
     "/drug-check",
     { preHandler: [verifyAuth, requireRole("doctor")] },
