@@ -116,10 +116,10 @@ const CHAT_DATA: Record<
     message: <PatientMessage />,
     inputPlaceholder: "Bạn cần hỏi gì hôm nay?",
     panel: {
-      tabs: ["Hồ sơ", "Xét nghiệm", "Lịch hẹn"],
+      tabs: ["Hồ sơ", "Lịch hẹn"],
       activeTab: 0,
-      header: <VitalsHeader />,
-      content: <VitalsList />,
+      header: <RecordHeader />,
+      content: <RecordDetail />,
     },
   },
 };
@@ -425,53 +425,105 @@ function PatientMessage() {
   );
 }
 
-function VitalsHeader() {
+function RecordHeader() {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <div className="text-[11px] font-semibold text-slate-700">
-        Sinh hiệu (bác sĩ ghi)
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0">
+        <div className="truncate text-[15px] font-bold text-slate-900">
+          Nguyễn Văn A
+        </div>
+        <div className="text-[11px] text-slate-400">BN001</div>
       </div>
+      <button className="flex-shrink-0 rounded-md border border-brand-200 px-3 py-1 text-[11px] font-medium text-brand-700">
+        Sửa
+      </button>
     </div>
   );
 }
 
-const VITALS = [
-  { date: "28/05 · 07:10", spo2: "95%", bp: "128/82", hr: "78", note: "Trước ăn sáng" },
-  { date: "27/05 · 21:30", spo2: "94%", bp: "132/85", hr: "82", note: "Sau bữa tối" },
-  { date: "27/05 · 06:55", spo2: "93%", bp: "130/84", hr: "80", note: "" },
+const PROFILE_INFO = [
+  { l: "Họ tên", v: "Nguyễn Văn A" },
+  { l: "Tuổi", v: "58" },
+  { l: "Giới tính", v: "Nam" },
+  { l: "Khoa", v: "Nội Tim mạch" },
+  { l: "Điện thoại", v: "0901234001" },
 ];
 
-function VitalsList() {
+const VITAL_SIGNS = [
+  { l: "SpO₂", v: "91 %", abnormal: true },
+  { l: "Nhịp tim", v: "102 bpm", abnormal: true },
+  { l: "Huyết áp", v: "148/92 mmHg", abnormal: false },
+  { l: "Nhiệt độ", v: "37.1 °C", abnormal: false },
+];
+
+const LABS = [
+  { name: "NT-proBNP", value: "2840", unit: "pg/mL", ref: "<125" },
+  { name: "Creatinine", value: "1.4", unit: "mg/dL", ref: "0.7-1.2" },
+  { name: "Hb", value: "11.2", unit: "g/dL", ref: "13-17" },
+  { name: "HbA1c", value: "7.8", unit: "%", ref: "<6.5" },
+];
+
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <>
-      <div className="text-[10px] uppercase tracking-wide text-slate-400">
-        3 lần đo gần nhất
-      </div>
-      <div className="space-y-2">
-        {VITALS.map((v, i) => (
-          <div key={i} className="rounded-lg border border-slate-200/80 bg-white p-2.5">
-            <div className="flex items-center justify-between text-[10.5px] text-slate-500">
-              {v.date}
-              {v.note ? <span className="text-slate-400">{v.note}</span> : null}
-            </div>
-            <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-center">
-              {[
-                { l: "SpO₂", v: v.spo2 },
-                { l: "Huyết áp", v: v.bp },
-                { l: "Nhịp", v: v.hr },
-              ].map((m) => (
-                <div key={m.l} className="rounded bg-brand-50 px-1.5 py-1">
-                  <div className="text-[9.5px] text-brand-700">{m.l}</div>
-                  <div className="text-[11px] font-semibold text-brand-900">
-                    {m.v}
-                  </div>
-                </div>
-              ))}
-            </div>
+    <div className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+      {children}
+    </div>
+  );
+}
+
+function RecordDetail() {
+  return (
+    <div className="space-y-4">
+      {/* THÔNG TIN */}
+      <div className="space-y-1.5">
+        <SectionLabel>Thông tin</SectionLabel>
+        {PROFILE_INFO.map((r) => (
+          <div key={r.l} className="flex items-baseline justify-between gap-3 text-[11.5px]">
+            <span className="text-slate-500">{r.l}</span>
+            <span className="truncate text-slate-900">{r.v}</span>
           </div>
         ))}
       </div>
-    </>
+
+      {/* SINH HIỆU */}
+      <div className="space-y-1.5">
+        <SectionLabel>Sinh hiệu</SectionLabel>
+        {VITAL_SIGNS.map((v) => (
+          <div key={v.l} className="flex items-center justify-between gap-3 text-[11.5px]">
+            <span className="text-slate-500">{v.l}</span>
+            {v.abnormal ? (
+              <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                {v.v}
+              </span>
+            ) : (
+              <span className="text-slate-900">{v.v}</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* XÉT NGHIỆM */}
+      <div className="space-y-1">
+        <SectionLabel>Xét nghiệm</SectionLabel>
+        <div className="grid grid-cols-12 gap-1 border-b border-slate-200 pb-1 text-[9px] uppercase tracking-wider text-slate-400">
+          <span className="col-span-5">Xét nghiệm</span>
+          <span className="col-span-3">Kết quả</span>
+          <span className="col-span-2">Đơn vị</span>
+          <span className="col-span-2 text-right">Tham chiếu</span>
+        </div>
+        {LABS.map((r) => (
+          <div
+            key={r.name}
+            className="-mx-2 grid grid-cols-12 items-center gap-1 rounded bg-red-50/60 px-2 py-1 text-[11px]"
+          >
+            <span className="col-span-5 truncate text-slate-700">{r.name}</span>
+            <span className="col-span-3 font-medium text-red-700">{r.value}</span>
+            <span className="col-span-2 text-slate-500">{r.unit}</span>
+            <span className="col-span-2 text-right text-slate-400">{r.ref}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
