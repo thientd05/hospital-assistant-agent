@@ -6,10 +6,10 @@
 // khi insert nên chạy lại nhiều lần luôn ra cùng kết quả (idempotent).
 //
 // Tài khoản đăng nhập (username / password):
-//   Bác sĩ:     bs001..bs003 / matkhau001..matkhau003
-//   Quản lý:    ql001        / matkhauql001
-//   Chuyên gia: cg001..cg003 / matkhaucg001..matkhaucg003
-//   Bệnh nhân:  SĐT 0901234001..010 / matkhaubn001..matkhaubn010 (đăng nhập bằng SĐT)
+//   Bác sĩ:     bs001..bs003 / mkbs001..mkbs003
+//   Quản lý:    ql001        / mkql001
+//   Chuyên gia: cg001..cg003 / mkcg001..mkcg003
+//   Bệnh nhân:  SĐT 0901234001..010 / mkbn001..mkbn010 (đăng nhập bằng SĐT)
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { connectDB, client, hashPassword } from "@pr_hospitalagent/api-shared";
@@ -54,7 +54,7 @@ function rand(seed: number): number {
 const ANCHOR = new Date(2026, 4, 10);
 
 // ───────────────────────────────────────────────────────── Bệnh nhân (BN00X)
-// Bệnh nhân KHÔNG có username — đăng nhập bằng `phone` (vd 0901234001 / matkhaubn001).
+// Bệnh nhân KHÔNG có username — đăng nhập bằng `phone` (vd 0901234001 / mkbn001).
 // XN trong seed chỉ cần {name, value, recordedAt} — đơn vị/khoảng tham chiếu/bất thường
 // do `buildPatients` suy lại từ danh mục (computeLab). XN ngoài danh mục (chẩn đoán hình
 // ảnh, mô tả tự do) phải tự khai unit/referenceRange/isAbnormal vì không tính được.
@@ -77,7 +77,7 @@ type PatientSeedSpec = Omit<
 const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN001",
-    password: "matkhaubn001",
+    password: "mkbn001",
     name: "Nguyễn Văn A",
     age: 58,
     gender: "Nam",
@@ -100,7 +100,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN002",
-    password: "matkhaubn002",
+    password: "mkbn002",
     name: "Trần Thị B",
     age: 45,
     gender: "Nữ",
@@ -121,7 +121,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN003",
-    password: "matkhaubn003",
+    password: "mkbn003",
     name: "Lê Minh C",
     age: 32,
     gender: "Nam",
@@ -142,7 +142,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN004",
-    password: "matkhaubn004",
+    password: "mkbn004",
     name: "Phạm Thị D",
     age: 67,
     gender: "Nữ",
@@ -165,7 +165,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN005",
-    password: "matkhaubn005",
+    password: "mkbn005",
     name: "Hoàng Văn E",
     age: 71,
     gender: "Nam",
@@ -189,7 +189,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN006",
-    password: "matkhaubn006",
+    password: "mkbn006",
     name: "Vũ Thị F",
     age: 29,
     gender: "Nữ",
@@ -212,7 +212,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN007",
-    password: "matkhaubn007",
+    password: "mkbn007",
     name: "Đặng Minh G",
     age: 8,
     gender: "Nam",
@@ -234,7 +234,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN008",
-    password: "matkhaubn008",
+    password: "mkbn008",
     name: "Bùi Văn H",
     age: 64,
     gender: "Nam",
@@ -257,7 +257,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN009",
-    password: "matkhaubn009",
+    password: "mkbn009",
     name: "Ngô Thị I",
     age: 52,
     gender: "Nữ",
@@ -281,7 +281,7 @@ const patientSeeds: PatientSeedSpec[] = [
   },
   {
     id: "BN010",
-    password: "matkhaubn010",
+    password: "mkbn010",
     name: "Đỗ Văn K",
     age: 74,
     gender: "Nam",
@@ -333,7 +333,7 @@ const doctorSeeds: DoctorSeed[] = [
   {
     id: "BS001",
     username: "bs001",
-    password: "matkhau001",
+    password: "mkbs001",
     fullName: "BS. Trần Quang Minh",
     title: "Bác sĩ chuyên khoa I",
     department: "Nội Tim mạch",
@@ -346,7 +346,7 @@ const doctorSeeds: DoctorSeed[] = [
   {
     id: "BS002",
     username: "bs002",
-    password: "matkhau002",
+    password: "mkbs002",
     fullName: "ThS.BS. Nguyễn Thị Hương",
     title: "Thạc sĩ, Bác sĩ",
     department: "Cấp cứu",
@@ -359,7 +359,7 @@ const doctorSeeds: DoctorSeed[] = [
   {
     id: "BS003",
     username: "bs003",
-    password: "matkhau003",
+    password: "mkbs003",
     fullName: "BS. Lê Hoàng Nam",
     title: "Bác sĩ",
     department: "Nhi",
@@ -375,7 +375,7 @@ const doctorSeeds: DoctorSeed[] = [
 const managerSeed = {
   id: "QL001",
   username: "ql001",
-  password: "matkhauql001",
+  password: "mkql001",
   fullName: "Phạm Thanh Tùng",
   title: "Giám đốc phòng khám",
   clinicName: "Phòng khám Đa khoa Hồng Đức",
@@ -401,7 +401,7 @@ const expertSeeds: ExpertSeed[] = [
   {
     id: "CG001",
     username: "cg001",
-    password: "matkhaucg001",
+    password: "mkcg001",
     fullName: "Trần Minh Khoa",
     title: "Chuyên gia huấn luyện AI",
     expertise: "Prompt engineering — y khoa",
@@ -412,7 +412,7 @@ const expertSeeds: ExpertSeed[] = [
   {
     id: "CG002",
     username: "cg002",
-    password: "matkhaucg002",
+    password: "mkcg002",
     fullName: "Nguyễn Thị Lan",
     title: "Chuyên gia quy trình lâm sàng",
     expertise: "Quy trình khám bệnh & chuẩn hoá giao tiếp",
@@ -423,7 +423,7 @@ const expertSeeds: ExpertSeed[] = [
   {
     id: "CG003",
     username: "cg003",
-    password: "matkhaucg003",
+    password: "mkcg003",
     fullName: "Phạm Đức Thành",
     title: "Chuyên gia dữ liệu y tế",
     expertise: "Chuẩn hoá dữ liệu & kiểm soát chất lượng AI",
@@ -1117,10 +1117,10 @@ async function seed() {
   console.log(`  directmsgs   ${directMessageSeeds.length}`);
   console.log(`  conversations 0  (xoá sạch)`);
   console.log("\nTài khoản:");
-  console.log("  bs001..bs003 / matkhau001..003   (bác sĩ)");
-  console.log("  ql001        / matkhauql001       (quản lý)");
-  console.log("  cg001..cg003 / matkhaucg001..003  (chuyên gia)");
-  console.log("  SĐT 0901234001..010 / matkhaubn001..010  (bệnh nhân — đăng nhập bằng SĐT)");
+  console.log("  bs001..bs003 / mkbs001..003   (bác sĩ)");
+  console.log("  ql001        / mkql001       (quản lý)");
+  console.log("  cg001..cg003 / mkcg001..003  (chuyên gia)");
+  console.log("  SĐT 0901234001..010 / mkbn001..010  (bệnh nhân — đăng nhập bằng SĐT)");
 
   await client.close();
 }
