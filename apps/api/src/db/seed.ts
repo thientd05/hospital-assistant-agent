@@ -967,6 +967,123 @@ const directMessageSeeds: DirectThread[] = [
     createdAt: dm(20),
     updatedAt: dm(20),
   },
+  {
+    id: "DM005",
+    doctorId: "BS002",
+    patientId: "BN006",
+    messages: [
+      {
+        sender: "patient",
+        content: "Chào bác sĩ, em uống thuốc xong thấy hơi chóng mặt, có sao không ạ?",
+        createdAt: dm(75),
+      },
+      {
+        sender: "doctor",
+        content:
+          "Chị nghỉ ngơi, uống đủ nước và tránh đứng dậy đột ngột nhé. Nếu chóng mặt kéo dài hoặc kèm mệt nhiều thì báo tôi ngay.",
+        createdAt: dm(70),
+      },
+    ],
+    createdAt: dm(75),
+    updatedAt: dm(70),
+  },
+  {
+    id: "DM006",
+    doctorId: "BS001",
+    patientId: "BN003",
+    messages: [
+      {
+        sender: "doctor",
+        content: "Chào anh C, vết thương đầu của anh tuần này thế nào, còn đau hay chóng mặt không ạ?",
+        createdAt: dm(15),
+      },
+    ],
+    createdAt: dm(15),
+    updatedAt: dm(15),
+  },
+];
+
+// ───────────────────── Hội thoại AI ↔ người dùng (chat co-pilot) ──────────
+// `doctorId` = ID owner BẤT KỲ role (BS00X = bác sĩ, BN00X = bệnh nhân) — lý do
+// lịch sử. CHỈ seed cho mã CỐ ĐỊNH của seed (BS001..3, BN001..10); register chỉ
+// cấp mã mới từ BN011 trở đi nên các mã này không bao giờ bị tái dùng → không
+// sinh hội thoại "ma". messages lưu RAW dạng {role, content} (StoredMessage).
+type ConversationSeed = {
+  id: string;
+  title: string;
+  doctorId: string;
+  messages: { role: "user" | "assistant"; content: string }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function cm(minutesAgo: number): Date {
+  return new Date(now.getTime() - minutesAgo * 60_000);
+}
+
+const conversationSeeds: ConversationSeed[] = [
+  // ── AI ↔ bệnh nhân ──
+  {
+    id: "conv_seed_bn001",
+    title: "Thuốc huyết áp uống lúc nào?",
+    doctorId: "BN001",
+    messages: [
+      { role: "user", content: "Thuốc huyết áp tôi nên uống vào lúc nào trong ngày ạ?" },
+      {
+        role: "assistant",
+        content:
+          "Chào bác A 👋 Amlodipine bác uống một lần vào buổi sáng, cố định cùng một giờ mỗi ngày để huyết áp ổn định. Bác nhớ không bỏ liều và hạn chế ăn mặn nhé.",
+      },
+    ],
+    createdAt: cm(200),
+    updatedAt: cm(200),
+  },
+  {
+    id: "conv_seed_bn003",
+    title: "Tiểu đường ăn trái cây được không?",
+    doctorId: "BN003",
+    messages: [
+      { role: "user", content: "Tôi bị tiểu đường thì ăn trái cây ngọt có sao không?" },
+      {
+        role: "assistant",
+        content:
+          "Anh vẫn ăn trái cây được, nên chọn loại ít ngọt (ổi, bưởi, táo) với lượng vừa phải và tránh nước ép. Ăn sau bữa chính thay vì lúc đói sẽ giúp đường huyết ổn định hơn ạ.",
+      },
+    ],
+    createdAt: cm(160),
+    updatedAt: cm(160),
+  },
+  // ── AI ↔ bác sĩ ──
+  {
+    id: "conv_seed_bs001",
+    title: "Hôm nay nên ưu tiên bệnh nhân nào?",
+    doctorId: "BS001",
+    messages: [
+      { role: "user", content: "Hôm nay tôi nên ưu tiên theo dõi bệnh nhân nào trước?" },
+      {
+        role: "assistant",
+        content:
+          "Chào bác sĩ. Bệnh nhân Nguyễn Văn A (BN001) sáng nay huyết áp 150/95 và NT-proBNP cao — nên ưu tiên xem trước. Bác có muốn tôi mở hồ sơ BN001 không ạ?",
+      },
+    ],
+    createdAt: cm(120),
+    updatedAt: cm(120),
+  },
+  {
+    id: "conv_seed_bs002",
+    title: "Tóm tắt tình trạng BN005",
+    doctorId: "BS002",
+    messages: [
+      { role: "user", content: "Tóm tắt nhanh tình trạng bệnh nhân BN005 giúp tôi." },
+      {
+        role: "assistant",
+        content:
+          "Bệnh nhân BN005 có COPD, đợt lạnh này ho và khó thở tăng. Nên nhắc giữ ấm, dùng thuốc xịt đúng liều và theo dõi SpO2 — dưới 92% thì xử trí sớm. Bác có muốn tôi ghi chú nhắc tái khám không ạ?",
+      },
+    ],
+    createdAt: cm(80),
+    updatedAt: cm(80),
+  },
 ];
 
 // ───────────────────────────────────────────────────────── Runner
@@ -1092,11 +1209,14 @@ async function seed() {
   );
   await directMessages.insertMany(directMessageSeeds);
 
-  // 14. Conversations — KHÔNG seed nội dung, chỉ XOÁ SẠCH.
-  // Bắt buộc: register cấp mã BN bằng nextId (tái dùng BN011, BN012… sau mỗi seed).
-  // Nếu không dọn, BN mới trùng mã sẽ thừa hưởng hội thoại của BN cũ cùng mã
-  // (lọc theo doctorId=ownerId) → sidebar hiện hội thoại "ma" của deploy trước.
-  await db.collection("conversations").deleteMany({});
+  // 14. Conversations — XOÁ SẠCH rồi insert vài hội thoại mẫu cho MÃ CỐ ĐỊNH.
+  // Bắt buộc dọn: register cấp mã BN bằng nextId (tái dùng BN011, BN012… sau mỗi
+  // seed) → nếu còn rác, BN mới trùng mã thừa hưởng hội thoại "ma" (lọc theo
+  // doctorId=ownerId). Hội thoại mẫu chỉ gắn vào BS001..3 / BN001..10 (mã không
+  // bao giờ bị register tái dùng) nên an toàn.
+  const conversations = db.collection("conversations");
+  await conversations.deleteMany({});
+  await conversations.insertMany(conversationSeeds);
 
   // Tổng kết
   console.log("✓ Seed hoàn tất — đã xoá sạch và insert lại:");
@@ -1115,7 +1235,7 @@ async function seed() {
   console.log(`  skills       ${skillDocs.length}`);
   console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
   console.log(`  directmsgs   ${directMessageSeeds.length}`);
-  console.log(`  conversations 0  (xoá sạch)`);
+  console.log(`  conversations ${conversationSeeds.length}  (AI↔BN, AI↔BS mẫu)`);
   console.log("\nTài khoản:");
   console.log("  bs001..bs003 / mkbs001..003   (bác sĩ)");
   console.log("  ql001        / mkql001       (quản lý)");
