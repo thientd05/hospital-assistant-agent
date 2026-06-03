@@ -130,7 +130,7 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
     <BrowserChrome>
       <div className="grid h-[480px] grid-cols-1 bg-white text-[12px] sm:h-[520px] md:h-[560px] md:grid-cols-[1fr_300px] lg:grid-cols-[180px_1fr_320px]">
         {/* Sidebar */}
-        <aside className="hidden flex-col border-r border-slate-100 bg-slate-50/50 lg:flex">
+        <aside className="hidden min-h-0 flex-col border-r border-slate-100 bg-slate-50/50 lg:flex">
           <div className="flex items-center justify-between gap-2 px-3 py-3">
             <div className="flex items-center gap-1.5">
               <span className="inline-flex h-5 w-5 items-center justify-center text-brand-600">
@@ -186,8 +186,8 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
         </aside>
 
         {/* Chat */}
-        <section className="relative flex min-w-0 flex-col">
-          <div className="flex-1 space-y-3 overflow-hidden px-5 py-4">
+        <section className="relative flex min-h-0 min-w-0 flex-col">
+          <div className="min-h-0 flex-1 space-y-3 overflow-hidden px-5 py-4">
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -213,7 +213,7 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
         </section>
 
         {/* Workspace panel */}
-        <aside className="hidden min-w-0 flex-col border-l border-slate-100 bg-white md:flex">
+        <aside className="hidden min-h-0 min-w-0 flex-col border-l border-slate-100 bg-white md:flex">
           <div className="flex items-center gap-3 overflow-hidden border-b border-slate-100 px-4">
             {d.panel.tabs.map((t, i) => (
               <button
@@ -237,7 +237,7 @@ function ChatMock({ variant }: { variant: "doctor" | "patient" }) {
 
           <div className="border-b border-slate-100 px-4 py-3">{d.panel.header}</div>
 
-          <div className="flex-1 space-y-2 overflow-hidden px-4 py-3">
+          <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-4 py-3">
             {d.panel.content}
           </div>
         </aside>
