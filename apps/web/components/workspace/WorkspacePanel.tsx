@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { ROLE_TABS, type WorkspaceTab } from "@/hooks/useWorkspace";
 import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
-import { LabsTab } from "./tabs/LabsTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { DrugCheckTab } from "./tabs/DrugCheckTab";
 import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
@@ -19,7 +18,6 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   appointments: "Lịch hẹn",
   "drug-check": "Tương tác thuốc",
   "my-record": "Hồ sơ",
-  "my-labs": "Xét nghiệm",
   "my-appointments": "Lịch hẹn",
   "home-vitals": "Chỉ số tại nhà",
 };
@@ -216,15 +214,6 @@ export function WorkspacePanel({
               patientId={null}
               version={versions["my-record"]}
               active={isOpen && activeTab === "my-record"}
-              onChanged={() => {}}
-            />
-          )}
-          {role === "patient" && activeTab === "my-labs" && (
-            <LabsTab
-              selfMode
-              patientId={null}
-              version={versions["my-labs"]}
-              active={isOpen && activeTab === "my-labs"}
               onChanged={() => {}}
             />
           )}

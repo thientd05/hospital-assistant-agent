@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
 import { LAB_CATALOG, findLabEntry } from "@pr_hospitalagent/types";
 import { usePatient, useLabs, patientsApi } from "@/hooks/usePatients";
+import { useMyLabs } from "@/hooks/useMyLabs";
 import { useMedications } from "@/hooks/useMedications";
 import { MedicationPicker } from "@/components/workspace/MedicationPicker";
 import { http } from "@/lib/apiClient";
@@ -114,9 +115,14 @@ export function PatientDetailTab({
   const [medPickerOpen, setMedPickerOpen] = useState(false);
   // Danh mục thuốc — nạp lười: chỉ khi bác sĩ vào chế độ sửa (không ở selfMode).
   const meds = useMedications(!selfMode && editing);
-  // Xét nghiệm — gộp vào tab Hồ sơ (chỉ phía bác sĩ; BN có tab Xét nghiệm riêng).
-  const labsRes = useLabs(patientId, version, active && !selfMode);
+  // Xét nghiệm — gộp vào tab Hồ sơ cho cả bác sĩ lẫn bệnh nhân. Bác sĩ đọc qua
+  // /patients/:id/labs (sửa được); bệnh nhân đọc CỦA MÌNH qua /me/labs (chỉ xem).
+  const doctorLabs = useLabs(patientId, version, active && !selfMode);
+  const selfLabs = useMyLabs(version, active && selfMode);
+  const labsRes = selfMode ? selfLabs : doctorLabs;
   const labs = labsRes.data?.labResults ?? [];
+  // Chỉ bác sĩ sửa được xét nghiệm; bệnh nhân luôn xem (kể cả khi đang sửa hồ sơ).
+  const labEditing = editing && !selfMode;
   // Dòng xét nghiệm thêm mới (staged) + chỉ số xét nghiệm cũ đánh dấu xoá — chỉ
   // commit khi bấm "Lưu" cùng phần lâm sàng.
   const [newLabs, setNewLabs] = useState<{ name: string; value: string }[]>([]);
@@ -532,10 +538,9 @@ export function PatientDetailTab({
         )}
       </InfoRow>
 
-      {/* Xét nghiệm — chỉ phía bác sĩ; nằm giữa Sinh hiệu và Chẩn đoán. */}
-      {!selfMode && (
-        <>
-          {editing && draft ? (
+      {/* Xét nghiệm — nằm giữa Sinh hiệu và Chẩn đoán. Bác sĩ sửa được; BN chỉ xem. */}
+      <>
+          {labEditing && draft ? (
             <div className="flex items-center justify-between mt-5 mb-2">
               <span className="text-[11px] uppercase tracking-wider text-gray-400 font-medium">
                 Xét nghiệm
@@ -558,7 +563,7 @@ export function PatientDetailTab({
 
           {labsRes.loading ? (
             <div className="text-xs text-gray-400">Đang tải…</div>
-          ) : labs.length === 0 && (!editing || newLabs.length === 0) ? (
+          ) : labs.length === 0 && (!labEditing || newLabs.length === 0) ? (
             <div className="text-xs text-gray-400">Chưa có kết quả xét nghiệm.</div>
           ) : (
             <div className="text-sm">
@@ -567,11 +572,11 @@ export function PatientDetailTab({
                 <div className="col-span-3">Kết quả</div>
                 <div className="col-span-2">Đơn vị</div>
                 <div
-                  className={`${editing ? "col-span-2" : "col-span-3"} text-center`}
+                  className={`${labEditing ? "col-span-2" : "col-span-3"} text-center`}
                 >
                   Tham chiếu
                 </div>
-                {editing && <div className="col-span-1" />}
+                {labEditing && <div className="col-span-1" />}
               </div>
               <div className="divide-y divide-gray-100">
                 {labs.map((r, i) => {
@@ -598,12 +603,12 @@ export function PatientDetailTab({
                       </div>
                       <div
                         className={`${
-                          editing ? "col-span-2" : "col-span-3"
+                          labEditing ? "col-span-2" : "col-span-3"
                         } text-gray-500 text-xs truncate text-center`}
                       >
                         {r.referenceRange}
                       </div>
-                      {editing && (
+                      {labEditing && (
                         <div className="col-span-1 flex justify-end">
                           <button
                             type="button"
@@ -623,7 +628,7 @@ export function PatientDetailTab({
                     </div>
                   );
                 })}
-                {editing &&
+                {labEditing &&
                   newLabs.map((row, i) => {
                     const entry = row.name ? findLabEntry(row.name) : undefined;
                     return (
@@ -688,8 +693,7 @@ export function PatientDetailTab({
               </div>
             </div>
           )}
-        </>
-      )}
+      </>
 
       <SectionLabel>Chẩn đoán</SectionLabel>
       {editing && draft && canEdit("diagnoses") ? (

@@ -9,13 +9,12 @@ export type WorkspaceTab =
   | "appointments"
   | "drug-check"
   | "my-record"
-  | "my-labs"
   | "my-appointments"
   | "home-vitals";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
   doctor: ["patients", "patient", "appointments", "drug-check"],
-  patient: ["my-record", "my-labs", "my-appointments", "home-vitals"],
+  patient: ["my-record", "my-appointments", "home-vitals"],
 };
 
 const REFRESH_TO_TAB: Partial<Record<Exclude<ToolRefresh, false>, WorkspaceTab>> = {
@@ -34,7 +33,6 @@ const ZERO_VERSIONS: Versions = {
   appointments: 0,
   "drug-check": 0,
   "my-record": 0,
-  "my-labs": 0,
   "my-appointments": 0,
   "home-vitals": 0,
 };
