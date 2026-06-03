@@ -38,6 +38,7 @@ import type {
   RevenueSource,
   DirectThread,
 } from "@pr_hospitalagent/types";
+import { computeLab, findLabEntry } from "@pr_hospitalagent/types";
 import { periodKey, lastNPeriods } from "../lib/period.ts";
 import { labCatalogSeeds } from "./seeds/lab-catalog.ts";
 
@@ -54,8 +55,23 @@ const ANCHOR = new Date(2026, 4, 10);
 
 // ───────────────────────────────────────────────────────── Bệnh nhân (BN00X)
 // Bệnh nhân KHÔNG có username — đăng nhập bằng `phone` (vd 0901234001 / matkhaubn001).
-type PatientSeedSpec = Omit<Patient, "username" | "passwordHash" | "homeVitals"> & {
+// XN trong seed chỉ cần {name, value, recordedAt} — đơn vị/khoảng tham chiếu/bất thường
+// do `buildPatients` suy lại từ danh mục (computeLab). XN ngoài danh mục (chẩn đoán hình
+// ảnh, mô tả tự do) phải tự khai unit/referenceRange/isAbnormal vì không tính được.
+type LabSeed = {
+  name: string;
+  value: string | number;
+  recordedAt: Date;
+  unit?: string;
+  referenceRange?: string;
+  isAbnormal?: boolean;
+};
+type PatientSeedSpec = Omit<
+  Patient,
+  "username" | "passwordHash" | "homeVitals" | "labResults"
+> & {
   password: string;
+  labResults: LabSeed[];
 };
 
 const patientSeeds: PatientSeedSpec[] = [
@@ -72,10 +88,10 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 91, heartRate: 102, bloodPressure: "148/92", temperature: 37.1, recordedAt: now },
     medications: ["Amlodipine 5mg", "Metformin 500mg", "Aspirin 81mg"],
     labResults: [
-      { name: "NT-proBNP", value: 2840, unit: "pg/mL", referenceRange: "<125", isAbnormal: true, recordedAt: now },
-      { name: "Creatinine", value: 1.4, unit: "mg/dL", referenceRange: "0.7-1.2", isAbnormal: true, recordedAt: now },
-      { name: "Hb", value: 11.2, unit: "g/dL", referenceRange: "13-17", isAbnormal: false, recordedAt: now },
-      { name: "HbA1c", value: 7.8, unit: "%", referenceRange: "<6.5", isAbnormal: false, recordedAt: now },
+      { name: "NT-proBNP", value: 2840, recordedAt: now },
+      { name: "Creatinine", value: 1.4, recordedAt: now },
+      { name: "Hb", value: 11.2, recordedAt: now },
+      { name: "HbA1c", value: 7.8, recordedAt: now },
     ],
   },
   {
@@ -91,9 +107,9 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 97, heartRate: 88, bloodPressure: "160/100", temperature: 36.8, recordedAt: now },
     medications: ["Nitroglycerin PRN", "Amlodipine 10mg"],
     labResults: [
-      { name: "Troponin I", value: 0.08, unit: "ng/mL", referenceRange: "<0.04", isAbnormal: true, recordedAt: now },
-      { name: "CK-MB", value: 18, unit: "U/L", referenceRange: "<16", isAbnormal: true, recordedAt: now },
-      { name: "Cholesterol", value: 6.2, unit: "mmol/L", referenceRange: "<5.2", isAbnormal: true, recordedAt: now },
+      { name: "Troponin I", value: 0.08, recordedAt: now },
+      { name: "CK-MB", value: 18, recordedAt: now },
+      { name: "Cholesterol toàn phần", value: 6.2, recordedAt: now },
     ],
   },
   {
@@ -111,7 +127,7 @@ const patientSeeds: PatientSeedSpec[] = [
     labResults: [
       { name: "CT sọ não", value: "Không xuất huyết", unit: "", referenceRange: "Bình thường", isAbnormal: false, recordedAt: now },
       { name: "CBC", value: "Bình thường", unit: "", referenceRange: "Bình thường", isAbnormal: false, recordedAt: now },
-      { name: "Glucose", value: 5.8, unit: "mmol/L", referenceRange: "3.9-6.1", isAbnormal: false, recordedAt: now },
+      { name: "Glucose", value: 5.8, recordedAt: now },
     ],
   },
   {
@@ -127,10 +143,10 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 86, heartRate: 112, bloodPressure: "138/84", temperature: 37.6, recordedAt: now },
     medications: ["Salbutamol khí dung", "Ipratropium khí dung", "Methylprednisolone 40mg IV"],
     labResults: [
-      { name: "pH máu", value: 7.31, unit: "", referenceRange: "7.35-7.45", isAbnormal: true, recordedAt: now },
-      { name: "PaCO2", value: 58, unit: "mmHg", referenceRange: "35-45", isAbnormal: true, recordedAt: now },
-      { name: "PaO2", value: 54, unit: "mmHg", referenceRange: "80-100", isAbnormal: true, recordedAt: now },
-      { name: "Bạch cầu", value: 13.8, unit: "K/uL", referenceRange: "4-10", isAbnormal: true, recordedAt: now },
+      { name: "pH máu", value: 7.31, recordedAt: now },
+      { name: "PaCO2", value: 58, recordedAt: now },
+      { name: "PaO2", value: 54, recordedAt: now },
+      { name: "Bạch cầu", value: 13.8, recordedAt: now },
     ],
   },
   {
@@ -146,10 +162,10 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 96, heartRate: 84, bloodPressure: "152/88", temperature: 36.7, recordedAt: now },
     medications: ["Losartan 50mg", "Furosemide 40mg", "Erythropoietin tiêm dưới da", "Calcium carbonate 500mg"],
     labResults: [
-      { name: "Creatinine", value: 3.6, unit: "mg/dL", referenceRange: "0.7-1.2", isAbnormal: true, recordedAt: now },
-      { name: "eGFR", value: 22, unit: "mL/phút/1.73m²", referenceRange: ">90", isAbnormal: true, recordedAt: now },
-      { name: "Kali", value: 5.6, unit: "mmol/L", referenceRange: "3.5-5.0", isAbnormal: true, recordedAt: now },
-      { name: "Hb", value: 9.4, unit: "g/dL", referenceRange: "13-17", isAbnormal: true, recordedAt: now },
+      { name: "Creatinine", value: 3.6, recordedAt: now },
+      { name: "eGFR", value: 22, recordedAt: now },
+      { name: "Kali", value: 5.6, recordedAt: now },
+      { name: "Hb", value: 9.4, recordedAt: now },
     ],
   },
   {
@@ -166,9 +182,9 @@ const patientSeeds: PatientSeedSpec[] = [
     medications: ["Magnesium sulfate IV", "Methyldopa 250mg", "Betamethasone 12mg IM"],
     labResults: [
       { name: "Protein niệu 24h", value: 4.2, unit: "g/24h", referenceRange: "<0.3", isAbnormal: true, recordedAt: now },
-      { name: "Tiểu cầu", value: 92, unit: "K/uL", referenceRange: "150-400", isAbnormal: true, recordedAt: now },
-      { name: "AST", value: 78, unit: "U/L", referenceRange: "<40", isAbnormal: true, recordedAt: now },
-      { name: "Acid uric", value: 7.8, unit: "mg/dL", referenceRange: "2.4-6.0", isAbnormal: true, recordedAt: now },
+      { name: "Tiểu cầu", value: 92, recordedAt: now },
+      { name: "AST", value: 78, recordedAt: now },
+      { name: "Acid uric", value: 7.8, recordedAt: now },
     ],
   },
   {
@@ -184,10 +200,10 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 97, heartRate: 124, bloodPressure: "92/58", temperature: 38.4, recordedAt: now },
     medications: ["Paracetamol 250mg", "Ringer lactate truyền tĩnh mạch"],
     labResults: [
-      { name: "Tiểu cầu", value: 38, unit: "K/uL", referenceRange: "150-400", isAbnormal: true, recordedAt: now },
-      { name: "Hematocrit", value: 48, unit: "%", referenceRange: "35-45", isAbnormal: true, recordedAt: now },
-      { name: "NS1 Dengue", value: "Dương tính", unit: "", referenceRange: "Âm tính", isAbnormal: true, recordedAt: now },
-      { name: "AST", value: 132, unit: "U/L", referenceRange: "<40", isAbnormal: true, recordedAt: now },
+      { name: "Tiểu cầu", value: 38, recordedAt: now },
+      { name: "Hematocrit", value: 48, recordedAt: now },
+      { name: "NS1 Dengue", value: "Dương tính", recordedAt: now },
+      { name: "AST", value: 132, recordedAt: now },
     ],
   },
   {
@@ -204,9 +220,9 @@ const patientSeeds: PatientSeedSpec[] = [
     medications: ["Alteplase tiêu sợi huyết", "Aspirin 81mg", "Atorvastatin 40mg"],
     labResults: [
       { name: "MRI sọ não", value: "Nhồi máu vùng MCA trái", unit: "", referenceRange: "Bình thường", isAbnormal: true, recordedAt: now },
-      { name: "INR", value: 1.1, unit: "", referenceRange: "0.8-1.2", isAbnormal: false, recordedAt: now },
-      { name: "Glucose", value: 8.4, unit: "mmol/L", referenceRange: "3.9-6.1", isAbnormal: true, recordedAt: now },
-      { name: "LDL-C", value: 4.6, unit: "mmol/L", referenceRange: "<3.4", isAbnormal: true, recordedAt: now },
+      { name: "INR", value: 1.1, recordedAt: now },
+      { name: "Glucose", value: 8.4, recordedAt: now },
+      { name: "LDL-C", value: 4.6, recordedAt: now },
     ],
   },
   {
@@ -222,10 +238,10 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 96, heartRate: 116, bloodPressure: "104/68", temperature: 38.1, recordedAt: now },
     medications: ["Ringer lactate truyền tĩnh mạch", "Pethidine 50mg IM", "Pantoprazole 40mg IV", "Cefoperazone-sulbactam 2g IV"],
     labResults: [
-      { name: "Amylase", value: 824, unit: "U/L", referenceRange: "30-110", isAbnormal: true, recordedAt: now },
-      { name: "Lipase", value: 1450, unit: "U/L", referenceRange: "<60", isAbnormal: true, recordedAt: now },
-      { name: "Bạch cầu", value: 16.4, unit: "K/uL", referenceRange: "4-10", isAbnormal: true, recordedAt: now },
-      { name: "CRP", value: 142, unit: "mg/L", referenceRange: "<5", isAbnormal: true, recordedAt: now },
+      { name: "Amylase", value: 824, recordedAt: now },
+      { name: "Lipase", value: 1450, recordedAt: now },
+      { name: "Bạch cầu", value: 16.4, recordedAt: now },
+      { name: "CRP", value: 142, recordedAt: now },
     ],
   },
   {
@@ -241,11 +257,11 @@ const patientSeeds: PatientSeedSpec[] = [
     vitals: { spO2: 89, heartRate: 122, bloodPressure: "98/56", temperature: 39.2, recordedAt: now },
     medications: ["Ceftriaxone 2g IV", "Levofloxacin 750mg IV", "Noradrenaline truyền liên tục", "Insulin Actrapid theo thang"],
     labResults: [
-      { name: "Bạch cầu", value: 19.6, unit: "K/uL", referenceRange: "4-10", isAbnormal: true, recordedAt: now },
-      { name: "Procalcitonin", value: 12.4, unit: "ng/mL", referenceRange: "<0.5", isAbnormal: true, recordedAt: now },
-      { name: "Lactate", value: 3.8, unit: "mmol/L", referenceRange: "<2", isAbnormal: true, recordedAt: now },
+      { name: "Bạch cầu", value: 19.6, recordedAt: now },
+      { name: "Procalcitonin", value: 12.4, recordedAt: now },
+      { name: "Lactate", value: 3.8, recordedAt: now },
       { name: "X-quang ngực", value: "Đông đặc thùy dưới phải", unit: "", referenceRange: "Bình thường", isAbnormal: true, recordedAt: now },
-      { name: "HbA1c", value: 8.9, unit: "%", referenceRange: "<6.5", isAbnormal: true, recordedAt: now },
+      { name: "HbA1c", value: 8.9, recordedAt: now },
     ],
   },
 ];
@@ -522,6 +538,20 @@ function daysInMonth(period: string): number {
 function buildPatients(): Patient[] {
   return patientSeeds.map(({ password, ...rest }) => ({
     ...rest,
+    // Suy unit/referenceRange/isAbnormal từ danh mục (nguồn sự thật) — KHÔNG seed sẵn
+    // trường bất thường (vd Hb 11.2 < 13 tự ra bất thường). XN ngoài danh mục giữ giá trị tự khai.
+    labResults: rest.labResults.map((lab) => {
+      const entry = findLabEntry(labCatalogSeeds, lab.name);
+      if (entry) return computeLab(lab.name, lab.value, entry, lab.recordedAt);
+      return {
+        name: lab.name,
+        value: lab.value,
+        unit: lab.unit ?? "",
+        referenceRange: lab.referenceRange ?? "",
+        isAbnormal: lab.isAbnormal ?? false,
+        recordedAt: lab.recordedAt,
+      };
+    }),
     passwordHash: hashPassword(password),
     homeVitals: [],
   }));
