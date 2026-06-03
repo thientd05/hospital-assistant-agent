@@ -282,27 +282,25 @@ export function Sidebar({
           </div>
 
           {/* Profile */}
-          <div className="border-t border-gray-200 px-3 py-3">
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(true)}
-              title="Mở cài đặt"
-              aria-label="Mở cài đặt"
-              className="flex items-center gap-3 w-full min-w-0 -mx-1 px-1 py-1 rounded-md hover:bg-brand-50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold shrink-0">
-                {profileName !== "—" ? initials(profileName) : "?"}
-              </div>
-              <div className="flex flex-col leading-tight flex-1 min-w-0">
-                <span className="text-sm font-medium text-gray-900 truncate">
-                  {profileName}
-                </span>
-                <span className="text-xs text-gray-500 truncate">
-                  {profileSubtitle}
-                </span>
-              </div>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            title="Mở cài đặt"
+            aria-label="Mở cài đặt"
+            className="flex items-center gap-3 w-full min-w-0 border-t border-gray-200 px-3 py-3 hover:bg-brand-50 transition-colors text-left"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold shrink-0">
+              {profileName !== "—" ? initials(profileName) : "?"}
+            </div>
+            <div className="flex flex-col leading-tight flex-1 min-w-0">
+              <span className="text-sm font-medium text-gray-900 truncate">
+                {profileName}
+              </span>
+              <span className="text-xs text-gray-500 truncate">
+                {profileSubtitle}
+              </span>
+            </div>
+          </button>
 
         </div>
       </aside>
