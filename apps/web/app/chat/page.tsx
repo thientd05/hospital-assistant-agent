@@ -20,8 +20,7 @@ import {
   waitForRoot,
   type PanelAction,
 } from "@/lib/panel-agent";
-
-const CHAT_STATE_KEY_PREFIX = "chat:lastState:";
+import { CHAT_STATE_KEY_PREFIX } from "@/lib/api";
 
 type SavedChatState = {
   mode?: ChatMode;

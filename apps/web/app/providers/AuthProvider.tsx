@@ -13,7 +13,7 @@ import type {
   ManagerPublic,
   PatientPublic,
 } from "@pr_hospitalagent/types";
-import { ACCOUNT_KEY, API_URL, TOKEN_KEY } from "@/lib/api";
+import { ACCOUNT_KEY, API_URL, CHAT_STATE_KEY_PREFIX, TOKEN_KEY } from "@/lib/api";
 import { clearResourceCache } from "@/lib/resourceCache";
 import { prefetchDoctorData } from "@/lib/prefetch";
 import {
@@ -128,6 +128,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearResourceCache();
       setTokens(nextToken, nextRefreshToken);
       localStorage.setItem(ACCOUNT_KEY, JSON.stringify(nextAccount));
+      // Đăng nhập MỚI → quên trạng thái chat đã lưu của user này (mode + conv id)
+      // để mặc định mở đoạn chat mới với AI. Refresh (token còn hạn, không gọi
+      // login) KHÔNG vào nhánh này nên vẫn khôi phục bình thường.
+      const id =
+        nextAccount.role === "doctor"
+          ? nextAccount.doctor.id
+          : nextAccount.role === "manager"
+          ? nextAccount.manager.id
+          : nextAccount.role === "expert"
+          ? nextAccount.expert.id
+          : nextAccount.patient.id;
+      localStorage.removeItem(`${CHAT_STATE_KEY_PREFIX}${id}`);
       setToken(nextToken);
       setAccount(nextAccount);
       // Đăng nhập mới → nạp trước data bác sĩ (best-effort, không chặn UI).

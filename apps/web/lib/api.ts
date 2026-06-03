@@ -7,3 +7,7 @@ export const AGENT_URL =
 export const TOKEN_KEY = "auth:token";
 export const REFRESH_KEY = "auth:refresh";
 export const ACCOUNT_KEY = "auth:account";
+
+// localStorage key (theo từng user) lưu trạng thái chat đang mở (mode + conv id).
+// Khôi phục khi refresh; bị xoá khi ĐĂNG NHẬP MỚI → mặc định đoạn chat mới với AI.
+export const CHAT_STATE_KEY_PREFIX = "chat:lastState:";
