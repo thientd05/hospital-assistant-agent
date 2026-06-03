@@ -656,7 +656,7 @@ export function PatientDetailTab({
                             onChange={(e) =>
                               updateLabRow(i, "name", e.target.value)
                             }
-                            className="ws-input-sm w-full"
+                            className={LAB_SELECT}
                             data-agent-ref={`patient-detail:lab-new-${i}:name`}
                             data-agent-role="combobox"
                             data-agent-label="Tên xét nghiệm"
@@ -675,8 +675,8 @@ export function PatientDetailTab({
                             onChange={(e) =>
                               updateLabRow(i, "value", e.target.value)
                             }
-                            placeholder={entry?.normal ? entry.normal : "Giá trị"}
-                            className="ws-input-sm w-full"
+                            placeholder="0"
+                            className={LAB_INPUT}
                             data-agent-ref={`patient-detail:lab-new-${i}:value`}
                             data-agent-role="textbox"
                             data-agent-label="Kết quả xét nghiệm"
@@ -824,6 +824,14 @@ const INLINE_INPUT =
 // option rộng nhất). Chỉ danh sách option khi mở mới căn trái.
 const INLINE_SELECT =
   "min-w-0 text-right text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
+
+// Biến thể CĂN TRÁI cho dòng xét nghiệm mới (cột Xét nghiệm/Kết quả căn trái như
+// các dòng đã có). Tên XN: select inline kiểu "Khoa" (mũi tên native, không ô).
+const LAB_SELECT =
+  "min-w-0 text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
+// Kết quả: input inline gạch chân kiểu "Sinh hiệu" (không ô).
+const LAB_INPUT =
+  "min-w-[2ch] text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content]";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
