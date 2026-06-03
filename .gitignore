@@ -6,3 +6,5 @@ dist
 .claude
 CLAUDE.md
 instructions.md
+# Tài liệu nội bộ — không đẩy lên remote
+docs/
