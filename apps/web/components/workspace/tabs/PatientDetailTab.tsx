@@ -178,26 +178,27 @@ export function PatientDetailTab({
     setRemoveLabIdx(new Set());
   }
 
-  // Luôn giữ MỘT dòng rỗng ở cuối: khi dòng cuối được điền đủ (tên + giá trị),
-  // tự thêm dòng rỗng mới ngay bên dưới để bác sĩ nhập tiếp.
-  function withTrailingEmpty(rows: { name: string; value: string }[]) {
-    const last = rows[rows.length - 1];
-    if (last && last.name && last.value.trim())
-      return [...rows, { name: "", value: "" }];
-    return rows;
+  // Chuẩn hoá danh sách dòng nhập: bỏ các dòng rỗng ở CUỐI (vd vừa xoá nội dung
+  // dòng cuối → thu lại dòng đã nở thêm), rồi nếu dòng cuối điền đủ tên + giá trị
+  // thì nở thêm MỘT dòng rỗng để bác sĩ nhập tiếp. Luôn còn ít nhất 1 dòng.
+  function normalizeLabRows(rows: { name: string; value: string }[]) {
+    const r = [...rows];
+    while (r.length && !r[r.length - 1].name && !r[r.length - 1].value.trim())
+      r.pop();
+    if (r.length === 0) return [{ name: "", value: "" }];
+    const last = r[r.length - 1];
+    if (last.name && last.value.trim()) r.push({ name: "", value: "" });
+    return r;
   }
   function updateLabRow(i: number, key: "name" | "value", value: string) {
     setNewLabs((prev) =>
-      withTrailingEmpty(
-        prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r))
-      )
+      normalizeLabRows(prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)))
     );
   }
   function removeLabRow(i: number) {
-    setNewLabs((prev) => {
-      const next = prev.filter((_, idx) => idx !== i);
-      return next.length ? next : [{ name: "", value: "" }];
-    });
+    setNewLabs((prev) =>
+      normalizeLabRows(prev.filter((_, idx) => idx !== i))
+    );
   }
   function toggleRemoveLab(i: number) {
     setRemoveLabIdx((prev) => {
