@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { PatientPublic } from "@pr_hospitalagent/types";
+import type { PatientPublic, Prescription } from "@pr_hospitalagent/types";
 import { findLabEntry } from "@pr_hospitalagent/types";
 import { usePatient, useLabs, patientsApi } from "@/hooks/usePatients";
 import { useMyLabs } from "@/hooks/useMyLabs";
@@ -10,14 +10,6 @@ import { useLabCatalog } from "@/hooks/useLabCatalog";
 import { MedicationPicker } from "@/components/workspace/MedicationPicker";
 import { http } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
-
-// Tách chuỗi thuốc (phân tách dấu phẩy) ↔ mảng tên, dùng chung cho draft + picker.
-function splitMeds(s: string): string[] {
-  return s
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
-}
 
 // Hai tập quyền sửa RỜI NHAU (không giao). Mã BN (id) không ai sửa.
 // Bệnh nhân (selfMode) — thông tin cá nhân, khớp PatientProfileSchema backend.
@@ -68,7 +60,8 @@ type Draft = {
   address: string;
   phone: string;
   diagnoses: string;
-  medications: string;
+  // Mỗi dòng thuốc giữ tên (chọn từ danh mục) + chỉ định dùng (bác sĩ tự nhập).
+  medications: Prescription[];
   spO2: string;
   heartRate: string;
   bloodPressure: string;
@@ -84,7 +77,10 @@ function toDraft(p: PatientPublic): Draft {
     address: p.address ?? "",
     phone: p.phone ?? "",
     diagnoses: p.diagnoses.join("\n"),
-    medications: p.medications.join(", "),
+    medications: p.medications.map((m) => ({
+      name: m.name,
+      instruction: m.instruction,
+    })),
     // Sinh hiệu chưa ghi (0 / rỗng) → để trống, input hiện placeholder "0" thay vì
     // số 0 thật. Lưu vẫn quy "" → 0 (Number("")===0) nên logic giữ nguyên.
     spO2: p.vitals.spO2 ? String(p.vitals.spO2) : "",
@@ -242,6 +238,42 @@ export function PatientDetailTab({
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
+  // Sửa chỉ định dùng của một dòng thuốc / bỏ một dòng thuốc khỏi đơn.
+  function updateMedInstruction(i: number, instruction: string) {
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            medications: prev.medications.map((m, idx) =>
+              idx === i ? { ...m, instruction } : m
+            ),
+          }
+        : prev
+    );
+  }
+  function removeMed(i: number) {
+    setDraft((prev) =>
+      prev
+        ? { ...prev, medications: prev.medications.filter((_, idx) => idx !== i) }
+        : prev
+    );
+  }
+  // Hợp nhất danh sách tên từ picker với chỉ định đang có: giữ chỉ định cho thuốc
+  // đã kê, thuốc mới thêm để chỉ định rỗng (bác sĩ tự nhập sau).
+  function mergeMedNames(names: string[]) {
+    setDraft((prev) => {
+      if (!prev) return prev;
+      const byName = new Map(prev.medications.map((m) => [m.name, m.instruction]));
+      return {
+        ...prev,
+        medications: names.map((name) => ({
+          name,
+          instruction: byName.get(name) ?? "",
+        })),
+      };
+    });
+  }
+
   // Hai tập rời nhau: bệnh nhân sửa thông tin cá nhân, bác sĩ sửa phần lâm sàng.
   const canEdit = (field: string) =>
     selfMode ? SELF_EDITABLE.has(field) : DOCTOR_EDITABLE.has(field);
@@ -321,9 +353,8 @@ export function PatientDetailTab({
         .map((s) => s.trim())
         .filter(Boolean),
       medications: draft.medications
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+        .filter((m) => m.name.trim())
+        .map((m) => ({ name: m.name.trim(), instruction: m.instruction.trim() })),
       vitals: {
         spO2: spO2Num,
         heartRate: heartRateNum,
@@ -830,17 +861,40 @@ export function PatientDetailTab({
           >
             <span className="text-sm leading-none">＋</span> Chọn thuốc
           </button>
-          {splitMeds(draft.medications).length === 0 ? (
+          {draft.medications.length === 0 ? (
             <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
           ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {splitMeds(draft.medications).map((m) => (
-                <span
-                  key={m}
-                  className="text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B]"
-                >
-                  {m}
-                </span>
+            // Mỗi thuốc một hàng: tên thuốc (chip) + ô nhập chỉ định dùng + nút bỏ.
+            <div className="space-y-1.5">
+              {draft.medications.map((m, i) => (
+                <div key={`${m.name}-${i}`} className="flex items-center gap-2">
+                  <span
+                    className="shrink-0 max-w-[42%] truncate text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium"
+                    title={m.name}
+                  >
+                    {m.name}
+                  </span>
+                  <input
+                    value={m.instruction}
+                    onChange={(e) => updateMedInstruction(i, e.target.value)}
+                    placeholder="Cách dùng (vd: Sáng 1 viên sau ăn)"
+                    className="ws-input-sm flex-1 min-w-0"
+                    data-agent-ref={`patient-detail:med-${i}:instruction`}
+                    data-agent-role="textbox"
+                    data-agent-label={`Cách dùng ${m.name}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeMed(i)}
+                    data-agent-ref={`patient-detail:med-${i}:remove`}
+                    data-agent-role="button"
+                    data-agent-label={`Bỏ thuốc ${m.name}`}
+                    aria-label="Bỏ thuốc"
+                    className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-red-600 hover:bg-red-50 text-sm leading-none"
+                  >
+                    ×
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -848,14 +902,17 @@ export function PatientDetailTab({
       ) : data.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
       ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {data.medications.map((m) => (
-            <span
-              key={m}
-              className="text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B]"
-            >
-              {m}
-            </span>
+        // Xem: mỗi thuốc một hàng — tên thuốc (chip) bên trái, chỉ định dùng bên phải.
+        <div className="space-y-1.5">
+          {data.medications.map((m, i) => (
+            <div key={`${m.name}-${i}`} className="flex items-baseline gap-2">
+              <span className="shrink-0 text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium">
+                {m.name}
+              </span>
+              <span className="min-w-0 text-sm text-gray-700">
+                {m.instruction || <span className="text-gray-400">—</span>}
+              </span>
+            </div>
           ))}
         </div>
       )}
@@ -864,9 +921,9 @@ export function PatientDetailTab({
         <MedicationPicker
           open={medPickerOpen}
           catalog={meds.data?.medications ?? []}
-          initialSelected={splitMeds(draft.medications)}
+          initialSelected={draft.medications.map((m) => m.name)}
           onSave={(names) => {
-            updateDraft("medications", names.join(", "));
+            mergeMedNames(names);
             setMedPickerOpen(false);
           }}
           onClose={() => setMedPickerOpen(false)}

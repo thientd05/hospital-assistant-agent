@@ -122,6 +122,14 @@ export function computeLab(
   };
 }
 
+// Một dòng thuốc kê: tên thuốc (chọn từ danh mục) + chỉ định dùng do bác sĩ tự
+// nhập (vd "Sáng 1 viên sau ăn, tối 1 viên trước ăn 1 tiếng"). `instruction` có
+// thể rỗng (bác sĩ chưa ghi cách dùng).
+export type Prescription = {
+  name: string;
+  instruction: string;
+};
+
 // Chỉ số bệnh nhân tự nhập tại nhà — lịch sử riêng, tách `vitals` lâm sàng do bác sĩ ghi.
 // Mỗi field chỉ số là optional (BN nhập field nào ghi field đó), recordedAt do server set.
 export type HomeVital = {
@@ -147,7 +155,7 @@ export type Patient = {
   phone: string;
   diagnoses: string[];
   vitals: Vital;
-  medications: string[];
+  medications: Prescription[];
   labResults: LabResult[];
   homeVitals: HomeVital[];
 };
@@ -275,7 +283,7 @@ export type ToolRefresh =
 export type PatientUpdateInput = {
   ward?: string;
   diagnoses?: string[];
-  medications?: string[];
+  medications?: Prescription[];
   vitals?: Partial<Vital>;
 };
 

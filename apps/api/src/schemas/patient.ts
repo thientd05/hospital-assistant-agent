@@ -51,7 +51,17 @@ export const PatientUpdateSchema = z
   .object({
     ward: z.string().min(1).optional(),
     diagnoses: z.array(z.string()).optional(),
-    medications: z.array(z.string()).optional(),
+    // Mỗi thuốc = { tên thuốc (từ danh mục), chỉ định dùng do bác sĩ tự nhập }.
+    medications: z
+      .array(
+        z
+          .object({
+            name: z.string().min(1),
+            instruction: z.string(),
+          })
+          .strict()
+      )
+      .optional(),
     vitals: VitalSchema.optional(),
   })
   .strict();

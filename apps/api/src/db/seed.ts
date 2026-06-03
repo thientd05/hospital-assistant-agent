@@ -86,7 +86,11 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234001",
     diagnoses: ["Tăng huyết áp", "Đái tháo đường type 2", "Nghi suy tim mất bù"],
     vitals: { spO2: 91, heartRate: 102, bloodPressure: "148/92", temperature: 37.1, recordedAt: now },
-    medications: ["Amlodipine 5mg", "Metformin 500mg", "Aspirin 81mg"],
+    medications: [
+      { name: "Amlodipine 5mg", instruction: "Sáng 1 viên sau ăn" },
+      { name: "Metformin 500mg", instruction: "Sáng tối mỗi lần 1 viên sau ăn" },
+      { name: "Aspirin 81mg", instruction: "Tối 1 viên sau ăn" },
+    ],
     labResults: [
       { name: "NT-proBNP", value: 2840, recordedAt: now },
       { name: "Creatinine", value: 1.4, recordedAt: now },
@@ -105,7 +109,10 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234002",
     diagnoses: ["Đau ngực điển hình", "Tăng huyết áp"],
     vitals: { spO2: 97, heartRate: 88, bloodPressure: "160/100", temperature: 36.8, recordedAt: now },
-    medications: ["Nitroglycerin PRN", "Amlodipine 10mg"],
+    medications: [
+      { name: "Nitroglycerin PRN", instruction: "Ngậm dưới lưỡi khi đau ngực, cách 5 phút/lần, tối đa 3 lần" },
+      { name: "Amlodipine 10mg", instruction: "Sáng 1 viên sau ăn" },
+    ],
     labResults: [
       { name: "Troponin I", value: 0.08, recordedAt: now },
       { name: "CK-MB", value: 18, recordedAt: now },
@@ -123,7 +130,10 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234003",
     diagnoses: ["Chấn thương đầu kín", "GCS 14"],
     vitals: { spO2: 98, heartRate: 78, bloodPressure: "130/80", temperature: 36.9, recordedAt: now },
-    medications: ["Mannitol 20%", "Paracetamol 1g IV"],
+    medications: [
+      { name: "Mannitol 20%", instruction: "Truyền tĩnh mạch theo y lệnh, cách nhau 6 tiếng" },
+      { name: "Paracetamol 1g IV", instruction: "Truyền tĩnh mạch khi sốt > 38.5°C, cách tối thiểu 6 tiếng" },
+    ],
     labResults: [
       { name: "CT sọ não", value: "Không xuất huyết", unit: "", referenceRange: "Bình thường", isAbnormal: false, recordedAt: now },
       { name: "CBC", value: "Bình thường", unit: "", referenceRange: "Bình thường", isAbnormal: false, recordedAt: now },
@@ -141,7 +151,11 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234004",
     diagnoses: ["COPD đợt cấp", "Suy hô hấp type 2"],
     vitals: { spO2: 86, heartRate: 112, bloodPressure: "138/84", temperature: 37.6, recordedAt: now },
-    medications: ["Salbutamol khí dung", "Ipratropium khí dung", "Methylprednisolone 40mg IV"],
+    medications: [
+      { name: "Salbutamol khí dung", instruction: "Khí dung mỗi 6 tiếng, thêm liều khi khó thở" },
+      { name: "Ipratropium khí dung", instruction: "Khí dung mỗi 8 tiếng" },
+      { name: "Methylprednisolone 40mg IV", instruction: "Tiêm tĩnh mạch sáng tối, cách nhau 12 tiếng" },
+    ],
     labResults: [
       { name: "pH máu", value: 7.31, recordedAt: now },
       { name: "PaCO2", value: 58, recordedAt: now },
@@ -160,7 +174,12 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234005",
     diagnoses: ["Bệnh thận mạn giai đoạn 4", "Tăng huyết áp", "Thiếu máu mạn"],
     vitals: { spO2: 96, heartRate: 84, bloodPressure: "152/88", temperature: 36.7, recordedAt: now },
-    medications: ["Losartan 50mg", "Furosemide 40mg", "Erythropoietin tiêm dưới da", "Calcium carbonate 500mg"],
+    medications: [
+      { name: "Losartan 50mg", instruction: "Sáng 1 viên sau ăn" },
+      { name: "Furosemide 40mg", instruction: "Sáng 1 viên trước ăn, tránh uống buổi tối" },
+      { name: "Erythropoietin tiêm dưới da", instruction: "Tiêm dưới da 3 lần/tuần (thứ 2-4-6)" },
+      { name: "Calcium carbonate 500mg", instruction: "Sáng tối mỗi lần 1 viên trong bữa ăn" },
+    ],
     labResults: [
       { name: "Creatinine", value: 3.6, recordedAt: now },
       { name: "eGFR", value: 22, recordedAt: now },
@@ -179,7 +198,11 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234006",
     diagnoses: ["Tiền sản giật nặng", "Thai 34 tuần"],
     vitals: { spO2: 98, heartRate: 96, bloodPressure: "168/108", temperature: 36.9, recordedAt: now },
-    medications: ["Magnesium sulfate IV", "Methyldopa 250mg", "Betamethasone 12mg IM"],
+    medications: [
+      { name: "Magnesium sulfate IV", instruction: "Truyền tĩnh mạch liên tục theo y lệnh, theo dõi phản xạ gân xương" },
+      { name: "Methyldopa 250mg", instruction: "Sáng tối mỗi lần 1 viên" },
+      { name: "Betamethasone 12mg IM", instruction: "Tiêm bắp 1 lần, lặp lại sau 24 tiếng" },
+    ],
     labResults: [
       { name: "Protein niệu 24h", value: 4.2, unit: "g/24h", referenceRange: "<0.3", isAbnormal: true, recordedAt: now },
       { name: "Tiểu cầu", value: 92, recordedAt: now },
@@ -198,7 +221,10 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234007",
     diagnoses: ["Sốt xuất huyết Dengue ngày 5", "Cảnh báo dấu hiệu nặng"],
     vitals: { spO2: 97, heartRate: 124, bloodPressure: "92/58", temperature: 38.4, recordedAt: now },
-    medications: ["Paracetamol 250mg", "Ringer lactate truyền tĩnh mạch"],
+    medications: [
+      { name: "Paracetamol 250mg", instruction: "Uống khi sốt > 38.5°C, cách tối thiểu 6 tiếng" },
+      { name: "Ringer lactate truyền tĩnh mạch", instruction: "Truyền tĩnh mạch theo y lệnh bù dịch" },
+    ],
     labResults: [
       { name: "Tiểu cầu", value: 38, recordedAt: now },
       { name: "Hematocrit", value: 48, recordedAt: now },
@@ -217,7 +243,11 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234008",
     diagnoses: ["Đột quỵ nhồi máu não cấp", "Rung nhĩ", "Tăng huyết áp"],
     vitals: { spO2: 95, heartRate: 108, bloodPressure: "172/96", temperature: 36.8, recordedAt: now },
-    medications: ["Alteplase tiêu sợi huyết", "Aspirin 81mg", "Atorvastatin 40mg"],
+    medications: [
+      { name: "Alteplase tiêu sợi huyết", instruction: "Truyền tĩnh mạch theo phác đồ tiêu sợi huyết cấp" },
+      { name: "Aspirin 81mg", instruction: "Tối 1 viên sau ăn" },
+      { name: "Atorvastatin 40mg", instruction: "Tối 1 viên sau ăn" },
+    ],
     labResults: [
       { name: "MRI sọ não", value: "Nhồi máu vùng MCA trái", unit: "", referenceRange: "Bình thường", isAbnormal: true, recordedAt: now },
       { name: "INR", value: 1.1, recordedAt: now },
@@ -236,7 +266,12 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234009",
     diagnoses: ["Viêm tụy cấp do sỏi mật", "Mất nước độ 2"],
     vitals: { spO2: 96, heartRate: 116, bloodPressure: "104/68", temperature: 38.1, recordedAt: now },
-    medications: ["Ringer lactate truyền tĩnh mạch", "Pethidine 50mg IM", "Pantoprazole 40mg IV", "Cefoperazone-sulbactam 2g IV"],
+    medications: [
+      { name: "Ringer lactate truyền tĩnh mạch", instruction: "Truyền tĩnh mạch theo y lệnh bù dịch" },
+      { name: "Pethidine 50mg IM", instruction: "Tiêm bắp khi đau nhiều, cách tối thiểu 6 tiếng" },
+      { name: "Pantoprazole 40mg IV", instruction: "Tiêm tĩnh mạch sáng tối, cách nhau 12 tiếng" },
+      { name: "Cefoperazone-sulbactam 2g IV", instruction: "Tiêm tĩnh mạch mỗi 12 tiếng" },
+    ],
     labResults: [
       { name: "Amylase", value: 824, recordedAt: now },
       { name: "Lipase", value: 1450, recordedAt: now },
@@ -255,7 +290,12 @@ const patientSeeds: PatientSeedSpec[] = [
     phone: "0901234010",
     diagnoses: ["Viêm phổi cộng đồng nặng", "Nhiễm khuẩn huyết", "Đái tháo đường type 2"],
     vitals: { spO2: 89, heartRate: 122, bloodPressure: "98/56", temperature: 39.2, recordedAt: now },
-    medications: ["Ceftriaxone 2g IV", "Levofloxacin 750mg IV", "Noradrenaline truyền liên tục", "Insulin Actrapid theo thang"],
+    medications: [
+      { name: "Ceftriaxone 2g IV", instruction: "Tiêm tĩnh mạch 1 lần/ngày buổi sáng" },
+      { name: "Levofloxacin 750mg IV", instruction: "Truyền tĩnh mạch 1 lần/ngày" },
+      { name: "Noradrenaline truyền liên tục", instruction: "Truyền tĩnh mạch liên tục, chỉnh liều theo huyết áp" },
+      { name: "Insulin Actrapid theo thang", instruction: "Tiêm dưới da theo thang đường huyết mao mạch" },
+    ],
     labResults: [
       { name: "Bạch cầu", value: 19.6, recordedAt: now },
       { name: "Procalcitonin", value: 12.4, recordedAt: now },

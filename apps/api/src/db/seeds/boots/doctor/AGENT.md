@@ -78,8 +78,9 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │           ├─ patient-detail:heartRate     (textbox)
 │           ├─ patient-detail:bloodPressure (textbox)
 │           ├─ patient-detail:temperature   (textbox)
-│           ├─ patient-detail:diagnoses     (textbox) cách nhau dấu phẩy
-│           ├─ patient-detail:medications   (textbox) cách nhau dấu phẩy
+│           ├─ patient-detail:diagnoses     (textbox) mỗi chẩn đoán một dòng (\n)
+│           ├─ patient-detail:medications-open (button) "Chọn thuốc" → form chọn thuốc (checkbox med-picker:med:<id>)
+│           ├─ patient-detail:med-<i>:instruction (textbox, ĐỘNG) chỉ định dùng từng thuốc đã chọn
 │           ├─ patient-detail:save          (button) "Lưu"
 │           ├─ patient-detail:cancel        (button) "Huỷ"
 │           └─ patient-detail:error         (alert) chỉ khi lỗi
