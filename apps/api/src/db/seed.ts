@@ -78,7 +78,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN001",
     password: "mkbn001",
-    name: "Nguyễn Văn A",
+    name: "Nguyễn Văn Hùng",
     age: 58,
     gender: "Nam",
     ward: "Nội Tim mạch",
@@ -101,7 +101,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN002",
     password: "mkbn002",
-    name: "Trần Thị B",
+    name: "Trần Thị Mai",
     age: 45,
     gender: "Nữ",
     ward: "Nội Tổng quát",
@@ -122,7 +122,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN003",
     password: "mkbn003",
-    name: "Lê Minh C",
+    name: "Lê Minh Tuấn",
     age: 32,
     gender: "Nam",
     ward: "Cấp cứu",
@@ -143,7 +143,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN004",
     password: "mkbn004",
-    name: "Phạm Thị D",
+    name: "Phạm Thị Hạnh",
     age: 67,
     gender: "Nữ",
     ward: "Hô hấp",
@@ -166,7 +166,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN005",
     password: "mkbn005",
-    name: "Hoàng Văn E",
+    name: "Hoàng Văn Phúc",
     age: 71,
     gender: "Nam",
     ward: "Nội Thận",
@@ -190,7 +190,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN006",
     password: "mkbn006",
-    name: "Vũ Thị F",
+    name: "Vũ Thị Ngọc",
     age: 29,
     gender: "Nữ",
     ward: "Sản",
@@ -213,7 +213,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN007",
     password: "mkbn007",
-    name: "Đặng Minh G",
+    name: "Đặng Minh Khôi",
     age: 8,
     gender: "Nam",
     ward: "Nhi",
@@ -235,7 +235,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN008",
     password: "mkbn008",
-    name: "Bùi Văn H",
+    name: "Bùi Văn Thành",
     age: 64,
     gender: "Nam",
     ward: "Thần kinh",
@@ -258,7 +258,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN009",
     password: "mkbn009",
-    name: "Ngô Thị I",
+    name: "Ngô Thị Bích",
     age: 52,
     gender: "Nữ",
     ward: "Tiêu hóa",
@@ -282,7 +282,7 @@ const patientSeeds: PatientSeedSpec[] = [
   {
     id: "BN010",
     password: "mkbn010",
-    name: "Đỗ Văn K",
+    name: "Đỗ Văn Lâm",
     age: 74,
     gender: "Nam",
     ward: "Truyền nhiễm",
@@ -831,7 +831,7 @@ const BS001_SOUL = `# Phong cách làm việc mong muốn
 
 const BN001_USER = `# Hồ sơ cá nhân
 
-- **Họ tên:** Nguyễn Văn A
+- **Họ tên:** Nguyễn Văn Hùng
 - **Tuổi:** 58 — **Giới:** Nam
 - **Bệnh nền:** Tăng huyết áp, Đái tháo đường type 2, nghi suy tim mất bù
 - **Thuốc đang dùng:** Amlodipine 5mg, Metformin 500mg, Aspirin 81mg
@@ -889,7 +889,7 @@ const directMessageSeeds: DirectThread[] = [
       {
         sender: "doctor",
         content:
-          "Chào bác A, tôi là BS. Trần Quang Minh. Huyết áp sáng nay bác đo được bao nhiêu ạ?",
+          "Chào bác Hùng, tôi là BS. Trần Quang Minh. Huyết áp sáng nay bác đo được bao nhiêu ạ?",
         createdAt: dm(180),
       },
       {
@@ -920,7 +920,7 @@ const directMessageSeeds: DirectThread[] = [
       {
         sender: "doctor",
         content:
-          "Chào chị B, sau đợt nhồi máu cơ tim chị thấy còn đau ngực hay khó thở khi gắng sức không ạ?",
+          "Chào chị Mai, sau đợt nhồi máu cơ tim chị thấy còn đau ngực hay khó thở khi gắng sức không ạ?",
         createdAt: dm(90),
       },
       {
@@ -946,7 +946,7 @@ const directMessageSeeds: DirectThread[] = [
       {
         sender: "doctor",
         content:
-          "Anh E giữ ấm ngực và cổ, dùng thuốc xịt đúng liều. Nếu SpO2 dưới 92% hoặc khó thở tăng thì báo tôi ngay hoặc đến phòng khám nhé.",
+          "Anh Phúc giữ ấm ngực và cổ, dùng thuốc xịt đúng liều. Nếu SpO2 dưới 92% hoặc khó thở tăng thì báo tôi ngay hoặc đến phòng khám nhé.",
         createdAt: dm(30),
       },
     ],
@@ -960,7 +960,7 @@ const directMessageSeeds: DirectThread[] = [
     messages: [
       {
         sender: "doctor",
-        content: "Chào anh H, kết quả xét nghiệm của anh đã ổn. Anh còn triệu chứng gì không ạ?",
+        content: "Chào anh Thành, kết quả xét nghiệm của anh đã ổn. Anh còn triệu chứng gì không ạ?",
         createdAt: dm(20),
       },
     ],
@@ -994,7 +994,7 @@ const directMessageSeeds: DirectThread[] = [
     messages: [
       {
         sender: "doctor",
-        content: "Chào anh C, vết thương đầu của anh tuần này thế nào, còn đau hay chóng mặt không ạ?",
+        content: "Chào anh Tuấn, vết thương đầu của anh tuần này thế nào, còn đau hay chóng mặt không ạ?",
         createdAt: dm(15),
       },
     ],
@@ -1032,7 +1032,7 @@ const conversationSeeds: ConversationSeed[] = [
       {
         role: "assistant",
         content:
-          "Chào bác A 👋 Amlodipine bác uống một lần vào buổi sáng, cố định cùng một giờ mỗi ngày để huyết áp ổn định. Bác nhớ không bỏ liều và hạn chế ăn mặn nhé.",
+          "Chào bác Hùng 👋 Amlodipine bác uống một lần vào buổi sáng, cố định cùng một giờ mỗi ngày để huyết áp ổn định. Bác nhớ không bỏ liều và hạn chế ăn mặn nhé.",
       },
     ],
     createdAt: cm(200),
@@ -1063,7 +1063,7 @@ const conversationSeeds: ConversationSeed[] = [
       {
         role: "assistant",
         content:
-          "Chào bác sĩ. Bệnh nhân Nguyễn Văn A (BN001) sáng nay huyết áp 150/95 và NT-proBNP cao — nên ưu tiên xem trước. Bác có muốn tôi mở hồ sơ BN001 không ạ?",
+          "Chào bác sĩ. Bệnh nhân Nguyễn Văn Hùng (BN001) sáng nay huyết áp 150/95 và NT-proBNP cao — nên ưu tiên xem trước. Bác có muốn tôi mở hồ sơ BN001 không ạ?",
       },
     ],
     createdAt: cm(120),
