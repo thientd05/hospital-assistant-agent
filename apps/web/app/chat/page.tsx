@@ -18,6 +18,7 @@ import {
   buildSnapshot,
   runActions,
   waitForRoot,
+  waitForLoadingSettled,
   type PanelAction,
 } from "@/lib/panel-agent";
 import { CHAT_STATE_KEY_PREFIX } from "@/lib/api";
@@ -72,8 +73,10 @@ export default function ChatPage() {
           setTab(tab as WorkspaceTab);
         }
         await waitForRoot();
-        // Cho React render xong nội dung tab vừa chuyển trước khi chụp snapshot.
-        await new Promise((r) => setTimeout(r, 200));
+        // Cho React render xong nội dung tab vừa chuyển, rồi CHỜ data tab nạp
+        // xong (tab còn "Đang tải…" → snapshot rỗng/sai trên mạng chậm).
+        await new Promise((r) => setTimeout(r, 80));
+        await waitForLoadingSettled();
         return buildSnapshot();
       }
       if (command === "act") {
@@ -152,6 +155,12 @@ export default function ChatPage() {
   const goToDirectChat = useCallback(
     (patientId: string) => {
       if (!isDoctor || chat.isStreaming) return;
+      // Panel cũng nhảy sang hồ sơ chi tiết của BN vừa nhận (tab Bệnh nhân,
+      // master-detail). bumpTab để list nạp lại → BN mới xuất hiện + chọn được.
+      workspace.openPanel();
+      workspace.setTab("patients");
+      workspace.bumpTab("patients");
+      workspace.selectPatient(patientId);
       // Ghi trước để effect [chatMode] + persistence chọn đúng BN.
       savedConvIdsRef.current.patient = patientId;
       setMobileView("chat");
@@ -165,7 +174,7 @@ export default function ChatPage() {
         setChatMode("patient");
       }
     },
-    [isDoctor, chat, chatMode, directList]
+    [isDoctor, chat, chatMode, directList, workspace]
   );
 
   const handleChatModeChange = useCallback(

@@ -13,17 +13,9 @@ import {
   Phone,
   Sparkles,
 } from "lucide-react";
-import type { PatientPublic } from "@pr_hospitalagent/types";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { BrandMark } from "@/components/landing/BrandMark";
-
-type RegisterResponse = {
-  token: string;
-  refreshToken: string;
-  role: "patient";
-  patient: PatientPublic;
-};
 
 const HIGHLIGHTS = [
   "Tạo tài khoản miễn phí — quản lý hồ sơ sức khoẻ của bạn.",
@@ -33,7 +25,7 @@ const HIGHLIGHTS = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { doctor, manager, patient, expert, isLoading, login } = useAuth();
+  const { doctor, manager, patient, expert, isLoading } = useAuth();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -76,9 +68,18 @@ export default function RegisterPage() {
         setError(data.error ?? "Đăng ký thất bại");
         return;
       }
-      const data = (await res.json()) as RegisterResponse;
-      login(data.token, data.refreshToken, { role: "patient", patient: data.patient });
-      router.replace("/chat");
+      // Đăng ký xong KHÔNG tự đăng nhập vào chat: chuyển về trang đăng nhập với
+      // tài khoản/mật khẩu điền sẵn (qua sessionStorage để không lọt vào URL).
+      await res.json().catch(() => ({}));
+      try {
+        sessionStorage.setItem(
+          "register:prefill",
+          JSON.stringify({ phone: phone.trim(), password })
+        );
+      } catch {
+        /* sessionStorage không khả dụng → vẫn chuyển trang, người dùng tự nhập */
+      }
+      router.replace("/login");
     } catch {
       setError("Không kết nối được tới máy chủ");
     } finally {

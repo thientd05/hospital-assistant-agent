@@ -72,6 +72,11 @@ panel ([data-agent-panel-root]; tab đang mở = activeTab)
 │   │   └─ patient:<id>:open                (button, ĐỘNG) chọn BN → tab đổi sang hồ sơ chi tiết
 │   └─ HỒ SƠ CHI TIẾT (sau khi chọn BN)
 │       ├─ patient-detail:back              (button) "← Danh sách" — bỏ chọn, về danh sách
+│       ├─ patient-detail:{name,age,gender,ward,address,phone}
+│       │                                   (text) giá trị đang lưu, đọc-only — ở
+│       │                                   chế độ XEM mỗi trường có ref role "text"
+│       │                                   mang `value`; muốn đọc lại hồ sơ thì
+│       │                                   `read_panel` rồi đọc `value`, không cần Sửa.
 │       ├─ patient-detail:edit              (button) "Sửa" (chế độ xem)
 │       └─(click patient-detail:edit)── chế độ Sửa (ẩn mặc định) — CHỈ phần lâm sàng
 │           ├─ patient-detail:ward          (combobox) Khoa

@@ -23,7 +23,8 @@ export type ElementRole =
   | "textbox"
   | "combobox"
   | "checkbox"
-  | "alert";
+  | "alert"
+  | "text";
 
 export type SnapshotElement = {
   ref: string;
@@ -115,6 +116,21 @@ async function waitForBusyClear(): Promise<void> {
   }
 }
 
+// Chờ tab trong panel nạp xong dữ liệu trước khi chụp snapshot. Trên Vercel/Atlas
+// chậm, tab có thể còn "Đang tải…" khi agent đọc → snapshot rỗng/sai. Các tab
+// gắn `data-agent-loading="true"` trên khối loading; poll tới khi không còn.
+export async function waitForLoadingSettled(
+  timeout = BUSY_WAIT_MS
+): Promise<void> {
+  const root = getRoot();
+  if (!root) return;
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (!root.querySelector('[data-agent-loading="true"]')) return;
+    await sleep(POLL_MS);
+  }
+}
+
 function nativeSetValue(el: HTMLElement, value: string): void {
   const proto =
     el instanceof HTMLTextAreaElement
@@ -197,7 +213,9 @@ export function buildSnapshot(): PanelSnapshot {
         out.value = el.value;
       }
       if (el.disabled) out.disabled = true;
-    } else if (role === "alert") {
+    } else if (role === "alert" || role === "text") {
+      // "text" = giá trị chỉ-đọc hiển thị ở chế độ Xem (không phải input). Phơi
+      // nội dung vào `value` để agent đọc lại được dữ liệu thật, không bịa.
       out.value = (el.textContent ?? "").trim();
     } else if ((el as HTMLButtonElement).disabled) {
       out.disabled = true;
@@ -237,5 +255,7 @@ export async function runActions(
     await sleep(delayMs);
     await waitForBusyClear();
   }
+  // Sau khi thao tác (có thể đổi tab → reload), chờ data nạp xong rồi mới chụp.
+  await waitForLoadingSettled();
   return { ok: true, executed: actions.length, snapshot: buildSnapshot() };
 }

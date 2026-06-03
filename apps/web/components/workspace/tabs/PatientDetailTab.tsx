@@ -163,7 +163,7 @@ export function PatientDetailTab({
   }
   if (loading) {
     return (
-      <div className="px-5 py-8 text-sm text-gray-400 text-center">Đang tải…</div>
+      <div data-agent-loading="true" className="px-5 py-8 text-sm text-gray-400 text-center">Đang tải…</div>
     );
   }
   if (error) {
@@ -472,7 +472,9 @@ export function PatientDetailTab({
             data-agent-label="Họ tên"
           />
         ) : (
-          <ValueText>{data.name}</ValueText>
+          <ValueText agentRef="patient-detail:name" agentLabel="Họ tên">
+            {data.name}
+          </ValueText>
         )}
       </InfoRow>
       <InfoRow label="Tuổi">
@@ -488,7 +490,9 @@ export function PatientDetailTab({
             data-agent-label="Tuổi"
           />
         ) : (
-          <ValueText>{data.age}</ValueText>
+          <ValueText agentRef="patient-detail:age" agentLabel="Tuổi">
+            {data.age}
+          </ValueText>
         )}
       </InfoRow>
       <InfoRow label="Giới tính">
@@ -507,7 +511,9 @@ export function PatientDetailTab({
             <option value="Nữ">Nữ</option>
           </select>
         ) : (
-          <ValueText>{data.gender}</ValueText>
+          <ValueText agentRef="patient-detail:gender" agentLabel="Giới tính">
+            {data.gender}
+          </ValueText>
         )}
       </InfoRow>
       <InfoRow label="Khoa">
@@ -532,7 +538,9 @@ export function PatientDetailTab({
             ))}
           </select>
         ) : (
-          <ValueText>{data.ward || "—"}</ValueText>
+          <ValueText agentRef="patient-detail:ward" agentLabel="Khoa">
+            {data.ward || "—"}
+          </ValueText>
         )}
       </InfoRow>
       <InfoRow label="Địa chỉ" top valueClassName={editing ? "ml-[3ch]" : ""}>
@@ -546,7 +554,9 @@ export function PatientDetailTab({
             data-agent-label="Địa chỉ"
           />
         ) : (
-          <ValueText>{data.address || "—"}</ValueText>
+          <ValueText agentRef="patient-detail:address" agentLabel="Địa chỉ">
+            {data.address || "—"}
+          </ValueText>
         )}
       </InfoRow>
       <InfoRow label="Điện thoại">
@@ -560,7 +570,9 @@ export function PatientDetailTab({
             data-agent-label="Điện thoại"
           />
         ) : (
-          <ValueText>{data.phone || "—"}</ValueText>
+          <ValueText agentRef="patient-detail:phone" agentLabel="Điện thoại">
+            {data.phone || "—"}
+          </ValueText>
         )}
       </InfoRow>
 
@@ -655,7 +667,7 @@ export function PatientDetailTab({
           (trùng với cột "Xét nghiệm" của bảng). Bác sĩ sửa được; BN chỉ xem. */}
       <div className="mt-5">
           {labsRes.loading ? (
-            <div className="text-xs text-gray-400">Đang tải…</div>
+            <div data-agent-loading="true" className="text-xs text-gray-400">Đang tải…</div>
           ) : labs.length === 0 && !labEditing ? (
             <div className="text-xs text-gray-400">Chưa có kết quả xét nghiệm.</div>
           ) : (
@@ -1065,9 +1077,26 @@ function InfoRow({
   );
 }
 
-function ValueText({ children }: { children: React.ReactNode }) {
+function ValueText({
+  children,
+  agentRef,
+  agentLabel,
+}: {
+  children: React.ReactNode;
+  // Khi có agentRef → phơi giá trị (chế độ Xem) cho snapshot panel: agent đọc
+  // lại được dữ liệu thật thay vì chỉ thấy nút. role="text" = chỉ đọc.
+  agentRef?: string;
+  agentLabel?: string;
+}) {
   return (
-    <span className="text-gray-900 font-medium text-right">{children}</span>
+    <span
+      className="text-gray-900 font-medium text-right"
+      data-agent-ref={agentRef}
+      data-agent-role={agentRef ? "text" : undefined}
+      data-agent-label={agentRef ? agentLabel : undefined}
+    >
+      {children}
+    </span>
   );
 }
 

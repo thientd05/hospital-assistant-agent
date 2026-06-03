@@ -149,7 +149,7 @@ export function AppointmentsTab({
       </div>
 
       {loading && (
-        <div className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
+        <div data-agent-loading="true" className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
       )}
       {error && (
         <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">

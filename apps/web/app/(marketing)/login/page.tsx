@@ -44,6 +44,25 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [justRegistered, setJustRegistered] = useState(false);
+
+  // Vừa đăng ký xong → điền sẵn SĐT + mật khẩu (1 lần) rồi xoá khỏi sessionStorage.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("register:prefill");
+      if (!raw) return;
+      sessionStorage.removeItem("register:prefill");
+      const { phone, password: pw } = JSON.parse(raw) as {
+        phone?: string;
+        password?: string;
+      };
+      if (phone) setUsername(phone);
+      if (pw) setPassword(pw);
+      setJustRegistered(true);
+    } catch {
+      /* bỏ qua nếu sessionStorage/JSON lỗi */
+    }
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -179,6 +198,13 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
+
+          {justRegistered ? (
+            <div className="mt-5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
+              Đăng ký thành công! Tài khoản đã được điền sẵn — bấm{" "}
+              <span className="font-medium">Đăng nhập</span> để tiếp tục.
+            </div>
+          ) : null}
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">
             <div>
