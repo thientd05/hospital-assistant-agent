@@ -64,6 +64,13 @@ export default function LoginPage() {
     }
   }, []);
 
+  // Toast "Đăng ký thành công" tự ẩn sau 2 giây.
+  useEffect(() => {
+    if (!justRegistered) return;
+    const t = setTimeout(() => setJustRegistered(false), 2000);
+    return () => clearTimeout(t);
+  }, [justRegistered]);
+
   useEffect(() => {
     if (isLoading) return;
     if (manager) router.replace("/admin/manager");
@@ -110,6 +117,17 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
+      {/* Toast nổi góc trên bên phải — tự ẩn sau 2s */}
+      {justRegistered ? (
+        <div
+          role="status"
+          className="fixed right-4 top-4 z-50 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5 text-sm font-medium text-green-700 shadow-lg shadow-green-900/5"
+        >
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          Đăng ký thành công
+        </div>
+      ) : null}
+
       {/* Left brand panel */}
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-brand-900 p-10 text-white lg:flex lg:flex-col xl:p-14">
         <div
@@ -198,13 +216,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-
-          {justRegistered ? (
-            <div className="mt-5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
-              Đăng ký thành công! Tài khoản đã được điền sẵn — bấm{" "}
-              <span className="font-medium">Đăng nhập</span> để tiếp tục.
-            </div>
-          ) : null}
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">
             <div>
