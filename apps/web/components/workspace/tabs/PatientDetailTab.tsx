@@ -884,7 +884,7 @@ export function PatientDetailTab({
                       value={m.instruction}
                       onChange={(e) => updateMedInstruction(i, e.target.value)}
                       placeholder="Cách dùng (vd: Sáng 1 viên sau ăn)"
-                      className="ws-input-sm flex-1 min-w-0"
+                      className="ws-input-sm flex-1 min-w-0 !text-[#087E8B] font-medium"
                       data-agent-ref={`patient-detail:med-${i}:instruction`}
                       data-agent-role="textbox"
                       data-agent-label={`Cách dùng ${m.name}`}
