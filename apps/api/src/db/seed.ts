@@ -28,6 +28,7 @@ import type {
   AssetCondition,
   Medication,
   MedicationCategory,
+  LabCatalogEntry,
   Utility,
   UtilityType,
   UtilityStatus,
@@ -38,6 +39,7 @@ import type {
   DirectThread,
 } from "@pr_hospitalagent/types";
 import { periodKey, lastNPeriods } from "../lib/period.ts";
+import { labCatalogSeeds } from "./seeds/lab-catalog.ts";
 
 const now = new Date();
 
@@ -960,6 +962,13 @@ async function seed() {
   const medicationDocs = buildMedications();
   await medications.insertMany(medicationDocs);
 
+  // Danh mục xét nghiệm — bác sĩ chọn TÊN khi thêm kết quả (server tự suy đơn vị /
+  // khoảng tham chiếu / cờ bất thường từ đây). Key = name (unique).
+  const labCatalog = db.collection<LabCatalogEntry>("labcatalogs");
+  await labCatalog.deleteMany({});
+  await labCatalog.createIndex({ name: 1 }, { unique: true });
+  await labCatalog.insertMany(labCatalogSeeds);
+
   // 7. Điện nước
   const utilities = db.collection<Utility>("utilities");
   await utilities.deleteMany({});
@@ -1029,6 +1038,7 @@ async function seed() {
   console.log(`  appointments ${appointmentSeeds.length}`);
   console.log(`  assets       ${assetDocs.length}`);
   console.log(`  medications  ${medicationDocs.length}`);
+  console.log(`  labcatalogs  ${labCatalogSeeds.length}`);
   console.log(`  utilities    ${utilityDocs.length}`);
   console.log(`  payroll      ${payrollDocs.length}`);
   console.log(`  revenue      ${revenueDocs.length}`);

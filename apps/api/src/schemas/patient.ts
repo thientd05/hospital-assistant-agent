@@ -10,7 +10,7 @@ export const VitalSchema = z
   .partial();
 
 // Bác sĩ CHỈ nhập tên + kết quả. Đơn vị, khoảng tham chiếu và cờ bất thường do
-// server tự suy từ danh mục (LAB_CATALOG) trong service — KHÔNG nhận từ client.
+// server tự suy từ danh mục xét nghiệm (collection `labcatalogs`) trong service — KHÔNG nhận từ client.
 export const LabSchema = z
   .object({
     name: z.string().min(1),

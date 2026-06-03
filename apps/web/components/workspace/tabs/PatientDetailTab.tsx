@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { PatientPublic } from "@pr_hospitalagent/types";
-import { LAB_CATALOG, findLabEntry } from "@pr_hospitalagent/types";
+import { findLabEntry } from "@pr_hospitalagent/types";
 import { usePatient, useLabs, patientsApi } from "@/hooks/usePatients";
 import { useMyLabs } from "@/hooks/useMyLabs";
 import { useMedications } from "@/hooks/useMedications";
+import { useLabCatalog } from "@/hooks/useLabCatalog";
 import { MedicationPicker } from "@/components/workspace/MedicationPicker";
 import { http } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -118,6 +119,9 @@ export function PatientDetailTab({
   const [medPickerOpen, setMedPickerOpen] = useState(false);
   // Danh mục thuốc — nạp lười: chỉ khi bác sĩ vào chế độ sửa (không ở selfMode).
   const meds = useMedications(!selfMode && editing);
+  // Danh mục xét nghiệm nạp từ Mongo (qua REST) — chỉ khi bác sĩ vào chế độ sửa.
+  const labCatalog = useLabCatalog(!selfMode && editing);
+  const catalog = labCatalog.data?.catalog ?? [];
   // Xét nghiệm — gộp vào tab Hồ sơ cho cả bác sĩ lẫn bệnh nhân. Bác sĩ đọc qua
   // /patients/:id/labs (sửa được); bệnh nhân đọc CỦA MÌNH qua /me/labs (chỉ xem).
   const doctorLabs = useLabs(patientId, version, active && !selfMode);
@@ -639,7 +643,7 @@ export function PatientDetailTab({
                 })}
                 {labEditing &&
                   newLabs.map((row, i) => {
-                    const entry = row.name ? findLabEntry(row.name) : undefined;
+                    const entry = row.name ? findLabEntry(catalog, row.name) : undefined;
                     const filled = Boolean(row.name) || row.value.trim() !== "";
                     return (
                       <div
@@ -658,7 +662,7 @@ export function PatientDetailTab({
                             data-agent-label="Tên xét nghiệm"
                           >
                             <option value="">— Chọn —</option>
-                            {LAB_CATALOG.map((e) => (
+                            {catalog.map((e) => (
                               <option key={e.name} value={e.name}>
                                 {e.name}
                               </option>

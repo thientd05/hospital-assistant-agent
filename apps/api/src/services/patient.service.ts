@@ -7,6 +7,7 @@ import {
 import { hashPassword } from "@pr_hospitalagent/api-shared";
 import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
+import { labCatalogService } from "./labCatalog.service.ts";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
 import { buildSet, assertHasUpdates } from "../lib/patch.ts";
 import type {
@@ -103,8 +104,9 @@ export const patientService = {
   },
 
   async addLab(id: string, input: LabInput) {
-    // Server tự suy đơn vị / khoảng tham chiếu / cờ bất thường từ danh mục.
-    const lab = computeLab(input.name, input.value, input.recordedAt);
+    // Server tự suy đơn vị / khoảng tham chiếu / cờ bất thường từ danh mục (Mongo).
+    const entry = (await labCatalogService.findEntry(input.name)) ?? undefined;
+    const lab = computeLab(input.name, input.value, entry, input.recordedAt);
     const ok = await patientRepo.pushLab(id, lab);
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     return { ok: true, lab };

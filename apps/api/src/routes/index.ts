@@ -7,6 +7,7 @@ import { appointmentsRoutes } from "./appointments.ts";
 import { statsRoutes } from "./stats.ts";
 import { drugCheckRoutes } from "./drug-check.ts";
 import { medicationsRoutes } from "./medications.ts";
+import { labCatalogRoutes } from "./labCatalog.ts";
 import { assetsRoutes } from "./assets.ts";
 import { utilitiesRoutes } from "./utilities.ts";
 import { payrollRoutes } from "./payroll.ts";
@@ -26,6 +27,7 @@ const modules = [
   statsRoutes,
   drugCheckRoutes,
   medicationsRoutes,
+  labCatalogRoutes,
   assetsRoutes,
   utilitiesRoutes,
   payrollRoutes,
