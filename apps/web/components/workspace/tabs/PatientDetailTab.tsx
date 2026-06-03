@@ -83,7 +83,7 @@ function toDraft(p: PatientPublic): Draft {
     ward: p.ward,
     address: p.address ?? "",
     phone: p.phone ?? "",
-    diagnoses: p.diagnoses.join(", "),
+    diagnoses: p.diagnoses.join("\n"),
     medications: p.medications.join(", "),
     // Sinh hiệu chưa ghi (0 / rỗng) → để trống, input hiện placeholder "0" thay vì
     // số 0 thật. Lưu vẫn quy "" → 0 (Number("")===0) nên logic giữ nguyên.
@@ -317,7 +317,7 @@ export function PatientDetailTab({
       // ward min(1) ở backend — chỉ gửi khi có giá trị (BN tự đăng ký ban đầu trống).
       ...(draft.ward.trim() ? { ward: draft.ward.trim() } : {}),
       diagnoses: draft.diagnoses
-        .split(",")
+        .split("\n")
         .map((s) => s.trim())
         .filter(Boolean),
       medications: draft.medications
@@ -378,9 +378,7 @@ export function PatientDetailTab({
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-lg font-semibold text-gray-900">{data.name}</div>
-          <div className="text-xs text-gray-500 mt-0.5">
-            {data.gender} · {data.age} tuổi · {data.ward}
-          </div>
+          <div className="text-xs text-gray-500 mt-0.5">{data.id}</div>
         </div>
         {editing ? (
           <div className="flex gap-1.5">
@@ -471,9 +469,6 @@ export function PatientDetailTab({
         ) : (
           <ValueText>{data.gender}</ValueText>
         )}
-      </InfoRow>
-      <InfoRow label="Mã BN">
-        <ValueText>{data.id}</ValueText>
       </InfoRow>
       <InfoRow label="Khoa">
         {editing && draft && canEdit("ward") ? (
@@ -800,11 +795,12 @@ export function PatientDetailTab({
 
       <SectionLabel>Chẩn đoán</SectionLabel>
       {editing && draft && canEdit("diagnoses") ? (
-        <input
+        <textarea
           value={draft.diagnoses}
           onChange={(e) => updateDraft("diagnoses", e.target.value)}
-          placeholder="Phân tách bằng dấu phẩy"
-          className="ws-input-sm w-full !text-[#087E8B]"
+          placeholder="Mỗi chẩn đoán một dòng"
+          rows={Math.max(2, draft.diagnoses.split("\n").length)}
+          className="ws-input-sm w-full !text-[#087E8B] resize-y"
           data-agent-ref="patient-detail:diagnoses"
           data-agent-role="textbox"
           data-agent-label="Chẩn đoán"
