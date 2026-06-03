@@ -1,52 +1,75 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  drugCheckApi,
-  type DrugCatalogItem,
-  type DrugCheckResponse,
-} from "@/hooks/useDrugCheck";
+import { useMemo, useState } from "react";
+import type { Medication, MedicationCategory } from "@pr_hospitalagent/types";
+import { drugCheckApi, type DrugCheckResponse } from "@/hooks/useDrugCheck";
+import { useMedications } from "@/hooks/useMedications";
+
+// Thứ tự nhóm hiển thị (giống form chọn thuốc); nhóm lạ rơi xuống cuối.
+const CATEGORY_ORDER: MedicationCategory[] = [
+  "Kháng sinh",
+  "Tim mạch – Huyết áp",
+  "Lợi tiểu – Thận",
+  "Tiểu đường",
+  "Giảm đau – Hạ sốt",
+  "Hô hấp",
+  "Tiêu hóa",
+  "Dịch truyền – Khác",
+];
+
+// Bỏ dấu để tìm kiếm không phân biệt dấu/hoa thường.
+function norm(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
 
 export function DrugCheckTab() {
-  const [catalog, setCatalog] = useState<DrugCatalogItem[]>([]);
+  const { data, loading } = useMedications();
+  const catalog: Medication[] = data?.medications ?? [];
+
+  // Chọn theo TÊN thuốc (khớp input mà /drug-check mong đợi).
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
   const [result, setResult] = useState<DrugCheckResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    drugCheckApi
-      .catalog()
-      .then((list) => {
-        if (alive) setCatalog(list);
-      })
-      .catch((e) => {
-        if (alive) setError(e instanceof Error ? e.message : String(e));
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  // Nhóm thuốc theo danh mục, giữ thứ tự xuất hiện trong catalog.
+  // Gom nhóm + sắp theo tên + lọc theo từ khoá (giống MedicationPicker).
   const groups = useMemo(() => {
-    const map = new Map<string, DrugCatalogItem[]>();
-    for (const d of catalog) {
-      const arr = map.get(d.category) ?? [];
-      arr.push(d);
-      map.set(d.category, arr);
+    const q = norm(query.trim());
+    const byCat = new Map<string, Medication[]>();
+    for (const m of catalog) {
+      if (q && !norm(m.name).includes(q)) continue;
+      const arr = byCat.get(m.category) ?? [];
+      arr.push(m);
+      byCat.set(m.category, arr);
     }
-    return Array.from(map.entries());
-  }, [catalog]);
+    const order = [
+      ...CATEGORY_ORDER,
+      ...[...byCat.keys()].filter(
+        (c) => !CATEGORY_ORDER.includes(c as MedicationCategory)
+      ),
+    ];
+    return order
+      .filter((c) => byCat.has(c))
+      .map((c) => ({
+        category: c,
+        items: byCat
+          .get(c)!
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name, "vi")),
+      }));
+  }, [catalog, query]);
 
-  function toggle(id: string) {
+  function toggle(name: string) {
     setResult(null);
     setError(null);
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
   }
@@ -68,8 +91,10 @@ export function DrugCheckTab() {
     setSubmitting(true);
     try {
       // Gửi theo thứ tự catalog cho ổn định.
-      const ids = catalog.map((d) => d.id).filter((id) => selected.has(id));
-      const res = await drugCheckApi.check(ids);
+      const names = catalog
+        .map((m) => m.name)
+        .filter((n) => selected.has(n));
+      const res = await drugCheckApi.check(names);
       setResult(res);
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : String(e2));
@@ -99,36 +124,57 @@ export function DrugCheckTab() {
       </div>
 
       <p className="text-xs text-gray-500">
-        Chọn các thuốc cần kiểm tra (ít nhất 2 thuốc) từ danh sách dưới đây.
+        Chọn các thuốc cần kiểm tra (ít nhất 2 thuốc) từ danh mục dưới đây.
       </p>
 
-      <div className="space-y-3">
-        {groups.map(([category, drugs]) => (
-          <div key={category}>
-            <div className="text-[11px] font-medium text-gray-400 mb-1">
-              {category}
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-              {drugs.map((d) => (
-                <label
-                  key={d.id}
-                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(d.id)}
-                    onChange={() => toggle(d.id)}
-                    data-agent-ref={`drug-check:drug:${d.id}`}
-                    data-agent-role="checkbox"
-                    data-agent-label={d.name}
-                    className="accent-[#087E8B] w-4 h-4"
-                  />
-                  {d.name}
-                </label>
-              ))}
-            </div>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Tìm thuốc theo tên…"
+        className="ws-input-sm w-full"
+        data-agent-ref="drug-check:search"
+        data-agent-role="textbox"
+        data-agent-label="Tìm thuốc"
+      />
+
+      <div className="space-y-3 max-h-[40dvh] overflow-y-auto pr-1">
+        {loading && catalog.length === 0 ? (
+          <div className="text-sm text-gray-400 py-4">Đang tải danh mục…</div>
+        ) : groups.length === 0 ? (
+          <div className="text-sm text-gray-400 py-4">
+            Không tìm thấy thuốc phù hợp.
           </div>
-        ))}
+        ) : (
+          groups.map((g) => (
+            <div key={g.category}>
+              <div className="text-[11px] font-medium text-gray-400 mb-1">
+                {g.category}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {g.items.map((m) => (
+                  <label
+                    key={m.id}
+                    className="cursor-pointer select-none"
+                    title={m.name}
+                  >
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      checked={selected.has(m.name)}
+                      onChange={() => toggle(m.name)}
+                      data-agent-ref={`drug-check:drug:${m.id}`}
+                      data-agent-role="checkbox"
+                      data-agent-label={m.name}
+                    />
+                    <span className="inline-block text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white text-gray-700 transition-colors hover:border-[#087E8B] peer-checked:bg-[#087E8B] peer-checked:text-white peer-checked:border-[#087E8B]">
+                      {m.name}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="flex justify-end pt-1">

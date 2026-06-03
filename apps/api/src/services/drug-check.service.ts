@@ -1,74 +1,51 @@
-export type DrugCatalogItem = { id: string; name: string; category: string };
-
-// Danh mục thuốc chọn được ở tab "Tương tác thuốc". `id` là khoá ổn định (khớp
-// rule + ref panel), `name` là nhãn hiển thị. Rule khớp theo id (không còn dò
-// chuỗi con trên tên — tránh false-positive kiểu "paracetamol" chứa "ace").
-const CATALOG: DrugCatalogItem[] = [
-  { id: "warfarin", name: "Warfarin", category: "Chống đông / kháng kết tập tiểu cầu" },
-  { id: "aspirin", name: "Aspirin", category: "Chống đông / kháng kết tập tiểu cầu" },
-  { id: "clopidogrel", name: "Clopidogrel", category: "Chống đông / kháng kết tập tiểu cầu" },
-  { id: "metformin", name: "Metformin", category: "Đái tháo đường" },
-  { id: "contrast", name: "Thuốc cản quang", category: "Chẩn đoán hình ảnh" },
-  { id: "captopril", name: "Captopril", category: "Ức chế men chuyển (ACE)" },
-  { id: "enalapril", name: "Enalapril", category: "Ức chế men chuyển (ACE)" },
-  { id: "lisinopril", name: "Lisinopril", category: "Ức chế men chuyển (ACE)" },
-  { id: "ramipril", name: "Ramipril", category: "Ức chế men chuyển (ACE)" },
-  { id: "kali", name: "Kali clorid (KCl)", category: "Điện giải" },
-  { id: "ibuprofen", name: "Ibuprofen", category: "Giảm đau / kháng viêm (NSAID)" },
-  { id: "paracetamol", name: "Paracetamol", category: "Giảm đau / hạ sốt" },
-  { id: "amoxicillin", name: "Amoxicillin", category: "Kháng sinh" },
-  { id: "simvastatin", name: "Simvastatin", category: "Rối loạn lipid" },
-];
-
-const NAME_BY_ID = new Map(CATALOG.map((d) => [d.id, d.name]));
-
-const ACE = ["captopril", "enalapril", "lisinopril", "ramipril"];
-
+// Kiểm tra tương tác giữa các thuốc bác sĩ chọn từ danh mục `medications` (TH00X).
+// Input là TÊN thuốc (vd "Aspirin 81mg"); rule dò theo hoạt chất trong tên —
+// tên thuốc trong danh mục đều chứa hoạt chất nên khớp chuỗi con là đủ.
 type InteractionRule = {
-  match: (ids: Set<string>) => boolean;
+  match: (drugs: string[]) => boolean;
   message: string;
 };
 
+const has = (drugs: string[], keyword: string) =>
+  drugs.some((d) => d.toLowerCase().includes(keyword.toLowerCase()));
+
+const hasAny = (drugs: string[], keywords: string[]) =>
+  keywords.some((k) => has(drugs, k));
+
+// Hoạt chất theo nhóm — bám đúng các thuốc CÓ trong danh mục seed.
+const NSAID = ["ibuprofen", "diclofenac"];
+const ACE_ARB = ["enalapril", "losartan"]; // ức chế men chuyển / chẹn thụ thể
+const ANTIPLATELET = ["aspirin", "clopidogrel"];
+
 const rules: InteractionRule[] = [
   {
-    match: (s) => s.has("warfarin") && s.has("aspirin"),
+    match: (d) => has(d, "aspirin") && has(d, "clopidogrel"),
     message:
-      "Warfarin + Aspirin: tăng nguy cơ chảy máu — cần theo dõi INR và cân nhắc thay thế.",
+      "Aspirin + Clopidogrel: kháng kết tập tiểu cầu kép — tăng nguy cơ chảy máu, chỉ phối hợp khi có chỉ định rõ và theo dõi sát.",
   },
   {
-    match: (s) => s.has("warfarin") && s.has("ibuprofen"),
+    match: (d) => hasAny(d, ANTIPLATELET) && hasAny(d, NSAID),
     message:
-      "Warfarin + Ibuprofen (NSAID): tăng nguy cơ chảy máu tiêu hoá — hạn chế dùng chung, ưu tiên Paracetamol để giảm đau.",
+      "Thuốc kháng kết tập tiểu cầu (Aspirin/Clopidogrel) + NSAID (Ibuprofen/Diclofenac): tăng nguy cơ chảy máu tiêu hoá; Ibuprofen còn làm giảm tác dụng bảo vệ tim của Aspirin — ưu tiên Paracetamol để giảm đau.",
   },
   {
-    match: (s) => s.has("clopidogrel") && s.has("aspirin"),
+    match: (d) => hasAny(d, ACE_ARB) && has(d, "spironolactone"),
     message:
-      "Clopidogrel + Aspirin: kháng kết tập tiểu cầu kép — tăng nguy cơ chảy máu, chỉ phối hợp khi có chỉ định rõ và theo dõi sát.",
+      "Ức chế men chuyển/ARB (Enalapril/Losartan) + Spironolactone: nguy cơ tăng kali máu — cần theo dõi điện giải đồ và chức năng thận.",
   },
   {
-    match: (s) => s.has("metformin") && s.has("contrast"),
+    match: (d) => hasAny(d, ACE_ARB) && hasAny(d, NSAID),
     message:
-      "Metformin + Thuốc cản quang: nguy cơ nhiễm toan lactic — cần ngưng Metformin 48h trước khi tiêm cản quang.",
-  },
-  {
-    match: (s) => ACE.some((a) => s.has(a)) && s.has("kali"),
-    message:
-      "Thuốc ức chế men chuyển (ACE) + Kali: nguy cơ tăng kali máu — cần theo dõi điện giải đồ.",
+      "Ức chế men chuyển/ARB (Enalapril/Losartan) + NSAID (Ibuprofen/Diclofenac): giảm tác dụng hạ áp và có thể suy giảm chức năng thận — hạn chế phối hợp.",
   },
 ];
 
 export const drugCheckService = {
-  catalog(): DrugCatalogItem[] {
-    return CATALOG;
-  },
-
-  check(drugIds: string[]) {
-    const ids = new Set(drugIds);
-    const names = drugIds.map((id) => NAME_BY_ID.get(id) ?? id);
-    const matches = rules.filter((r) => r.match(ids)).map((r) => r.message);
+  check(drugs: string[]) {
+    const matches = rules.filter((r) => r.match(drugs)).map((r) => r.message);
     const hasInteraction = matches.length > 0;
     return {
-      drugs: names,
+      drugs,
       hasInteraction,
       message: hasInteraction
         ? matches.join("\n")

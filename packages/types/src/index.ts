@@ -391,12 +391,6 @@ export type DrugCheckInput = {
   drugs: string[];
 };
 
-export type DrugCatalogItem = {
-  id: string;
-  name: string;
-  category: string;
-};
-
 export type DrugCheckResult = {
   interactions: string[];
 } | { message: string };
