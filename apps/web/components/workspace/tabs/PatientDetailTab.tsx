@@ -85,10 +85,12 @@ function toDraft(p: PatientPublic): Draft {
     phone: p.phone ?? "",
     diagnoses: p.diagnoses.join(", "),
     medications: p.medications.join(", "),
-    spO2: String(p.vitals.spO2),
-    heartRate: String(p.vitals.heartRate),
-    bloodPressure: p.vitals.bloodPressure?.trim() ? p.vitals.bloodPressure : "0",
-    temperature: String(p.vitals.temperature),
+    // Sinh hiệu chưa ghi (0 / rỗng) → để trống, input hiện placeholder "0" thay vì
+    // số 0 thật. Lưu vẫn quy "" → 0 (Number("")===0) nên logic giữ nguyên.
+    spO2: p.vitals.spO2 ? String(p.vitals.spO2) : "",
+    heartRate: p.vitals.heartRate ? String(p.vitals.heartRate) : "",
+    bloodPressure: p.vitals.bloodPressure?.trim() ? p.vitals.bloodPressure : "",
+    temperature: p.vitals.temperature ? String(p.vitals.temperature) : "",
   };
 }
 
@@ -497,6 +499,7 @@ export function PatientDetailTab({
               step="0.1"
               value={draft.spO2}
               onChange={(e) => updateDraft("spO2", e.target.value)}
+              placeholder="0"
               className={INLINE_INPUT}
               data-agent-ref="patient-detail:spO2"
               data-agent-role="textbox"
@@ -519,6 +522,7 @@ export function PatientDetailTab({
               type="number"
               value={draft.heartRate}
               onChange={(e) => updateDraft("heartRate", e.target.value)}
+              placeholder="0"
               className={INLINE_INPUT}
               data-agent-ref="patient-detail:heartRate"
               data-agent-role="textbox"
@@ -540,6 +544,7 @@ export function PatientDetailTab({
             <input
               value={draft.bloodPressure}
               onChange={(e) => updateDraft("bloodPressure", e.target.value)}
+              placeholder="0"
               className={INLINE_INPUT}
               data-agent-ref="patient-detail:bloodPressure"
               data-agent-role="textbox"
@@ -559,6 +564,7 @@ export function PatientDetailTab({
               step="0.1"
               value={draft.temperature}
               onChange={(e) => updateDraft("temperature", e.target.value)}
+              placeholder="0"
               className={INLINE_INPUT}
               data-agent-ref="patient-detail:temperature"
               data-agent-role="textbox"
