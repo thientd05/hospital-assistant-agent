@@ -864,36 +864,45 @@ export function PatientDetailTab({
           {draft.medications.length === 0 ? (
             <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
           ) : (
-            // Mỗi thuốc một hàng: tên thuốc (chip) + ô nhập chỉ định dùng + nút bỏ.
-            <div className="space-y-1.5">
+            // Bảng: cột Thuốc | cột Chỉ định dùng (ô nhập) | nút bỏ. Không kẻ viền.
+            <div>
+              <div className="grid grid-cols-12 gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-medium pb-1">
+                <div className="col-span-5">Thuốc</div>
+                <div className="col-span-7">Chỉ định dùng</div>
+              </div>
               {draft.medications.map((m, i) => (
-                <div key={`${m.name}-${i}`} className="flex items-center gap-2">
-                  <span
-                    className="shrink-0 max-w-[42%] truncate text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium"
+                <div
+                  key={`${m.name}-${i}`}
+                  className="grid grid-cols-12 gap-2 items-center py-1"
+                >
+                  <div
+                    className="col-span-5 min-w-0 truncate text-gray-900 font-medium"
                     title={m.name}
                   >
                     {m.name}
-                  </span>
-                  <input
-                    value={m.instruction}
-                    onChange={(e) => updateMedInstruction(i, e.target.value)}
-                    placeholder="Cách dùng (vd: Sáng 1 viên sau ăn)"
-                    className="ws-input-sm flex-1 min-w-0"
-                    data-agent-ref={`patient-detail:med-${i}:instruction`}
-                    data-agent-role="textbox"
-                    data-agent-label={`Cách dùng ${m.name}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeMed(i)}
-                    data-agent-ref={`patient-detail:med-${i}:remove`}
-                    data-agent-role="button"
-                    data-agent-label={`Bỏ thuốc ${m.name}`}
-                    aria-label="Bỏ thuốc"
-                    className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-red-600 hover:bg-red-50 text-sm leading-none"
-                  >
-                    ×
-                  </button>
+                  </div>
+                  <div className="col-span-7 min-w-0 flex items-center gap-1">
+                    <input
+                      value={m.instruction}
+                      onChange={(e) => updateMedInstruction(i, e.target.value)}
+                      placeholder="Cách dùng (vd: Sáng 1 viên sau ăn)"
+                      className="ws-input-sm flex-1 min-w-0"
+                      data-agent-ref={`patient-detail:med-${i}:instruction`}
+                      data-agent-role="textbox"
+                      data-agent-label={`Cách dùng ${m.name}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeMed(i)}
+                      data-agent-ref={`patient-detail:med-${i}:remove`}
+                      data-agent-role="button"
+                      data-agent-label={`Bỏ thuốc ${m.name}`}
+                      aria-label="Bỏ thuốc"
+                      className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-red-600 hover:bg-red-50 text-sm leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -902,16 +911,29 @@ export function PatientDetailTab({
       ) : data.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
       ) : (
-        // Xem: mỗi thuốc một hàng — tên thuốc (chip) bên trái, chỉ định dùng bên phải.
-        <div className="space-y-1.5">
+        // Bảng xem: cột Thuốc | cột Chỉ định dùng. Không kẻ viền; cắt "…" nếu dài.
+        <div>
+          <div className="grid grid-cols-12 gap-2 text-[11px] uppercase tracking-wider text-gray-400 font-medium pb-1">
+            <div className="col-span-5">Thuốc</div>
+            <div className="col-span-7">Chỉ định dùng</div>
+          </div>
           {data.medications.map((m, i) => (
-            <div key={`${m.name}-${i}`} className="flex items-baseline gap-2">
-              <span className="shrink-0 text-xs px-2 py-1 rounded-full bg-[#C8E7E9] text-[#087E8B] font-medium">
+            <div
+              key={`${m.name}-${i}`}
+              className="grid grid-cols-12 gap-2 items-center py-1"
+            >
+              <div
+                className="col-span-5 min-w-0 truncate text-gray-900 font-medium"
+                title={m.name}
+              >
                 {m.name}
-              </span>
-              <span className="min-w-0 text-sm text-gray-700">
-                {m.instruction || <span className="text-gray-400">—</span>}
-              </span>
+              </div>
+              <div
+                className="col-span-7 min-w-0 truncate text-gray-700"
+                title={m.instruction}
+              >
+                {m.instruction || "—"}
+              </div>
             </div>
           ))}
         </div>
