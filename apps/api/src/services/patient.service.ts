@@ -112,6 +112,27 @@ export const patientService = {
     return { ok: true, lab };
   },
 
+  async updateLab(id: string, indexStr: string, input: LabInput) {
+    const idx = Number(indexStr);
+    if (!Number.isInteger(idx) || idx < 0) {
+      throw new BadRequestError("index không hợp lệ");
+    }
+    const patient = await patientRepo.getLabResults(id);
+    if (!patient) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
+    const labs = patient.labResults ?? [];
+    if (idx >= labs.length) {
+      throw new NotFoundError(`Lab index ${idx} ngoài phạm vi`);
+    }
+    // Suy lại đơn vị/khoảng/cờ bất thường từ danh mục; GIỮ thời điểm ghi gốc.
+    const entry = (await labCatalogService.findEntry(input.name)) ?? undefined;
+    const lab = computeLab(input.name, input.value, entry, labs[idx].recordedAt);
+    await patientRepo.replaceLabs(
+      id,
+      labs.map((l, i) => (i === idx ? lab : l))
+    );
+    return { ok: true, lab };
+  },
+
   async removeLab(id: string, indexStr: string) {
     const idx = Number(indexStr);
     if (!Number.isInteger(idx) || idx < 0) {

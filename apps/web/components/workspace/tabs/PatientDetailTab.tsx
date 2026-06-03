@@ -136,6 +136,11 @@ export function PatientDetailTab({
   // commit khi bấm "Lưu" cùng phần lâm sàng.
   const [newLabs, setNewLabs] = useState<{ name: string; value: string }[]>([]);
   const [removeLabIdx, setRemoveLabIdx] = useState<Set<number>>(new Set());
+  // Sửa các dòng xét nghiệm CŨ (đã lưu) — sparse theo index của `labs`. Tách hẳn
+  // khỏi newLabs/normalizeLabRows nên không ảnh hưởng việc tạo/huỷ dòng rỗng mới.
+  const [labEdits, setLabEdits] = useState<
+    Record<number, { name: string; value: string }>
+  >({});
 
   useEffect(() => {
     setEditing(false);
@@ -144,6 +149,7 @@ export function PatientDetailTab({
     setMedPickerOpen(false);
     setNewLabs([]);
     setRemoveLabIdx(new Set());
+    setLabEdits({});
   }, [patientId]);
 
   if (!selfMode && !patientId) {
@@ -176,6 +182,7 @@ export function PatientDetailTab({
     // Một dòng xét nghiệm rỗng sẵn sàng để nhập (chỉ bác sĩ dùng).
     setNewLabs([{ name: "", value: "" }]);
     setRemoveLabIdx(new Set());
+    setLabEdits({});
   }
 
   function cancelEdit() {
@@ -185,6 +192,7 @@ export function PatientDetailTab({
     setMedPickerOpen(false);
     setNewLabs([]);
     setRemoveLabIdx(new Set());
+    setLabEdits({});
   }
 
   // Chuẩn hoá danh sách dòng nhập: bỏ các dòng rỗng ở CUỐI (vd vừa xoá nội dung
@@ -208,6 +216,18 @@ export function PatientDetailTab({
     setNewLabs((prev) =>
       normalizeLabRows(prev.filter((_, idx) => idx !== i))
     );
+  }
+  // Sửa dòng cũ — seed từ giá trị gốc lần đầu chạm, sau đó cập nhật từng trường.
+  function updateExistingLab(
+    i: number,
+    key: "name" | "value",
+    value: string,
+    original: { name: string; value: number | string }
+  ) {
+    setLabEdits((prev) => {
+      const cur = prev[i] ?? { name: original.name, value: String(original.value) };
+      return { ...prev, [i]: { ...cur, [key]: value } };
+    });
   }
   function toggleRemoveLab(i: number) {
     setRemoveLabIdx((prev) => {
@@ -281,6 +301,18 @@ export function PatientDetailTab({
       setEditError("Mỗi dòng xét nghiệm mới cần chọn tên và nhập kết quả.");
       return;
     }
+    // Dòng cũ ĐÃ SỬA (bỏ qua dòng đang đánh dấu xoá) phải còn đủ tên + kết quả.
+    const editedOldLabs = Object.entries(labEdits)
+      .map(([k, e]) => [Number(k), e] as const)
+      .filter(([i, e]) => {
+        if (removeLabIdx.has(i)) return false;
+        const orig = labs[i];
+        return orig && (e.name !== orig.name || e.value !== String(orig.value));
+      });
+    if (editedOldLabs.some(([, e]) => !e.name.trim() || !e.value.trim())) {
+      setEditError("Dòng xét nghiệm cũ cần có tên và kết quả.");
+      return;
+    }
     const body = {
       // ward min(1) ở backend — chỉ gửi khi có giá trị (BN tự đăng ký ban đầu trống).
       ...(draft.ward.trim() ? { ward: draft.ward.trim() } : {}),
@@ -303,6 +335,12 @@ export function PatientDetailTab({
     setEditError(null);
     try {
       await patientsApi.update(data.id, body);
+      // Sửa dòng cũ TRƯỚC khi xoá: index gốc còn đúng vì mảng chưa đổi độ dài.
+      for (const [i, e] of editedOldLabs)
+        await patientsApi.updateLab(data.id, i, {
+          name: e.name,
+          value: e.value.trim(),
+        });
       // Xoá theo index giảm dần để index không xô lệch giữa các lần xoá.
       const dels = [...removeLabIdx].sort((a, b) => b - a);
       for (const idx of dels) await patientsApi.removeLab(data.id, idx);
@@ -312,6 +350,7 @@ export function PatientDetailTab({
       setDraft(null);
       setNewLabs([]);
       setRemoveLabIdx(new Set());
+      setLabEdits({});
       labsRes.refetch();
       refetch();
       onChanged();
@@ -600,32 +639,74 @@ export function PatientDetailTab({
               <div className="divide-y divide-gray-100">
                 {labs.map((r, i) => {
                   const marked = removeLabIdx.has(i);
+                  // Khi sửa: dùng giá trị đang chỉnh (nếu có) + suy đơn vị/khoảng từ
+                  // danh mục theo tên hiện tại, fallback về giá trị đã lưu.
+                  const cur = labEdits[i] ?? { name: r.name, value: String(r.value) };
+                  const entry = labEditing ? findLabEntry(catalog, cur.name) : undefined;
+                  const inCatalog = catalog.some((e) => e.name === cur.name);
                   return (
                     <div
                       key={`${r.name}-${i}`}
                       className={`grid grid-cols-12 gap-1 py-2 items-center ${
-                        r.isAbnormal ? "bg-red-50/60 -mx-2 px-2 rounded" : ""
+                        r.isAbnormal && !labEditing ? "bg-red-50/60 -mx-2 px-2 rounded" : ""
                       } ${marked ? "opacity-40 line-through" : ""}`}
                     >
-                      <div className="col-span-4 text-gray-800 truncate">
-                        {r.name}
+                      <div className="col-span-4 truncate">
+                        {labEditing ? (
+                          <select
+                            value={cur.name}
+                            onChange={(e) =>
+                              updateExistingLab(i, "name", e.target.value, r)
+                            }
+                            className={LAB_SELECT}
+                            data-agent-ref={`patient-detail:lab-${i}:name`}
+                            data-agent-role="combobox"
+                            data-agent-label={`Tên xét nghiệm ${r.name}`}
+                          >
+                            {/* Giữ tên hiện tại nếu nằm ngoài danh mục cố định. */}
+                            {!inCatalog && cur.name && (
+                              <option value={cur.name}>{cur.name}</option>
+                            )}
+                            {catalog.map((e) => (
+                              <option key={e.name} value={e.name}>
+                                {e.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-gray-800">{r.name}</span>
+                        )}
                       </div>
                       <div
                         className={`col-span-3 font-medium truncate ${
-                          r.isAbnormal ? "text-red-700" : "text-gray-900"
+                          r.isAbnormal && !labEditing ? "text-red-700" : "text-gray-900"
                         }`}
                       >
-                        {r.value}
+                        {labEditing ? (
+                          <input
+                            value={cur.value}
+                            onChange={(e) =>
+                              updateExistingLab(i, "value", e.target.value, r)
+                            }
+                            placeholder="0"
+                            className={LAB_INPUT}
+                            data-agent-ref={`patient-detail:lab-${i}:value`}
+                            data-agent-role="textbox"
+                            data-agent-label={`Kết quả xét nghiệm ${r.name}`}
+                          />
+                        ) : (
+                          r.value
+                        )}
                       </div>
                       <div className="col-span-2 text-gray-500 truncate">
-                        {r.unit || "—"}
+                        {(labEditing ? entry?.unit ?? r.unit : r.unit) || "—"}
                       </div>
                       <div
                         className={`${
                           labEditing ? "col-span-2" : "col-span-3"
                         } text-gray-500 text-xs truncate text-center`}
                       >
-                        {r.referenceRange}
+                        {labEditing ? entry?.referenceRange ?? r.referenceRange : r.referenceRange}
                       </div>
                       {labEditing && (
                         <div className="col-span-1 flex justify-end">

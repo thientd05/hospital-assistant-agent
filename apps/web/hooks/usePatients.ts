@@ -67,6 +67,12 @@ export const patientsApi = {
       `/api/patients/${id}/labs`,
       lab
     ),
+  // Sửa một dòng cũ tại index; server suy lại đơn vị/khoảng/bất thường, giữ recordedAt.
+  updateLab: (id: string, index: number, lab: { name: string; value: number | string }) =>
+    http.put<{ ok: boolean; lab: LabResult }>(
+      `/api/patients/${id}/labs/${index}`,
+      lab
+    ),
   removeLab: (id: string, index: number) =>
     http.delete<{ ok: boolean; removedIndex: number }>(
       `/api/patients/${id}/labs/${index}`

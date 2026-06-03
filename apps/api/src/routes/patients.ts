@@ -108,6 +108,19 @@ export async function patientsRoutes(app: FastifyInstance) {
     }
   );
 
+  app.put<{ Params: { id: string; index: string } }>(
+    "/patients/:id/labs/:index",
+    { preHandler: [verifyAuth, requireRole("doctor")] },
+    async (req) => {
+      await patientService.assertManagedBy(req.doctor!.id, req.params.id);
+      return patientService.updateLab(
+        req.params.id,
+        req.params.index,
+        parseBody(LabSchema, req.body)
+      );
+    }
+  );
+
   app.delete<{ Params: { id: string; index: string } }>(
     "/patients/:id/labs/:index",
     { preHandler: [verifyAuth, requireRole("doctor")] },
