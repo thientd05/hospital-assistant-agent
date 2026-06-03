@@ -164,6 +164,9 @@ export function PatientDetailTab({
     setDraft(toDraft(data));
     setEditError(null);
     setEditing(true);
+    // Một dòng xét nghiệm rỗng sẵn sàng để nhập (chỉ bác sĩ dùng).
+    setNewLabs([{ name: "", value: "" }]);
+    setRemoveLabIdx(new Set());
   }
 
   function cancelEdit() {
@@ -175,16 +178,26 @@ export function PatientDetailTab({
     setRemoveLabIdx(new Set());
   }
 
-  function addLabRow() {
-    setNewLabs((prev) => [...prev, { name: "", value: "" }]);
+  // Luôn giữ MỘT dòng rỗng ở cuối: khi dòng cuối được điền đủ (tên + giá trị),
+  // tự thêm dòng rỗng mới ngay bên dưới để bác sĩ nhập tiếp.
+  function withTrailingEmpty(rows: { name: string; value: string }[]) {
+    const last = rows[rows.length - 1];
+    if (last && last.name && last.value.trim())
+      return [...rows, { name: "", value: "" }];
+    return rows;
   }
   function updateLabRow(i: number, key: "name" | "value", value: string) {
     setNewLabs((prev) =>
-      prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r))
+      withTrailingEmpty(
+        prev.map((r, idx) => (idx === i ? { ...r, [key]: value } : r))
+      )
     );
   }
   function removeLabRow(i: number) {
-    setNewLabs((prev) => prev.filter((_, idx) => idx !== i));
+    setNewLabs((prev) => {
+      const next = prev.filter((_, idx) => idx !== i);
+      return next.length ? next : [{ name: "", value: "" }];
+    });
   }
   function toggleRemoveLab(i: number) {
     setRemoveLabIdx((prev) => {
@@ -538,32 +551,12 @@ export function PatientDetailTab({
         )}
       </InfoRow>
 
-      {/* Xét nghiệm — nằm giữa Sinh hiệu và Chẩn đoán. Bác sĩ sửa được; BN chỉ xem. */}
-      <>
-          {labEditing && draft ? (
-            <div className="flex items-center justify-between mt-5 mb-2">
-              <span className="text-[11px] uppercase tracking-wider text-gray-400 font-medium">
-                Xét nghiệm
-              </span>
-              <button
-                type="button"
-                onClick={addLabRow}
-                data-agent-ref="patient-detail:lab-add"
-                data-agent-role="button"
-                data-agent-label="Thêm dòng xét nghiệm"
-                aria-label="Thêm xét nghiệm"
-                className="w-6 h-6 rounded-md flex items-center justify-center text-[#087E8B] border border-[#C8E7E9] hover:bg-[#C8E7E9] text-base leading-none"
-              >
-                ＋
-              </button>
-            </div>
-          ) : (
-            <SectionLabel>Xét nghiệm</SectionLabel>
-          )}
-
+      {/* Xét nghiệm — nằm giữa Sinh hiệu và Chẩn đoán. KHÔNG đặt tiêu đề riêng
+          (trùng với cột "Xét nghiệm" của bảng). Bác sĩ sửa được; BN chỉ xem. */}
+      <div className="mt-5">
           {labsRes.loading ? (
             <div className="text-xs text-gray-400">Đang tải…</div>
-          ) : labs.length === 0 && (!labEditing || newLabs.length === 0) ? (
+          ) : labs.length === 0 && !labEditing ? (
             <div className="text-xs text-gray-400">Chưa có kết quả xét nghiệm.</div>
           ) : (
             <div className="text-sm">
@@ -631,6 +624,7 @@ export function PatientDetailTab({
                 {labEditing &&
                   newLabs.map((row, i) => {
                     const entry = row.name ? findLabEntry(row.name) : undefined;
+                    const filled = Boolean(row.name) || row.value.trim() !== "";
                     return (
                       <div
                         key={`new-${i}`}
@@ -675,17 +669,19 @@ export function PatientDetailTab({
                           {entry?.referenceRange || "—"}
                         </div>
                         <div className="col-span-1 flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => removeLabRow(i)}
-                            data-agent-ref={`patient-detail:lab-new-${i}:remove`}
-                            data-agent-role="button"
-                            data-agent-label="Bỏ dòng xét nghiệm"
-                            aria-label="Bỏ dòng"
-                            className="w-5 h-5 rounded flex items-center justify-center text-red-600 hover:bg-red-50 text-sm leading-none"
-                          >
-                            ×
-                          </button>
+                          {filled && (
+                            <button
+                              type="button"
+                              onClick={() => removeLabRow(i)}
+                              data-agent-ref={`patient-detail:lab-new-${i}:remove`}
+                              data-agent-role="button"
+                              data-agent-label="Bỏ dòng xét nghiệm"
+                              aria-label="Bỏ dòng"
+                              className="w-5 h-5 rounded flex items-center justify-center text-red-600 hover:bg-red-50 text-sm leading-none"
+                            >
+                              ×
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -693,7 +689,7 @@ export function PatientDetailTab({
               </div>
             </div>
           )}
-      </>
+      </div>
 
       <SectionLabel>Chẩn đoán</SectionLabel>
       {editing && draft && canEdit("diagnoses") ? (
