@@ -651,7 +651,7 @@ export function PatientDetailTab({
                         r.isAbnormal && !labEditing ? "bg-red-50/60 -mx-2 px-2 rounded" : ""
                       } ${marked ? "opacity-40 line-through" : ""}`}
                     >
-                      <div className="col-span-4 truncate">
+                      <div className="col-span-4 min-w-0 truncate">
                         {labEditing ? (
                           <select
                             value={cur.name}
@@ -678,7 +678,7 @@ export function PatientDetailTab({
                         )}
                       </div>
                       <div
-                        className={`col-span-3 font-medium truncate ${
+                        className={`col-span-3 min-w-0 font-medium truncate ${
                           r.isAbnormal && !labEditing ? "text-red-700" : "text-gray-900"
                         }`}
                       >
@@ -698,13 +698,13 @@ export function PatientDetailTab({
                           r.value
                         )}
                       </div>
-                      <div className="col-span-2 text-gray-500 truncate">
+                      <div className="col-span-2 min-w-0 text-gray-500 truncate">
                         {(labEditing ? entry?.unit ?? r.unit : r.unit) || "—"}
                       </div>
                       <div
                         className={`${
                           labEditing ? "col-span-2" : "col-span-3"
-                        } text-gray-500 text-xs truncate text-center`}
+                        } min-w-0 text-gray-500 text-xs truncate text-center`}
                       >
                         {labEditing ? entry?.referenceRange ?? r.referenceRange : r.referenceRange}
                       </div>
@@ -737,7 +737,7 @@ export function PatientDetailTab({
                         key={`new-${i}`}
                         className="grid grid-cols-12 gap-1 py-2 items-center"
                       >
-                        <div className="col-span-4">
+                        <div className="col-span-4 min-w-0">
                           <select
                             value={row.name}
                             onChange={(e) =>
@@ -756,7 +756,7 @@ export function PatientDetailTab({
                             ))}
                           </select>
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-3 min-w-0">
                           <input
                             value={row.value}
                             onChange={(e) =>
@@ -769,10 +769,10 @@ export function PatientDetailTab({
                             data-agent-label="Kết quả xét nghiệm"
                           />
                         </div>
-                        <div className="col-span-2 text-gray-500 text-xs truncate">
+                        <div className="col-span-2 min-w-0 text-gray-500 text-xs truncate">
                           {entry?.unit || "—"}
                         </div>
-                        <div className="col-span-2 text-gray-500 text-xs truncate text-center">
+                        <div className="col-span-2 min-w-0 text-gray-500 text-xs truncate text-center">
                           {entry?.referenceRange || "—"}
                         </div>
                         <div className="col-span-1 flex justify-end">
@@ -914,11 +914,12 @@ const INLINE_SELECT =
 
 // Biến thể CĂN TRÁI cho dòng xét nghiệm mới (cột Xét nghiệm/Kết quả căn trái như
 // các dòng đã có). Tên XN: select inline kiểu "Khoa" (mũi tên native, không ô).
+// max-w-full + truncate: tên dài chỉ co tới mép cột rồi cắt "…", không tràn cột.
 const LAB_SELECT =
-  "min-w-0 text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
-// Kết quả: input inline gạch chân kiểu "Sinh hiệu" (không ô).
+  "min-w-0 max-w-full truncate text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
+// Kết quả: input inline gạch chân kiểu "Sinh hiệu" (không ô); max-w-full chặn tràn.
 const LAB_INPUT =
-  "min-w-[2ch] text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content]";
+  "min-w-[2ch] max-w-full text-left text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 border-b border-solid border-gray-300 focus:border-[#087E8B] [field-sizing:content]";
 
 // Hàng nhãn-trái / giá trị (hoặc ô sửa) -phải — dùng chung cho cả xem lẫn sửa.
 function InfoRow({
