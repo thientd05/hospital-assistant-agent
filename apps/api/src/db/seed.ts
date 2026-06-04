@@ -51,7 +51,8 @@ function rand(seed: number): number {
 }
 
 // Mốc thời gian cho data tài chính (utilities/payroll/revenue) — 12 tháng tính ngược.
-const ANCHOR = new Date(2026, 4, 10);
+// Tháng mới nhất = tháng của ANCHOR (= tháng hiện tại, các khoản chưa thanh toán rơi vào đây).
+const ANCHOR = new Date(2026, 5, 10);
 
 // ───────────────────────────────────────────────────────── Bệnh nhân (BN00X)
 // Bệnh nhân KHÔNG có username — đăng nhập bằng `phone` (vd 0901234001 / mkbn001).
