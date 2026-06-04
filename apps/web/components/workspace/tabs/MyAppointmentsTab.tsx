@@ -125,10 +125,7 @@ function BookingForm({
 
   const [doctorId, setDoctorId] = useState<string>("");
   const [doctorTouched, setDoctorTouched] = useState(false);
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
-  const [time, setTime] = useState("");
+  const [datetime, setDatetime] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +133,13 @@ function BookingForm({
   const managingIds = new Set(
     (managingRes.data?.doctors ?? []).map((d) => d.id)
   );
+
+  // min cho datetime-local = thời điểm hiện tại theo giờ địa phương ("YYYY-MM-DDTHH:MM").
+  const nowLocal = (() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  })();
 
   // Mặc định = bác sĩ đang quản lý đầu tiên (nếu có); BN chưa ai quản lý → "" (hàng chờ chung).
   useEffect(() => {
@@ -147,38 +151,14 @@ function BookingForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!day || !month || !year || !time || !reason.trim()) {
+    if (!datetime || !reason.trim()) {
       setError("Cần nhập đủ thời gian và lý do.");
       return;
     }
-    const d = Number(day);
-    const m = Number(month);
-    const y = Number(year);
-    const [hh, mm] = time.split(":").map(Number);
-    if (
-      !Number.isInteger(d) ||
-      d < 1 ||
-      d > 31 ||
-      !Number.isInteger(m) ||
-      m < 1 ||
-      m > 12 ||
-      !Number.isInteger(y) ||
-      y < 1900 ||
-      y > 9999 ||
-      !Number.isInteger(hh) ||
-      !Number.isInteger(mm)
-    ) {
-      setError("Ngày/tháng/năm/giờ không hợp lệ.");
-      return;
-    }
-    const scheduled = new Date(y, m - 1, d, hh, mm);
-    if (
-      Number.isNaN(scheduled.getTime()) ||
-      scheduled.getDate() !== d ||
-      scheduled.getMonth() !== m - 1 ||
-      scheduled.getFullYear() !== y
-    ) {
-      setError("Ngày tháng không tồn tại.");
+    // datetime-local trả "YYYY-MM-DDTHH:MM" theo giờ địa phương.
+    const scheduled = new Date(datetime);
+    if (Number.isNaN(scheduled.getTime())) {
+      setError("Thời gian không hợp lệ.");
       return;
     }
     setSubmitting(true);
@@ -225,72 +205,19 @@ function BookingForm({
           ))}
         </select>
       </Field>
-      <div>
-        <span className="ws-label">Thời gian</span>
-        <div className="grid grid-cols-4 gap-2">
-          <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-1">Ngày</span>
-            <input
-              type="number"
-              min={1}
-              max={31}
-              value={day}
-              onChange={(e) => setDay(e.target.value)}
-              placeholder="DD"
-              className="ws-input"
-              required
-              data-agent-ref="booking-form:day"
-              data-agent-role="textbox"
-              data-agent-label="Ngày"
-            />
-          </label>
-          <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-1">Tháng</span>
-            <input
-              type="number"
-              min={1}
-              max={12}
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-              placeholder="MM"
-              className="ws-input"
-              required
-              data-agent-ref="booking-form:month"
-              data-agent-role="textbox"
-              data-agent-label="Tháng"
-            />
-          </label>
-          <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-1">Năm</span>
-            <input
-              type="number"
-              min={1900}
-              max={9999}
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="YYYY"
-              className="ws-input"
-              required
-              data-agent-ref="booking-form:year"
-              data-agent-role="textbox"
-              data-agent-label="Năm"
-            />
-          </label>
-          <label className="block">
-            <span className="block text-[11px] text-gray-400 mb-1">Giờ</span>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="ws-input"
-              required
-              data-agent-ref="booking-form:time"
-              data-agent-role="textbox"
-              data-agent-label="Giờ"
-            />
-          </label>
-        </div>
-      </div>
+      <Field label="Thời gian khám">
+        <input
+          type="datetime-local"
+          value={datetime}
+          min={nowLocal}
+          onChange={(e) => setDatetime(e.target.value)}
+          className="ws-input"
+          required
+          data-agent-ref="booking-form:datetime"
+          data-agent-role="textbox"
+          data-agent-label="Thời gian khám"
+        />
+      </Field>
       <Field label="Lý do khám">
         <textarea
           value={reason}

@@ -50,16 +50,14 @@ Khi đã có thời gian + lý do, làm trong **MỘT batch `act`**:
 read_panel({ tab: "my-appointments" })
 act({ actions: [
   { action: "click",  ref: "appointment:create" },
-  { action: "type",   ref: "booking-form:day",    value: "<DD>" },
-  { action: "type",   ref: "booking-form:month",  value: "<MM>" },
-  { action: "type",   ref: "booking-form:year",   value: "<YYYY>" },
-  { action: "type",   ref: "booking-form:time",   value: "<HH:MM>" },
-  { action: "type",   ref: "booking-form:reason", value: "<lý do khám>" },
+  { action: "type",   ref: "booking-form:datetime", value: "<YYYY-MM-DDTHH:MM>" },
+  { action: "type",   ref: "booking-form:reason",   value: "<lý do khám>" },
   { action: "click",  ref: "booking-form:submit" }
 ]})
 ```
 
-- `booking-form:time` định dạng "HH:MM" 24 giờ (vd "09:30", "14:00").
+- `booking-form:datetime` là MỘT ô ngày-giờ, định dạng "YYYY-MM-DDTHH:MM" 24 giờ
+  (vd "2026-06-10T09:30", "2026-06-10T14:00"). Chỉ đặt được thời điểm tương lai.
 - **Bác sĩ:** mặc định form đã chọn sẵn bác sĩ quản lý (hoặc "" = phòng khám sắp xếp).
   Chỉ thêm bước `{ action: "select", ref: "booking-form:doctorId", value: "<id>" }`
   khi bệnh nhân yêu cầu bác sĩ cụ thể khác mặc định.
