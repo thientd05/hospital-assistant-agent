@@ -62,7 +62,7 @@ async function buildSystemPrompt(
 
 const anthropic = new Anthropic();
 
-const MODEL_ID = "claude-haiku-4-5-20251001";
+const MODEL_ID = "claude-opus-4-8";
 
 export type OnChunk = (text: string) => void;
 export type OnToolCall = (toolCall: {
