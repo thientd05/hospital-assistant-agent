@@ -178,6 +178,43 @@ body {
   margin: 1em 0;
 }
 
+/* Đồ họa trực quan trong chat (Mermaid/SVG) — căn giữa, responsive, to/rõ */
+.viz-block {
+  margin: 0.6em 0;
+  display: flex;
+  justify-content: center;
+  background: #fafafa;
+  border: 1px solid #eef0f2;
+  border-radius: 10px;
+  padding: 0.85em 1em;
+  overflow-x: auto;
+}
+.viz-block svg {
+  max-width: 100%;
+  height: auto;
+}
+.viz-placeholder {
+  align-items: center;
+  gap: 0.5em;
+  color: #6b7280;
+  font-size: 0.9em;
+  font-style: italic;
+}
+.viz-spinner {
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid #d1d5db;
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  animation: brand-cursor-blink 1s linear infinite;
+  animation-name: viz-spin;
+}
+@keyframes viz-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .workspace-tabs-scroll {
   scrollbar-width: none;
   overflow-y: hidden;

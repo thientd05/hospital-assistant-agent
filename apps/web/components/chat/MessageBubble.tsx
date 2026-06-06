@@ -2,10 +2,48 @@
 
 import { memo } from "react";
 import type { Message, MessagePart } from "@pr_hospitalagent/types";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ToolCallCard } from "./ToolCallCard";
 import { AssistantProcess } from "./AssistantProcess";
+import { VizBlock } from "./VizBlock";
+
+// Gom text thô từ một React node (children của <code>) thành chuỗi.
+function nodeText(node: unknown): string {
+  if (node == null || node === false) return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return nodeText((node as { props?: { children?: unknown } }).props?.children);
+  }
+  return "";
+}
+
+// Override <pre>: khối ```mermaid / ```svg → render trực quan (VizBlock) thay vì
+// code thường. react-markdown bọc fenced code trong <pre><code class="language-x">,
+// nên ta bắt ở tầng <pre> để không lồng <div> SVG vào trong <pre>. Khối khác giữ
+// nguyên. Khi đang stream khối chưa khép, remark vẫn dựng code block tới cuối chuỗi
+// → VizBlock nhận `code` lớn dần và tự render khi hợp lệ (xem VizBlock).
+const markdownComponents: Components = {
+  pre({ children }) {
+    const child = Array.isArray(children) ? children[0] : children;
+    const className =
+      child && typeof child === "object" && "props" in child
+        ? ((child as { props?: { className?: string } }).props?.className ?? "")
+        : "";
+    const lang = /language-(mermaid|svg)/.exec(className)?.[1] as
+      | "mermaid"
+      | "svg"
+      | undefined;
+    if (lang) {
+      const code = nodeText(
+        (child as { props?: { children?: unknown } }).props?.children
+      ).replace(/\n$/, "");
+      return <VizBlock language={lang} code={code} />;
+    }
+    return <pre>{children}</pre>;
+  },
+};
 
 type Props = {
   message: Message;
@@ -93,7 +131,9 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
         key={key}
         className="text-gray-900 break-words leading-relaxed markdown-body"
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{part.text}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+          {part.text}
+        </ReactMarkdown>
       </div>
     );
   };
