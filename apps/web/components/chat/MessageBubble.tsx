@@ -19,11 +19,11 @@ function nodeText(node: unknown): string {
   return "";
 }
 
-// Override <pre>: khối ```mermaid / ```svg → render trực quan (VizBlock) thay vì
-// code thường. react-markdown bọc fenced code trong <pre><code class="language-x">,
-// nên ta bắt ở tầng <pre> để không lồng <div> SVG vào trong <pre>. Khối khác giữ
+// Override <pre>: khối ```svg → render trực quan tăng dần (VizBlock) thay vì code
+// thường. react-markdown bọc fenced code trong <pre><code class="language-x">, nên
+// ta bắt ở tầng <pre> để không lồng <div> SVG vào trong <pre>. Khối khác giữ
 // nguyên. Khi đang stream khối chưa khép, remark vẫn dựng code block tới cuối chuỗi
-// → VizBlock nhận `code` lớn dần và tự render khi hợp lệ (xem VizBlock).
+// → VizBlock nhận `code` lớn dần và vẽ dần từng phần tử (xem VizBlock).
 const markdownComponents: Components = {
   pre({ children }) {
     const child = Array.isArray(children) ? children[0] : children;
@@ -31,15 +31,11 @@ const markdownComponents: Components = {
       child && typeof child === "object" && "props" in child
         ? ((child as { props?: { className?: string } }).props?.className ?? "")
         : "";
-    const lang = /language-(mermaid|svg)/.exec(className)?.[1] as
-      | "mermaid"
-      | "svg"
-      | undefined;
-    if (lang) {
+    if (/language-svg/.test(className)) {
       const code = nodeText(
         (child as { props?: { children?: unknown } }).props?.children
       ).replace(/\n$/, "");
-      return <VizBlock language={lang} code={code} />;
+      return <VizBlock code={code} />;
     }
     return <pre>{children}</pre>;
   },

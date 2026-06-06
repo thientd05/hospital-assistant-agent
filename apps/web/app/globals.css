@@ -193,27 +193,6 @@ body {
   max-width: 100%;
   height: auto;
 }
-.viz-placeholder {
-  align-items: center;
-  gap: 0.5em;
-  color: #6b7280;
-  font-size: 0.9em;
-  font-style: italic;
-}
-.viz-spinner {
-  width: 0.9em;
-  height: 0.9em;
-  border: 2px solid #d1d5db;
-  border-top-color: #0d9488;
-  border-radius: 50%;
-  animation: brand-cursor-blink 1s linear infinite;
-  animation-name: viz-spin;
-}
-@keyframes viz-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 .workspace-tabs-scroll {
   scrollbar-width: none;

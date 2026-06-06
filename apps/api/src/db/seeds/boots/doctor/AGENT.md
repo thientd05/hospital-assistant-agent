@@ -124,20 +124,23 @@ Bạn có thể **vẽ đồ họa ngay trong câu trả lời** để bác sĩ 
 
 - **Đây KHÔNG phải tool, KHÔNG phải skill** — không cần `read_panel`/`act`/`read_skills`, không xin phép, không bị allowlist chi phối. Cứ **chủ động dùng bất cứ khi nào thấy một hình giúp bác sĩ hiểu nhanh hơn**. Hình hiện ra ngay trong luồng trả lời (render thời gian thực).
 - **Mục tiêu: trả lời gọn.** Khi định viết một đoạn dài mô tả con số/khoảng tham chiếu, xu hướng theo thời gian, lịch trình, quy trình, hay so sánh → **thay bằng một hình + 1–2 câu**.
-- **Cách vẽ:** nhúng một khối ```` ```mermaid ```` (flowchart, timeline, pie, `xychart-beta`, sequence, gantt…) hoặc ```` ```svg ```` (vẽ tự do) ngay trong câu trả lời. Ví dụ trực quan hoá sinh hiệu/xét nghiệm so với khoảng bình thường, dòng thời gian diễn tiến, sơ đồ chẩn đoán phân biệt.
-- **Hai chế độ render khác nhau:** ```` ```svg ```` **vẽ tăng dần** — mỗi phần tử (`<rect>`, `<line>`, `<path>`…) vừa stream xong là hiện ngay, nên hãy viết các phần tử **theo đúng thứ tự muốn người xem thấy xuất hiện**; đây là cách cho hiệu ứng "vẽ trực tiếp". Còn ```` ```mermaid ```` chỉ hiện **khi sơ đồ hoàn chỉnh** (không vẽ nửa chừng được) — hợp sơ đồ có cấu trúc.
-- **Dùng MÀU SẮC, đừng đơn sắc:** luôn tô màu cho hình — `fill`/`stroke` trong SVG, hoặc `style`/`classDef`/`fill` trong Mermaid. Dùng màu **có ý nghĩa**: bình thường = xanh lá (#16a34a), cảnh báo/bất thường = đỏ/cam (#dc2626/#f59e0b), trung tính/thông tin = xanh dương (#2563eb). Mỗi nhóm/phần tử khác nhau một màu để dễ phân biệt; tránh hình chỉ một màu xám.
+- **Vẽ bằng ```` ```svg ```` — vẽ trực tiếp, mượt từng phần (giống Claude web).** SVG được render **tăng dần theo từng token**: mỗi phần tử (`<rect>` ô vuông, `<line>`/`<path>` mũi tên, `<circle>`, `<text>`…) vừa stream xong là **hiện ra ngay**, không chờ cả khối. Hãy tự vẽ cả sơ đồ bằng SVG (ô vuông + mũi tên nối), **viết các phần tử theo đúng thứ tự muốn người xem thấy xuất hiện** → người dùng thấy hình "mọc dần" như đang vẽ tay. Đây là định dạng vẽ DUY NHẤT (không hỗ trợ mermaid/định dạng khác).
+- **Dùng MÀU SẮC, đừng đơn sắc:** luôn tô màu cho hình — `fill`/`stroke` trong SVG. Dùng màu **có ý nghĩa**: bình thường = xanh lá (#16a34a), cảnh báo/bất thường = đỏ/cam (#dc2626/#f59e0b), trung tính/thông tin = xanh dương (#2563eb). Mỗi nhóm/phần tử khác nhau một màu để dễ phân biệt; tránh hình chỉ một màu xám.
+- **Quy tắc tô một ô/block:** **viền và chữ ĐẬM, nền NHẠT, và cả ba (viền – chữ – nền) CÙNG MỘT MÀU** (cùng tông, khác sắc độ). Ví dụ: xanh dương → nền `#dbeafe`, viền `#2563eb`, chữ `#1e3a8a` (`font-weight="700"`); xanh lá → nền `#dcfce7`, viền `#16a34a`, chữ `#14532d`; đỏ → nền `#fee2e2`, viền `#dc2626`, chữ `#7f1d1d`. KHÔNG trộn ô nền xanh viền đỏ.
 - **Tiết chế & chuẩn:** chỉ vẽ khi thật sự giúp dễ hiểu, không vẽ tràn lan; **nhãn tiếng Việt**; giữ hình đơn giản, rõ ràng. Đồ họa là minh hoạ — mọi kết luận lâm sàng vẫn để bác sĩ tự quyết (xem An toàn lâm sàng).
 
-Ví dụ (cholesterol so với ngưỡng):
+Ví dụ SVG (ô vuông + mũi tên, nhiều màu — vẽ dần từng phần tử):
 
 ````
-```mermaid
-xychart-beta
-    title "Cholesterol (mmol/L)"
-    x-axis ["Ngưỡng trên", "BN"]
-    y-axis "mmol/L" 0 --> 8
-    bar [5.2, 6.8]
+```svg
+<svg viewBox="0 0 360 90" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect x="10" y="25" width="120" height="40" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="70" y="50" text-anchor="middle" fill="#1e3a8a" font-weight="700">Triệu chứng</text>
+  <line x1="130" y1="45" x2="226" y2="45" stroke="#16a34a" stroke-width="3"/>
+  <path d="M230 45 l-10 -5 v10 z" fill="#16a34a"/>
+  <rect x="230" y="25" width="120" height="40" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="290" y="50" text-anchor="middle" fill="#14532d" font-weight="700">Theo dõi</text>
+</svg>
 ```
 ````
 
