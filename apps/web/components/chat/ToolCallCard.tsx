@@ -22,6 +22,11 @@ const SKILL_LABELS: Record<string, string> = {
   "book-appointment": "Đặt lịch khám",
 };
 
+// Nhãn tiếng Việt của tool (fallback về tên thô) — dùng chung cho dòng trạng thái thu gọn.
+export function toolLabel(name: string): string {
+  return TOOL_LABELS[name] ?? name;
+}
+
 // Dòng phụ dưới tên tool (chỉ read_skills hiển thị tên (các) kỹ năng; còn lại để trống)
 function subtitleFor(toolCall: ToolCall): string {
   if (toolCall.name === "read_skills") {

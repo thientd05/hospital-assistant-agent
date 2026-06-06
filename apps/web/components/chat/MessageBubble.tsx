@@ -5,6 +5,7 @@ import type { Message, MessagePart } from "@pr_hospitalagent/types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ToolCallCard } from "./ToolCallCard";
+import { AssistantProcess } from "./AssistantProcess";
 
 type Props = {
   message: Message;
@@ -23,6 +24,23 @@ function assistantParts(message: Message): MessagePart[] {
   }
   if (message.content) parts.push({ type: "text", text: message.content });
   return parts;
+}
+
+// Tách part thành phần "quá trình" (đến hết tool cuối cùng) và "câu trả lời cuối"
+// (các part sau tool cuối). Không có tool → tất cả là câu trả lời cuối.
+function splitParts(parts: MessagePart[]): {
+  process: MessagePart[];
+  final: MessagePart[];
+} {
+  let lastToolIdx = -1;
+  parts.forEach((p, i) => {
+    if (p.type === "tool") lastToolIdx = i;
+  });
+  if (lastToolIdx === -1) return { process: [], final: parts };
+  return {
+    process: parts.slice(0, lastToolIdx + 1),
+    final: parts.slice(lastToolIdx + 1),
+  };
 }
 
 function MessageBubbleInner({ message, bubbles = false }: Props) {
@@ -59,8 +77,12 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
     );
   }
 
-  // assistant-message bên trái. Render các part theo đúng thứ tự để text↔tool xen kẽ chuẩn.
+  // assistant-message bên trái. Tách "quá trình" (mọi part đến hết tool cuối) khỏi
+  // "câu trả lời cuối" (các text part sau tool cuối). Quá trình thu gọn còn 1 dòng
+  // qua AssistantProcess; câu trả lời cuối hiển thị bình thường. Nếu không có tool
+  // nào (Q&A thuần) thì toàn bộ là câu trả lời cuối.
   const parts = assistantParts(message);
+  const { process, final } = splitParts(parts);
   const renderPart = (part: MessagePart, key: string) => {
     if (part.type === "tool") {
       return <ToolCallCard key={key} toolCall={part.toolCall} />;
@@ -79,7 +101,10 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
   return (
     <div className="flex items-start">
       <div className="max-w-[85%] flex-1 min-w-0">
-        {parts.map((p, i) => renderPart(p, `${message.id}_${i}`))}
+        {process.length > 0 && (
+          <AssistantProcess parts={process} idPrefix={message.id} />
+        )}
+        {final.map((p, i) => renderPart(p, `${message.id}_f${i}`))}
       </div>
     </div>
   );
