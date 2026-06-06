@@ -15,6 +15,8 @@ import { definition as updateWorkspaceFileDef } from "./tools/update_workspace_f
 import { handleUpdateWorkspaceFile } from "./tools/update_workspace_file/handlers.ts";
 import { definition as readServicePricesDef } from "./tools/read_service_prices/definitions.ts";
 import { handleReadServicePrices } from "./tools/read_service_prices/handlers.ts";
+import { definition as readExamHistoryDef } from "./tools/read_exam_history/definitions.ts";
+import { handleReadExamHistory } from "./tools/read_exam_history/handlers.ts";
 import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
 
 const tools: Anthropic.Tool[] = [
@@ -23,6 +25,7 @@ const tools: Anthropic.Tool[] = [
   readSkillsDef,
   updateWorkspaceFileDef,
   readServicePricesDef,
+  readExamHistoryDef,
 ];
 
 // Index skill = giao của allowlist (config.json, tầng phân quyền agent) và skill
@@ -104,6 +107,8 @@ async function dispatchTool(
         return await handleUpdateWorkspaceFile(input, token);
       case "read_service_prices":
         return await handleReadServicePrices(token);
+      case "read_exam_history":
+        return await handleReadExamHistory(input, token);
       default:
         return JSON.stringify({ error: `Unknown tool: ${name}` });
     }

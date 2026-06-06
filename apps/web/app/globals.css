@@ -194,6 +194,22 @@ body {
   height: auto;
 }
 
+/* Dashboard/báo cáo HTML do agent sinh — render trong iframe cô lập */
+.html-artifact {
+  margin: 0.6em 0;
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.html-artifact-loading {
+  margin: 0.6em 0;
+  color: #6b7280;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
 .workspace-tabs-scroll {
   scrollbar-width: none;
   overflow-y: hidden;

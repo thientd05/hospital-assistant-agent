@@ -39,6 +39,8 @@ import type {
   Revenue,
   RevenueSource,
   DirectThread,
+  ExamRecord,
+  LabResult,
 } from "@pr_hospitalagent/types";
 import { computeLab, findLabEntry } from "@pr_hospitalagent/types";
 import { periodKey, lastNPeriods } from "../lib/period.ts";
@@ -665,6 +667,114 @@ function buildDoctors(): Doctor[] {
     patientIds: managedByDoctor[rest.id] ?? [],
     createdAt: now,
   }));
+}
+
+// === Lịch sử khám (examrecords) — snapshot lâm sàng theo từng lần khám ===
+// Vài lần khám mẫu cho BN001/BN002 với sinh hiệu + lab biến thiên để dashboard có
+// xu hướng. Lab suy unit/referenceRange/isAbnormal từ danh mục (như buildPatients).
+function dayKeyOf(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function lab(name: string, value: number | string, at: Date): LabResult {
+  const entry = findLabEntry(labCatalogSeeds, name);
+  if (entry) return computeLab(name, value, entry, at);
+  return { name, value, unit: "", referenceRange: "", isAbnormal: false, recordedAt: at };
+}
+
+type ExamSeed = {
+  patientId: string;
+  doctorId: string;
+  doctorName: string;
+  daysAgo: number;
+  ward: string;
+  diagnoses: string[];
+  medications: { name: string; instruction: string }[];
+  vitals: { spO2: number; heartRate: number; bloodPressure: string; temperature: number };
+  labs: { name: string; value: number | string }[];
+};
+
+const examSeeds: ExamSeed[] = [
+  // BN001 — BS001: diễn tiến suy tim/tăng huyết áp cải thiện dần qua 3 lần khám.
+  {
+    patientId: "BN001", doctorId: "BS001", doctorName: "BS. Trần Quang Minh", daysAgo: 60,
+    ward: "Nội Tim mạch",
+    diagnoses: ["Tăng huyết áp", "Đái tháo đường type 2", "Suy tim mất bù"],
+    medications: [
+      { name: "Amlodipine 5mg", instruction: "Sáng 1 viên sau ăn" },
+      { name: "Metformin 500mg", instruction: "Sáng tối mỗi lần 1 viên sau ăn" },
+    ],
+    vitals: { spO2: 89, heartRate: 110, bloodPressure: "162/100", temperature: 37.2 },
+    labs: [{ name: "NT-proBNP", value: 4200 }, { name: "Creatinine", value: 1.6 }, { name: "Hb", value: 10.8 }, { name: "HbA1c", value: 8.6 }],
+  },
+  {
+    patientId: "BN001", doctorId: "BS001", doctorName: "BS. Trần Quang Minh", daysAgo: 30,
+    ward: "Nội Tim mạch",
+    diagnoses: ["Tăng huyết áp", "Đái tháo đường type 2", "Suy tim"],
+    medications: [
+      { name: "Amlodipine 5mg", instruction: "Sáng 1 viên sau ăn" },
+      { name: "Metformin 500mg", instruction: "Sáng tối mỗi lần 1 viên sau ăn" },
+      { name: "Aspirin 81mg", instruction: "Tối 1 viên sau ăn" },
+    ],
+    vitals: { spO2: 90, heartRate: 104, bloodPressure: "150/95", temperature: 37.0 },
+    labs: [{ name: "NT-proBNP", value: 3300 }, { name: "Creatinine", value: 1.5 }, { name: "Hb", value: 11.0 }, { name: "HbA1c", value: 8.1 }],
+  },
+  {
+    patientId: "BN001", doctorId: "BS001", doctorName: "BS. Trần Quang Minh", daysAgo: 3,
+    ward: "Nội Tim mạch",
+    diagnoses: ["Tăng huyết áp", "Đái tháo đường type 2", "Nghi suy tim mất bù"],
+    medications: [
+      { name: "Amlodipine 5mg", instruction: "Sáng 1 viên sau ăn" },
+      { name: "Metformin 500mg", instruction: "Sáng tối mỗi lần 1 viên sau ăn" },
+      { name: "Aspirin 81mg", instruction: "Tối 1 viên sau ăn" },
+    ],
+    vitals: { spO2: 91, heartRate: 102, bloodPressure: "148/92", temperature: 37.1 },
+    labs: [{ name: "NT-proBNP", value: 2840 }, { name: "Creatinine", value: 1.4 }, { name: "Hb", value: 11.2 }, { name: "HbA1c", value: 7.8 }],
+  },
+  // BN002 — BS001: theo dõi đau ngực/tăng huyết áp qua 2 lần khám.
+  {
+    patientId: "BN002", doctorId: "BS001", doctorName: "BS. Trần Quang Minh", daysAgo: 21,
+    ward: "Nội Tổng quát",
+    diagnoses: ["Đau ngực điển hình", "Tăng huyết áp"],
+    medications: [{ name: "Amlodipine 10mg", instruction: "Sáng 1 viên sau ăn" }],
+    vitals: { spO2: 96, heartRate: 92, bloodPressure: "168/104", temperature: 36.9 },
+    labs: [{ name: "Troponin T", value: 0.02 }, { name: "LDL-C", value: 4.1 }],
+  },
+  {
+    patientId: "BN002", doctorId: "BS001", doctorName: "BS. Trần Quang Minh", daysAgo: 5,
+    ward: "Nội Tổng quát",
+    diagnoses: ["Đau ngực điển hình", "Tăng huyết áp"],
+    medications: [
+      { name: "Nitroglycerin PRN", instruction: "Ngậm dưới lưỡi khi đau ngực" },
+      { name: "Amlodipine 10mg", instruction: "Sáng 1 viên sau ăn" },
+    ],
+    vitals: { spO2: 97, heartRate: 88, bloodPressure: "160/100", temperature: 36.8 },
+    labs: [{ name: "Troponin T", value: 0.01 }, { name: "LDL-C", value: 3.6 }],
+  },
+];
+
+function buildExamRecords(): ExamRecord[] {
+  return examSeeds.map((s, i) => {
+    const examDate = at(-s.daysAgo, 9, 0);
+    return {
+      id: `KB${String(i + 1).padStart(3, "0")}`,
+      patientId: s.patientId,
+      doctorId: s.doctorId,
+      doctorName: s.doctorName,
+      examDate,
+      day: dayKeyOf(examDate),
+      ward: s.ward,
+      diagnoses: s.diagnoses,
+      medications: s.medications,
+      vitals: { ...s.vitals, recordedAt: examDate },
+      labResults: s.labs.map((l) => lab(l.name, l.value, examDate)),
+      createdAt: examDate,
+      updatedAt: examDate,
+    };
+  });
 }
 
 function buildManager(): Manager {
@@ -1299,6 +1409,14 @@ async function seed() {
   await conversations.deleteMany({});
   await conversations.insertMany(conversationSeeds);
 
+  // 15. Lịch sử khám (examrecords) — snapshot lâm sàng theo từng lần khám.
+  const examRecords = db.collection<ExamRecord>("examrecords");
+  await examRecords.deleteMany({});
+  await examRecords.createIndex({ id: 1 }, { unique: true });
+  await examRecords.createIndex({ patientId: 1, day: 1 }, { unique: true });
+  const examRecordDocs = buildExamRecords();
+  await examRecords.insertMany(examRecordDocs);
+
   // Tổng kết
   console.log("✓ Seed hoàn tất — đã xoá sạch và insert lại:");
   console.log(`  patients     ${patientDocs.length}`);
@@ -1318,6 +1436,7 @@ async function seed() {
   console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
   console.log(`  directmsgs   ${directMessageSeeds.length}`);
   console.log(`  conversations ${conversationSeeds.length}  (AI↔BN, AI↔BS mẫu)`);
+  console.log(`  examrecords  ${examRecordDocs.length}  (lịch sử khám BN001/BN002)`);
   console.log("\nTài khoản:");
   console.log("  bs001..bs003 / mkbs001..003   (bác sĩ)");
   console.log("  ql001        / mkql001       (quản lý)");

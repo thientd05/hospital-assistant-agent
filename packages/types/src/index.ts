@@ -150,6 +150,25 @@ export type Patient = {
 
 export type PatientPublic = Omit<Patient, "passwordHash">;
 
+// Một bản ghi lịch sử khám = snapshot trạng thái lâm sàng của bệnh nhân tại MỘT
+// lần khám (gộp theo ngày: cùng patientId + day → cập nhật, khác ngày → tạo mới).
+// Sinh TỰ ĐỘNG khi bác sĩ lưu sửa lâm sàng (vitals/diagnoses/medications/labs).
+export type ExamRecord = {
+  id: string; // "KB00X"
+  patientId: string;
+  doctorId: string;
+  doctorName: string; // denormalize để hiển thị/dashboard (doctor.fullName)
+  examDate: Date;
+  day: string; // "YYYY-MM-DD" — khoá gộp theo ngày
+  ward: string;
+  diagnoses: string[];
+  medications: Prescription[];
+  vitals: Vital;
+  labResults: LabResult[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type Doctor = {
   id: string;
   username: string;
@@ -263,6 +282,7 @@ export type ToolRefresh =
   | "expert"
   | "skills"
   | "skill"
+  | "examHistory"
   | false;
 
 // Bác sĩ chỉ sửa phần lâm sàng (khớp PatientUpdateSchema backend). Thông tin cá

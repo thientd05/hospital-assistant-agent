@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { ToolCallCard } from "./ToolCallCard";
 import { AssistantProcess } from "./AssistantProcess";
 import { VizBlock } from "./VizBlock";
+import { HtmlArtifact } from "./HtmlArtifact";
 
 // Gom text thô từ một React node (children của <code>) thành chuỗi.
 function nodeText(node: unknown): string {
@@ -31,12 +32,11 @@ const markdownComponents: Components = {
       child && typeof child === "object" && "props" in child
         ? ((child as { props?: { className?: string } }).props?.className ?? "")
         : "";
-    if (/language-svg/.test(className)) {
-      const code = nodeText(
-        (child as { props?: { children?: unknown } }).props?.children
-      ).replace(/\n$/, "");
-      return <VizBlock code={code} />;
-    }
+    const code = nodeText(
+      (child as { props?: { children?: unknown } }).props?.children
+    ).replace(/\n$/, "");
+    if (/language-svg/.test(className)) return <VizBlock code={code} />;
+    if (/language-html/.test(className)) return <HtmlArtifact code={code} />;
     return <pre>{children}</pre>;
   },
 };

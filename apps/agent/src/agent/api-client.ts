@@ -108,6 +108,15 @@ export async function fetchServicePrices(
   return res.services;
 }
 
+// Lịch sử khám của 1 bệnh nhân — đọc qua REST (forward JWT). Trả nguyên payload
+// { patientId, count, records } cho agent dựng dashboard.
+export async function fetchExamHistory(
+  token: string,
+  patientId: string
+): Promise<{ patientId: string; count: number; records: unknown[] }> {
+  return call(token, `/api/patients/${patientId}/exam-history`);
+}
+
 export async function writeWorkspaceFile(
   token: string,
   file: string,

@@ -8,9 +8,21 @@ import { hashPassword } from "@pr_hospitalagent/api-shared";
 import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
 import { labCatalogService } from "./labCatalog.service.ts";
+import { examRecordService } from "./examRecord.service.ts";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../lib/errors.ts";
 import { buildSet, assertHasUpdates } from "../lib/patch.ts";
 import type { PatientUpdate, LabInput } from "../schemas/patient.ts";
+
+// Ghi snapshot lịch sử khám sau khi bác sĩ lưu sửa lâm sàng. BEST-EFFORT: lỗi
+// snapshot không được làm hỏng thao tác sửa chính (chỉ log, không throw).
+async function snapshotHistory(patientId: string, doctorId: string) {
+  try {
+    const patient = await patientRepo.findById(patientId);
+    if (patient) await examRecordService.snapshotFromPatient(patient, doctorId);
+  } catch (err) {
+    console.error("Ghi lịch sử khám thất bại:", err);
+  }
+}
 
 const VITAL_DEFAULTS = {
   spO2: 0,
@@ -73,7 +85,11 @@ export const patientService = {
     return patient;
   },
 
-  async update(id: string, data: PatientUpdate): Promise<PatientPublic> {
+  async update(
+    id: string,
+    data: PatientUpdate,
+    doctorId: string
+  ): Promise<PatientPublic> {
     const $set = buildSet(data, PATCH_KEYS);
     if (data.vitals) {
       for (const [k, v] of Object.entries(data.vitals)) {
@@ -85,6 +101,7 @@ export const patientService = {
     const ok = await patientRepo.patch(id, $set);
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
     const updated = await patientRepo.findById(id);
+    await snapshotHistory(id, doctorId);
     return updated!;
   },
 
@@ -98,16 +115,22 @@ export const patientService = {
     };
   },
 
-  async addLab(id: string, input: LabInput) {
+  async addLab(id: string, input: LabInput, doctorId: string) {
     // Server tự suy đơn vị / khoảng tham chiếu / cờ bất thường từ danh mục (Mongo).
     const entry = (await labCatalogService.findEntry(input.name)) ?? undefined;
     const lab = computeLab(input.name, input.value, entry, input.recordedAt);
     const ok = await patientRepo.pushLab(id, lab);
     if (!ok) throw new NotFoundError(`Không tìm thấy bệnh nhân ${id}`);
+    await snapshotHistory(id, doctorId);
     return { ok: true, lab };
   },
 
-  async updateLab(id: string, indexStr: string, input: LabInput) {
+  async updateLab(
+    id: string,
+    indexStr: string,
+    input: LabInput,
+    doctorId: string
+  ) {
     const idx = Number(indexStr);
     if (!Number.isInteger(idx) || idx < 0) {
       throw new BadRequestError("index không hợp lệ");
@@ -125,10 +148,11 @@ export const patientService = {
       id,
       labs.map((l, i) => (i === idx ? lab : l))
     );
+    await snapshotHistory(id, doctorId);
     return { ok: true, lab };
   },
 
-  async removeLab(id: string, indexStr: string) {
+  async removeLab(id: string, indexStr: string, doctorId: string) {
     const idx = Number(indexStr);
     if (!Number.isInteger(idx) || idx < 0) {
       throw new BadRequestError("index không hợp lệ");
@@ -143,6 +167,11 @@ export const patientService = {
       id,
       labs.filter((_, i) => i !== idx)
     );
+    await snapshotHistory(id, doctorId);
     return { ok: true, removedIndex: idx };
+  },
+
+  async listExamHistory(id: string) {
+    return examRecordService.listForPatient(id);
   },
 };

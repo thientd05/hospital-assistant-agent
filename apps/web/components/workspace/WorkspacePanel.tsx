@@ -6,6 +6,7 @@ import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
+import { ExamHistoryTab } from "./tabs/ExamHistoryTab";
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = MIN_WIDTH * 1.5;
@@ -14,6 +15,7 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   patients: "Bệnh nhân",
   patient: "Hồ sơ",
   appointments: "Lịch hẹn",
+  "exam-history": "Lịch sử khám",
   "my-record": "Hồ sơ",
   "my-appointments": "Lịch hẹn",
 };
@@ -198,6 +200,13 @@ export function WorkspacePanel({
                 onChanged={onChanged}
               />
             ))}
+          {role === "doctor" && activeTab === "exam-history" && (
+            <ExamHistoryTab
+              patientId={selectedPatientId}
+              version={versions["exam-history"]}
+              active={isOpen && activeTab === "exam-history"}
+            />
+          )}
           {role === "doctor" && activeTab === "appointments" && (
             <AppointmentsTab
               version={versions.appointments}

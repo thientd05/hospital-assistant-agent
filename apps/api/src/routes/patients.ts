@@ -56,8 +56,22 @@ export async function patientsRoutes(app: FastifyInstance) {
       await patientService.assertManagedBy(req.doctor!.id, req.params.id);
       return patientService.update(
         req.params.id,
-        parseBody(PatientUpdateSchema, req.body)
+        parseBody(PatientUpdateSchema, req.body),
+        req.doctor!.id
       );
+    }
+  );
+
+  // Lịch sử khám (snapshot lâm sàng theo từng lần khám). Bác sĩ: chỉ BN mình quản
+  // lý; manager: xem tất cả (bỏ qua assertManagedBy).
+  app.get<{ Params: { id: string } }>(
+    "/patients/:id/exam-history",
+    { preHandler: [verifyAuth, requireRole("doctor", "manager")] },
+    async (req) => {
+      if (req.authRole === "doctor") {
+        await patientService.assertManagedBy(req.doctor!.id, req.params.id);
+      }
+      return patientService.listExamHistory(req.params.id);
     }
   );
 
@@ -78,7 +92,8 @@ export async function patientsRoutes(app: FastifyInstance) {
       await patientService.assertManagedBy(req.doctor!.id, req.params.id);
       return patientService.addLab(
         req.params.id,
-        parseBody(LabSchema, req.body)
+        parseBody(LabSchema, req.body),
+        req.doctor!.id
       );
     }
   );
@@ -91,7 +106,8 @@ export async function patientsRoutes(app: FastifyInstance) {
       return patientService.updateLab(
         req.params.id,
         req.params.index,
-        parseBody(LabSchema, req.body)
+        parseBody(LabSchema, req.body),
+        req.doctor!.id
       );
     }
   );
@@ -101,7 +117,11 @@ export async function patientsRoutes(app: FastifyInstance) {
     { preHandler: [verifyAuth, requireRole("doctor")] },
     async (req) => {
       await patientService.assertManagedBy(req.doctor!.id, req.params.id);
-      return patientService.removeLab(req.params.id, req.params.index);
+      return patientService.removeLab(
+        req.params.id,
+        req.params.index,
+        req.doctor!.id
+      );
     }
   );
 }
