@@ -19,7 +19,8 @@
       "read_panel",
       "act",
       "read_skills",
-      "update_workspace_file"
+      "update_workspace_file",
+      "read_service_prices"
     ],
     "skills": ["collect-patient-info", "book-appointment"]
   }

@@ -8,6 +8,7 @@ const TOOL_LABELS: Record<string, string> = {
   read_skills: "Đọc kỹ năng",
   read_panel: "Đọc cửa sổ làm việc",
   act: "Thao tác",
+  read_service_prices: "Xem giá dịch vụ khám",
 };
 
 // Tên kỹ năng bằng tiếng Việt — hiển thị dưới tên tool

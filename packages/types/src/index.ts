@@ -398,6 +398,29 @@ export type Medication = {
   createdAt: Date;
 };
 
+// ─────────────────────────────────────────── Giá dịch vụ khám (DV00X)
+// Bảng giá tham khảo các dịch vụ khám của phòng khám. Chỉ ĐỌC (không có UI CRUD,
+// không panel) — agent bệnh nhân tra qua tool `read_service_prices`. Tư vấn miễn
+// phí; chỉ tính phí khi khám; chi phí cuối phụ thuộc bác sĩ — đây là giá tham khảo.
+export type ServiceCategory =
+  | "Khám tổng quát"
+  | "Khám chuyên khoa"
+  | "Chẩn đoán hình ảnh"
+  | "Xét nghiệm"
+  | "Thủ thuật"
+  | "Tiêm chủng – Vắc-xin"
+  | "Khám tại nhà";
+
+export type ServicePrice = {
+  id: string;
+  name: string;
+  category: ServiceCategory;
+  price: number; // VND
+  unit: string; // "lần", "lượt", "vùng"…
+  description?: string;
+  createdAt: Date;
+};
+
 export type UtilityType = "Điện" | "Nước" | "Internet" | "Gas";
 export type UtilityStatus = "Chưa thanh toán" | "Đã thanh toán";
 

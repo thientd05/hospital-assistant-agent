@@ -28,6 +28,8 @@ import type {
   AssetCondition,
   Medication,
   MedicationCategory,
+  ServicePrice,
+  ServiceCategory,
   LabCatalogEntry,
   Utility,
   UtilityType,
@@ -539,6 +541,65 @@ const medicationSeeds: MedicationSeed[] = [
   { name: "Noradrenaline truyền liên tục", category: "Dịch truyền – Khác" },
 ];
 
+// ─────────────────────────────────────────── Giá dịch vụ khám (DV00X)
+// Bảng giá THAM KHẢO các dịch vụ khám. Chỉ ĐỌC (không UI/panel) — agent bệnh nhân
+// tra qua tool `read_service_prices`. Đa dạng theo nhiều nhóm dịch vụ thực tế.
+type ServicePriceSeed = {
+  name: string;
+  category: ServiceCategory;
+  price: number;
+  unit: string;
+  description?: string;
+};
+
+const servicePriceSeeds: ServicePriceSeed[] = [
+  // Khám tổng quát
+  { name: "Khám tổng quát cơ bản", category: "Khám tổng quát", price: 150_000, unit: "lần", description: "Khám lâm sàng tổng quát, đo sinh hiệu, tư vấn ban đầu" },
+  { name: "Khám sức khoẻ tổng quát toàn diện", category: "Khám tổng quát", price: 850_000, unit: "gói", description: "Gói khám đa cơ quan kèm xét nghiệm cơ bản và chẩn đoán hình ảnh" },
+  { name: "Khám sức khoẻ tiền hôn nhân", category: "Khám tổng quát", price: 1_200_000, unit: "gói", description: "Gói khám và xét nghiệm dành cho cặp đôi trước kết hôn" },
+  { name: "Tái khám", category: "Khám tổng quát", price: 80_000, unit: "lần", description: "Tái khám theo dõi trong vòng 7 ngày sau lần khám đầu" },
+  // Khám chuyên khoa
+  { name: "Khám chuyên khoa Nội Tim mạch", category: "Khám chuyên khoa", price: 250_000, unit: "lần", description: "Khám với bác sĩ chuyên khoa tim mạch" },
+  { name: "Khám chuyên khoa Nội tiết – Đái tháo đường", category: "Khám chuyên khoa", price: 250_000, unit: "lần" },
+  { name: "Khám chuyên khoa Hô hấp", category: "Khám chuyên khoa", price: 230_000, unit: "lần" },
+  { name: "Khám chuyên khoa Tiêu hoá", category: "Khám chuyên khoa", price: 230_000, unit: "lần" },
+  { name: "Khám chuyên khoa Thần kinh", category: "Khám chuyên khoa", price: 280_000, unit: "lần" },
+  { name: "Khám chuyên khoa Nhi", category: "Khám chuyên khoa", price: 200_000, unit: "lần", description: "Khám cho trẻ em với bác sĩ chuyên khoa nhi" },
+  { name: "Khám chuyên khoa Sản – Phụ khoa", category: "Khám chuyên khoa", price: 300_000, unit: "lần" },
+  { name: "Khám với bác sĩ chuyên gia đầu ngành", category: "Khám chuyên khoa", price: 500_000, unit: "lần", description: "Khám với bác sĩ chuyên khoa cấp cao / cố vấn" },
+  // Chẩn đoán hình ảnh
+  { name: "Siêu âm ổ bụng tổng quát", category: "Chẩn đoán hình ảnh", price: 220_000, unit: "lần" },
+  { name: "Siêu âm tim (Doppler màu)", category: "Chẩn đoán hình ảnh", price: 350_000, unit: "lần" },
+  { name: "Siêu âm thai", category: "Chẩn đoán hình ảnh", price: 200_000, unit: "lần" },
+  { name: "Chụp X-quang (1 vùng)", category: "Chẩn đoán hình ảnh", price: 150_000, unit: "vùng" },
+  { name: "Điện tâm đồ (ECG)", category: "Chẩn đoán hình ảnh", price: 100_000, unit: "lần" },
+  { name: "Chụp CT-Scanner (có thuốc cản quang)", category: "Chẩn đoán hình ảnh", price: 1_800_000, unit: "lần" },
+  { name: "Chụp MRI", category: "Chẩn đoán hình ảnh", price: 2_500_000, unit: "lần" },
+  { name: "Nội soi dạ dày – thực quản", category: "Chẩn đoán hình ảnh", price: 700_000, unit: "lần", description: "Nội soi gây tê; có thể chọn gây mê thêm phí" },
+  // Xét nghiệm
+  { name: "Xét nghiệm công thức máu (CBC)", category: "Xét nghiệm", price: 80_000, unit: "lần" },
+  { name: "Xét nghiệm đường huyết (Glucose)", category: "Xét nghiệm", price: 50_000, unit: "lần" },
+  { name: "Xét nghiệm HbA1c", category: "Xét nghiệm", price: 150_000, unit: "lần" },
+  { name: "Xét nghiệm mỡ máu (bộ lipid)", category: "Xét nghiệm", price: 180_000, unit: "bộ" },
+  { name: "Xét nghiệm chức năng gan (AST, ALT)", category: "Xét nghiệm", price: 120_000, unit: "bộ" },
+  { name: "Xét nghiệm chức năng thận (Ure, Creatinine)", category: "Xét nghiệm", price: 120_000, unit: "bộ" },
+  { name: "Tổng phân tích nước tiểu", category: "Xét nghiệm", price: 60_000, unit: "lần" },
+  { name: "Xét nghiệm tầm soát ung thư cơ bản", category: "Xét nghiệm", price: 950_000, unit: "gói" },
+  // Thủ thuật
+  { name: "Tiêm truyền tĩnh mạch", category: "Thủ thuật", price: 70_000, unit: "lần" },
+  { name: "Thay băng – cắt chỉ vết thương", category: "Thủ thuật", price: 90_000, unit: "lần" },
+  { name: "Khí dung", category: "Thủ thuật", price: 80_000, unit: "lần" },
+  { name: "Đo chức năng hô hấp (hô hấp ký)", category: "Thủ thuật", price: 200_000, unit: "lần" },
+  // Tiêm chủng – Vắc-xin
+  { name: "Tiêm vắc-xin cúm mùa", category: "Tiêm chủng – Vắc-xin", price: 350_000, unit: "mũi" },
+  { name: "Tiêm vắc-xin viêm gan B", category: "Tiêm chủng – Vắc-xin", price: 280_000, unit: "mũi" },
+  { name: "Tiêm vắc-xin uốn ván", category: "Tiêm chủng – Vắc-xin", price: 150_000, unit: "mũi" },
+  { name: "Tiêm vắc-xin HPV", category: "Tiêm chủng – Vắc-xin", price: 1_500_000, unit: "mũi" },
+  // Khám tại nhà
+  { name: "Khám tại nhà trong nội thành", category: "Khám tại nhà", price: 500_000, unit: "lượt", description: "Bác sĩ tới khám tại nhà trong phạm vi nội thành (chưa gồm xét nghiệm)" },
+  { name: "Lấy mẫu xét nghiệm tại nhà", category: "Khám tại nhà", price: 200_000, unit: "lượt", description: "Điều dưỡng tới nhà lấy mẫu, chưa gồm phí xét nghiệm" },
+];
+
 // ─────────────────────────────────────────────────── Điện nước (UT00X)
 type UtilityRecipe = {
   type: UtilityType;
@@ -639,6 +700,18 @@ function buildMedications(): Medication[] {
     id: "TH" + String(i + 1).padStart(3, "0"),
     name: s.name,
     category: s.category,
+    createdAt: now,
+  }));
+}
+
+function buildServicePrices(): ServicePrice[] {
+  return servicePriceSeeds.map((s, i) => ({
+    id: "DV" + String(i + 1).padStart(3, "0"),
+    name: s.name,
+    category: s.category,
+    price: s.price,
+    unit: s.unit,
+    description: s.description,
     createdAt: now,
   }));
 }
@@ -1156,6 +1229,13 @@ async function seed() {
   await labCatalog.createIndex({ name: 1 }, { unique: true });
   await labCatalog.insertMany(labCatalogSeeds);
 
+  // Giá dịch vụ khám — bảng giá tham khảo, agent bệnh nhân tra qua tool.
+  const servicePrices = db.collection<ServicePrice>("serviceprices");
+  await servicePrices.deleteMany({});
+  await servicePrices.createIndex({ id: 1 }, { unique: true });
+  const servicePriceDocs = buildServicePrices();
+  await servicePrices.insertMany(servicePriceDocs);
+
   // 7. Điện nước
   const utilities = db.collection<Utility>("utilities");
   await utilities.deleteMany({});
@@ -1229,6 +1309,7 @@ async function seed() {
   console.log(`  assets       ${assetDocs.length}`);
   console.log(`  medications  ${medicationDocs.length}`);
   console.log(`  labcatalogs  ${labCatalogSeeds.length}`);
+  console.log(`  serviceprices ${servicePriceDocs.length}`);
   console.log(`  utilities    ${utilityDocs.length}`);
   console.log(`  payroll      ${payrollDocs.length}`);
   console.log(`  revenue      ${revenueDocs.length}`);

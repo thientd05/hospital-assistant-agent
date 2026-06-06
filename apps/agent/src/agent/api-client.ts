@@ -88,6 +88,26 @@ export async function fetchSkill(
   }
 }
 
+// Bảng giá dịch vụ khám (tham khảo) — lưu Mongo, đọc qua REST. Chỉ ĐỌC.
+export type ServicePriceItem = {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  unit: string;
+  description?: string;
+};
+
+export async function fetchServicePrices(
+  token: string
+): Promise<ServicePriceItem[]> {
+  const res = await call<{ count: number; services: ServicePriceItem[] }>(
+    token,
+    "/api/service-prices"
+  );
+  return res.services;
+}
+
 export async function writeWorkspaceFile(
   token: string,
   file: string,

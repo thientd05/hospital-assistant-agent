@@ -10,6 +10,8 @@ export const TOOL_REFRESH_MAP: Record<string, ToolRefresh> = {
   read_skills: false,
   // File-write tool: ghi workspace của user, không động DB/panel.
   update_workspace_file: false,
+  // Read-only catalog: đọc bảng giá dịch vụ, không động DB/panel.
+  read_service_prices: false,
 };
 
 export function getRefreshTarget(toolName: string): ToolRefresh {
