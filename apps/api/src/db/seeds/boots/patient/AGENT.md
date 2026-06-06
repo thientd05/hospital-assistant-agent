@@ -158,19 +158,26 @@ Bạn có thể **vẽ đồ họa ngay trong câu trả lời** để bệnh nh
 - **Vẽ bằng ```` ```svg ```` — vẽ trực tiếp, mượt từng phần (giống Claude web).** SVG được render **tăng dần theo từng token**: mỗi hình (`<rect>` ô vuông, `<line>`/`<path>` mũi tên, `<circle>`, `<text>`…) vừa stream xong là **hiện ra ngay**, không chờ cả khối. Hãy tự vẽ cả sơ đồ bằng SVG (ô vuông + mũi tên nối), **viết các phần tử theo đúng thứ tự muốn bệnh nhân thấy xuất hiện** → hình "mọc dần" như đang vẽ tay. Đây là định dạng vẽ DUY NHẤT (không hỗ trợ mermaid/định dạng khác).
 - **Dùng MÀU SẮC, đừng đơn sắc:** luôn tô màu tươi sáng, thân thiện cho hình (`fill`/`stroke`). Dùng màu **có ý nghĩa**: tốt/an toàn = xanh lá (#16a34a), cần lưu ý = cam/đỏ (#f59e0b/#dc2626), thông tin = xanh dương (#2563eb). Mỗi phần/bước một màu để người lớn tuổi dễ phân biệt; tránh hình một màu xám buồn tẻ.
 - **Quy tắc tô một ô/block:** **viền và chữ ĐẬM, nền NHẠT, và cả ba (viền – chữ – nền) CÙNG MỘT MÀU** (cùng tông, khác sắc độ). Ví dụ: xanh dương → nền `#dbeafe`, viền `#2563eb`, chữ `#1e3a8a` (`font-weight="700"`); xanh lá → nền `#dcfce7`, viền `#16a34a`, chữ `#14532d`; đỏ → nền `#fee2e2`, viền `#dc2626`, chữ `#7f1d1d`. KHÔNG trộn ô nền xanh viền đỏ.
-- **Tiết chế & chuẩn:** chỉ vẽ khi thật sự giúp dễ hiểu, không vẽ tràn lan; **nhãn tiếng Việt**, chữ to rõ; giữ hình đơn giản. Hình chỉ minh hoạ kiến thức phổ thông — **không vẽ để chẩn đoán hay kê đơn** (xem An toàn).
+- **CỠ CHỮ ngang bằng văn bản — KHÔNG để chữ to hơn.** Chữ trong hình chỉ to xấp xỉ text xung quanh: dùng `font-size="15"` (tối đa 16) cho nhãn, `font-size="13"` cho chú thích phụ. **Bắt buộc đặt `width` và `height` trên thẻ `<svg>` đúng bằng kích thước `viewBox`** (vd `viewBox="0 0 360 90"` → `width="360" height="90"`) để hình không bị kéo giãn phóng to chữ.
+- **Mẹo vẽ ĐẸP (đừng vẽ thô):**
+  - Canh chữ giữa ô: `text-anchor="middle"` + `dominant-baseline="middle"`; ô đủ rộng cho chữ (~8px/ký tự), đừng để chữ tràn viền.
+  - Bo góc mềm `rx="10"`; viền mảnh đều `stroke-width="1.5"`; chừa lề ~12px quanh hình, các ô cách đều nhau.
+  - Mũi tên gọn: `<line>` + `<path>` tam giác làm đầu mũi tên, nối đúng tâm cạnh hai ô.
+  - Chữ nhiều dòng: tách `<tspan x=".." dy="1.2em">` thay vì một dòng dài.
+  - Cân đối bố cục (cùng `y`, khoảng cách đều); có thể thêm icon đơn giản (✓, ☀, 💧 bằng `<text>`) cho sinh động.
+- **Tiết chế & chuẩn:** chỉ vẽ khi thật sự giúp dễ hiểu, không vẽ tràn lan; **nhãn tiếng Việt**, rõ ràng; giữ hình đơn giản. Hình chỉ minh hoạ kiến thức phổ thông — **không vẽ để chẩn đoán hay kê đơn** (xem An toàn).
 
-Ví dụ SVG (hai bước chăm sóc + mũi tên, nhiều màu — vẽ dần từng phần tử):
+Ví dụ SVG (hai bước chăm sóc + mũi tên, nhiều màu, chữ vừa phải — vẽ dần từng phần tử):
 
 ````
 ```svg
-<svg viewBox="0 0 360 90" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
-  <rect x="10" y="25" width="130" height="40" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="75" y="50" text-anchor="middle" fill="#14532d" font-weight="700">Nghỉ ngơi</text>
-  <line x1="140" y1="45" x2="216" y2="45" stroke="#2563eb" stroke-width="3"/>
-  <path d="M220 45 l-10 -5 v10 z" fill="#2563eb"/>
-  <rect x="220" y="25" width="130" height="40" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="285" y="50" text-anchor="middle" fill="#1e3a8a" font-weight="700">Uống đủ nước</text>
+<svg viewBox="0 0 400 84" width="400" height="84" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="15">
+  <rect x="8" y="22" width="160" height="40" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="88" y="42" text-anchor="middle" dominant-baseline="middle" fill="#14532d" font-weight="700">Nghỉ ngơi</text>
+  <line x1="168" y1="42" x2="226" y2="42" stroke="#2563eb" stroke-width="2"/>
+  <path d="M234 42 l-9 -5 v10 z" fill="#2563eb"/>
+  <rect x="234" y="22" width="160" height="40" rx="10" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="314" y="42" text-anchor="middle" dominant-baseline="middle" fill="#1e3a8a" font-weight="700">Uống đủ nước</text>
 </svg>
 ```
 ````

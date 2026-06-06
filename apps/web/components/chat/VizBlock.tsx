@@ -13,9 +13,22 @@ type Props = {
 // khối. Cách làm: lấy từ thẻ mở <svg ...> hoàn chỉnh; cắt phần thân tới dấu ">"
 // hoàn chỉnh CUỐI CÙNG (bỏ tag đang viết dở); tự đóng </svg>. Trả null nếu thẻ mở
 // <svg> chưa khép (chưa vẽ được gì).
+// Thêm width/height = kích thước viewBox nếu thẻ <svg> thiếu, để SVG render ĐÚNG
+// kích thước gốc (scale 1) thay vì bị kéo giãn đầy bề ngang khung chat — tránh chữ
+// bên trong bị phóng to hơn text xung quanh. CSS `max-width:100%` vẫn cho thu nhỏ
+// trên màn hẹp.
+function normalizeSvgTag(tag: string): string {
+  if (/\bwidth\s*=/.test(tag)) return tag;
+  const vb =
+    /viewBox\s*=\s*["']\s*[\d.+-]+\s+[\d.+-]+\s+([\d.]+)\s+([\d.]+)/i.exec(tag);
+  if (!vb) return tag;
+  return tag.replace(/<svg/i, `<svg width="${vb[1]}" height="${vb[2]}"`);
+}
+
 function buildProgressiveSvg(code: string): string | null {
   const open = /<svg[^>]*>/i.exec(code);
   if (!open) return null;
+  const openTag = normalizeSvgTag(open[0]);
   let body = code.slice(open.index + open[0].length);
   const closeIdx = body.search(/<\/svg\s*>/i);
   if (closeIdx !== -1) {
@@ -25,7 +38,7 @@ function buildProgressiveSvg(code: string): string | null {
     body = lastGt === -1 ? "" : body.slice(0, lastGt + 1);
   }
   // <g>/<defs>… chưa đóng sẽ được trình duyệt + DOMPurify tự đóng khi parse.
-  return `${open[0]}${body}</svg>`;
+  return `${openTag}${body}</svg>`;
 }
 
 // Khối ```svg```: render TĂNG DẦN theo từng delta stream (mỗi hình vừa stream xong
