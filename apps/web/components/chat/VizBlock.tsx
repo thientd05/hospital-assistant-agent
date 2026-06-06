@@ -65,18 +65,41 @@ function MermaidBlock({ code }: { code: string }) {
   );
 }
 
-// SVG tự do: chỉ render khi đã có thẻ đóng </svg> (chuỗi well-formed) và LUÔN
-// sanitize bằng DOMPurify (loại <script>/onload/foreignObject…) chống XSS.
-// Sanitize trong effect (chỉ client) để an toàn SSR — DOMPurify cần `window`.
+// Dựng một chuỗi SVG HỢP LỆ từ phần đang stream để vẽ TĂNG DẦN (progressive):
+// mỗi phần tử con (rect/line/path…) vừa stream xong là render ngay, không đợi cả
+// khối. Cách làm: lấy từ thẻ mở <svg ...> hoàn chỉnh; cắt phần thân tới dấu ">"
+// hoàn chỉnh CUỐI CÙNG (bỏ tag đang viết dở); tự đóng </svg>. Trả null nếu thẻ mở
+// <svg> chưa khép (chưa vẽ được gì).
+function buildProgressiveSvg(code: string): string | null {
+  const open = /<svg[^>]*>/i.exec(code);
+  if (!open) return null;
+  let body = code.slice(open.index + open[0].length);
+  const closeIdx = body.search(/<\/svg\s*>/i);
+  if (closeIdx !== -1) {
+    body = body.slice(0, closeIdx); // đã có </svg> → lấy trọn thân
+  } else {
+    const lastGt = body.lastIndexOf(">"); // chưa khép → cắt tới tag hoàn chỉnh cuối
+    body = lastGt === -1 ? "" : body.slice(0, lastGt + 1);
+  }
+  // <g>/<defs>… chưa đóng sẽ được trình duyệt + DOMPurify tự đóng khi parse.
+  return `${open[0]}${body}</svg>`;
+}
+
+// SVG tự do: render TĂNG DẦN theo từng delta stream và LUÔN sanitize bằng
+// DOMPurify (loại <script>/onload/foreignObject…) chống XSS. Sanitize trong effect
+// (chỉ client) để an toàn SSR — DOMPurify cần `window`.
 function SvgBlock({ code }: { code: string }) {
   const [clean, setClean] = useState<string>("");
   useEffect(() => {
-    if (!/<\/svg\s*>/i.test(code)) {
+    const partial = buildProgressiveSvg(code);
+    if (!partial) {
       setClean("");
       return;
     }
     setClean(
-      DOMPurify.sanitize(code, { USE_PROFILES: { svg: true, svgFilters: true } })
+      DOMPurify.sanitize(partial, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+      })
     );
   }, [code]);
 
