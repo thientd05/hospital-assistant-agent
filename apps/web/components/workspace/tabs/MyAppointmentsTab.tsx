@@ -64,6 +64,9 @@ export function MyAppointmentsTab({ version, active }: Props) {
         {(data ?? []).map((a) => (
           <li
             key={a.id}
+            data-agent-ref={`appointment:item:${a.id}`}
+            data-agent-role="text"
+            data-agent-label="Lịch hẹn"
             className="rounded-lg border border-gray-200 px-3 py-2.5"
           >
             <div className="flex items-start justify-between gap-2">

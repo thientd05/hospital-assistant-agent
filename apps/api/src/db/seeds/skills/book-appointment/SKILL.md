@@ -68,12 +68,12 @@ Sau khi click `booking-form:submit`, **đọc snapshot trả về**:
 
 - Snapshot **KHÔNG còn các ô `booking-form:*`** và **đã có lại nút `appointment:create`**
   → **LỊCH ĐÃ ĐẶT THÀNH CÔNG. DỪNG NGAY.** Chỉ báo kết quả cho bệnh nhân bằng lời.
+- Muốn xác nhận thì **đọc thẳng trong snapshot**: mỗi lịch đã đặt hiện thành một phần tử
+  `appointment:item:<id>` (role `text`) với `value` = ngày giờ + trạng thái + bác sĩ + lý
+  do. Lịch vừa đặt sẽ nằm trong danh sách đó — đọc value là đủ, **KHÔNG cần mở lại form**.
 - ⛔ **TUYỆT ĐỐI KHÔNG** click `appointment:create` lần nữa, KHÔNG mở lại form, KHÔNG
   điền/submit lại "để xem chi tiết / kiểm tra cho chắc". **Mở lại form rồi submit =
   ĐẶT TRÙNG MỘT LỊCH THỨ HAI** — lỗi nặng làm phiền bệnh nhân và bác sĩ.
-- Panel **không có màn hình chi tiết lịch** để xem lại; danh sách lịch không phơi ref nên
-  snapshot không liệt kê lịch vừa đặt — **đó là bình thường, KHÔNG phải dấu hiệu thất bại.**
-  Form đóng đã đủ chứng minh thành công; tin vào điều đó, đừng đi "xác minh".
 - Chỉ coi là **thất bại** khi snapshot **vẫn còn `booking-form:*`** kèm `booking-form:error`
   (alert) — lúc đó mới theo badcase "Submit lỗi".
 
