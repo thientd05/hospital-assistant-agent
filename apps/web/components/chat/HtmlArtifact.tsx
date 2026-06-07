@@ -13,6 +13,47 @@ function isComplete(code: string): boolean {
   return /<\/html\s*>|<\/body\s*>/i.test(code);
 }
 
+// Dựng phiên bản HTML hợp lệ TỐI ĐA từ chuỗi đang stream dở, để render được càng
+// sớm càng tốt (box/nút rỗng, rồi chữ điền vào…). Vấn đề cốt lõi: `<style>` và
+// `<script>` là "raw text" — nếu CHƯA có thẻ đóng, trình duyệt nuốt TOÀN BỘ phần
+// sau làm text → không vẽ gì cho tới hết khối. Cách xử lý mỗi delta:
+//   - <style> đang hở → đóng tạm tới rule `}` hoàn chỉnh cuối (CSS áp dụng dần,
+//     phần body phía sau render ngay);
+//   - <script> đang hở → cắt bỏ (không chạy lúc stream; để hở sẽ nuốt phần sau);
+//   - <!-- comment đang hở → cắt bỏ.
+// Thẻ thường viết dở ở cuối (vd `<div clas`) trình duyệt tự bỏ khi parse innerHTML,
+// còn text node đang stream (vd "Tổng qu") vẫn hiện → không cần cắt tới `>` cuối.
+// Khi khối hoàn chỉnh, mọi thẻ đã đóng nên hàm trả nguyên văn (script được giữ để
+// chạy ở `done`).
+function progressiveHtml(code: string): string {
+  let s = code;
+  const lower = () => s.toLowerCase();
+  // 1. <script> đang hở → cắt từ thẻ mở tới hết.
+  const sOpen = lower().lastIndexOf("<script");
+  if (sOpen !== -1 && lower().indexOf("</script>", sOpen) === -1) {
+    s = s.slice(0, sOpen);
+  }
+  // 2. <!-- comment đang hở → cắt.
+  const cOpen = s.lastIndexOf("<!--");
+  if (cOpen !== -1 && s.indexOf("-->", cOpen) === -1) {
+    s = s.slice(0, cOpen);
+  }
+  // 3. <style> đang hở → đóng tạm tới rule hoàn chỉnh `}` cuối.
+  const stOpen = lower().lastIndexOf("<style");
+  if (stOpen !== -1 && lower().indexOf("</style>", stOpen) === -1) {
+    const gt = s.indexOf(">", stOpen); // hết thẻ mở <style ...>
+    if (gt !== -1) {
+      const lastBrace = s.lastIndexOf("}");
+      s =
+        lastBrace > gt
+          ? s.slice(0, lastBrace + 1) + "</style>"
+          : s.slice(0, gt + 1) + "</style>";
+    }
+    // gt === -1: thẻ <style mở còn dở → để parser tự bỏ.
+  }
+  return s;
+}
+
 // Shell CỐ ĐỊNH nạp vào iframe MỘT lần (không phụ thuộc `code` → iframe không bao
 // giờ remount, hết nhấp nháy). Bootstrap script chạy trong origin mờ của iframe
 // (sandbox allow-scripts, KHÔNG same-origin) và:
@@ -102,7 +143,10 @@ function HtmlArtifactInner({ code }: Props) {
 
   // Mỗi lần `code` lớn lên: cập nhật payload + gửi xuống iframe (nếu ready).
   useEffect(() => {
-    latestRef.current = { html: code, done: isComplete(code) };
+    const done = isComplete(code);
+    // Khối xong → gửi nguyên văn (giữ <script> để chạy ở done); đang stream → gửi
+    // bản hợp lệ tối đa để render sớm nhất.
+    latestRef.current = { html: done ? code : progressiveHtml(code), done };
     flush();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
