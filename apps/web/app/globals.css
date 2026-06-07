@@ -340,3 +340,152 @@ textarea.ws-input {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ===== Dashboard lịch sử khám (artifact ExamDashboard, render trong chat) ===== */
+.exam-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #0f172a;
+  margin: 4px 0;
+}
+.exam-dash .hd {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #fff;
+  border-radius: 16px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+}
+.exam-dash .hd h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+.exam-dash .hd p { opacity: 0.92; margin-top: 4px; font-size: 13px; }
+.exam-dash .nav {
+  display: flex;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.exam-dash .nav button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #475569;
+  border-radius: 999px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.15s;
+}
+.exam-dash .nav button:hover { background: #f1f5f9; }
+.exam-dash .nav button.on { background: #2563eb; color: #fff; }
+.exam-dash .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.exam-dash .card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 14px 15px;
+}
+.exam-dash .card .lbl { font-size: 12px; color: #64748b; }
+.exam-dash .card .val { font-size: 19px; font-weight: 700; margin-top: 4px; color: #1e3a8a; }
+.exam-dash .card .val.warn { color: #b91c1c; }
+.exam-dash .card .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.exam-dash .panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.exam-dash .panel > h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.exam-dash .panel > .desc { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+.exam-dash .chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+}
+.exam-dash .chart-card {
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 12px 12px 6px;
+  background: #fcfdff;
+}
+.exam-dash .chart-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.exam-dash .chart-card h3 .u { font-size: 11px; font-weight: 500; color: #94a3b8; }
+.exam-dash .chart-card .flag { font-size: 11px; font-weight: 600; margin-top: 2px; }
+.exam-dash .chart-card .flag.bad { color: #dc2626; }
+.exam-dash .chart-card .flag.ok { color: #16a34a; }
+.exam-dash .chart-card .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px; }
+.exam-dash .chart-card .legend .lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+}
+.exam-dash .chart-card .legend .lg i { width: 11px; height: 3px; border-radius: 2px; display: inline-block; }
+.exam-dash svg.chart { width: 100%; height: auto; display: block; margin-top: 6px; }
+.exam-dash .visit {
+  border-left: 3px solid #2563eb;
+  padding: 4px 0 14px 16px;
+  margin-left: 4px;
+  position: relative;
+}
+.exam-dash .visit::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid #fff;
+}
+.exam-dash .visit:last-child { padding-bottom: 0; }
+.exam-dash .visit .d { font-weight: 700; color: #1e3a8a; font-size: 15px; }
+.exam-dash .visit .vsub { color: #64748b; font-size: 12px; margin: 3px 0 8px; }
+.exam-dash .visit .row { margin-top: 7px; }
+.exam-dash .visit .row .k {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 3px;
+}
+.exam-dash .tag {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+  border-radius: 7px;
+  padding: 2px 9px;
+  margin: 0 5px 5px 0;
+  font-size: 12px;
+}
+.exam-dash .tag.med { background: #f0fdf4; color: #15803d; border-color: #dcfce7; }
+.exam-dash .tag.lab { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+.exam-dash .tag.lab.warn { background: #fef2f2; color: #b91c1c; border-color: #fecaca; font-weight: 600; }

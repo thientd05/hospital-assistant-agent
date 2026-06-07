@@ -8,6 +8,20 @@ import { ToolCallCard } from "./ToolCallCard";
 import { AssistantProcess } from "./AssistantProcess";
 import { VizBlock } from "./VizBlock";
 import { HtmlArtifact } from "./HtmlArtifact";
+import { ExamDashboard } from "./ExamDashboard";
+
+// Khối ```exam-dashboard``` chứa JSON {patientId, patientName}. Trong lúc stream
+// JSON có thể còn dở → parse fail thì trả null (chờ delta sau). Agent chỉ phát data
+// nhỏ xíu; UI tự dựng dashboard (ExamDashboard).
+function parseExamDashboard(code: string): { patientId: string; patientName?: string } | null {
+  try {
+    const obj = JSON.parse(code.trim());
+    if (obj && typeof obj.patientId === "string" && obj.patientId) return obj;
+  } catch {
+    /* JSON chưa khép — bỏ qua tới khi đủ */
+  }
+  return null;
+}
 
 // Gom text thô từ một React node (children của <code>) thành chuỗi.
 function nodeText(node: unknown): string {
@@ -35,6 +49,10 @@ const markdownComponents: Components = {
     const code = nodeText(
       (child as { props?: { children?: unknown } }).props?.children
     ).replace(/\n$/, "");
+    if (/language-exam-dashboard/.test(className)) {
+      const data = parseExamDashboard(code);
+      return data ? <ExamDashboard patientId={data.patientId} patientName={data.patientName} /> : null;
+    }
     if (/language-svg/.test(className)) return <VizBlock code={code} />;
     if (/language-html/.test(className)) return <HtmlArtifact code={code} />;
     return <pre>{children}</pre>;
