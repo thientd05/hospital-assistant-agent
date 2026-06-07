@@ -7,6 +7,11 @@ type Props = {
   code: string;
 };
 
+// Số ký tự lộ thêm mỗi frame (~60fps → ~3000 ký tự/giây). Hằng số (KHÔNG tỉ lệ với
+// gap) để một delta dài tới cùng lúc cũng vẽ ĐỀU TAY từ trên xuống, không nhảy cả
+// cục. Bị chặn trần bởi độ dài đã stream nên stream chậm thì lộ bám theo stream.
+const REVEAL_STEP = 50;
+
 // Khối HTML đã "đủ" để chạy JS? Trong lúc lộ dần ta render HTML/CSS mà KHÔNG chạy
 // script; chỉ khi khối hoàn chỉnh + đã lộ hết mới phát `done` để chạy script một lần.
 function isComplete(code: string): boolean {
@@ -120,12 +125,7 @@ function HtmlArtifactInner({ code }: Props) {
     const full = fullRef.current;
     const target = full.length;
     if (revealedRef.current < target) {
-      const gap = target - revealedRef.current;
-      // ease-out + tốc độ tối thiểu → bắt kịp cú nhảy lớn nhưng vẫn mượt (~1s).
-      revealedRef.current = Math.min(
-        target,
-        revealedRef.current + Math.max(3, gap * 0.08)
-      );
+      revealedRef.current = Math.min(target, revealedRef.current + REVEAL_STEP);
     }
     const len = Math.floor(revealedRef.current);
     if (len !== lastLenRef.current) {
