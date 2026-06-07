@@ -1,6 +1,6 @@
 ---
 name: view-exam-history
-description: Xem lại LỊCH SỬ KHÁM / diễn tiến / quá trình điều trị của bệnh nhân và hiện DASHBOARD trực quan. Dùng khi bác sĩ nói "xem lịch sử khám", "diễn tiến bệnh", "các lần khám trước", "quá trình điều trị", "huyết áp thay đổi thế nào".
+description: Xem lại LỊCH SỬ KHÁM / diễn tiến / quá trình điều trị của bệnh nhân và hiện DASHBOARD trực quan. Dùng khi bác sĩ nói "xem lịch sử khám", "diễn tiến bệnh", "các lần khám trước", "quá trình điều trị", "huyết áp thay đổi thế nào". SKILL này RẤT QUAN TRỌNG, CẤM bỏ qua khi bác sĩ hỏi những câu trên.
 ---
 
 # Dashboard lịch sử khám

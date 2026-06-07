@@ -14,7 +14,7 @@ import { useExamHistory } from "@/hooks/useExamHistory";
 // Mỗi mốc nội dung (header → tab → từng thẻ → từng biểu đồ → từng lần khám) hiện
 // cách nhau REVEAL_STEP_MS mili-giây. NHỎ hơn = gen NHANH hơn. Đặt 0 = hiện tức thì
 // (tắt hiệu ứng). Vd: 40 = rất nhanh, 75 = mặc định, 150 = chậm rãi.
-const REVEAL_STEP_MS = 400;
+const REVEAL_STEP_MS = 500;
 // Số mốc tối đa cần lộ (đủ phủ mọi phần; không cần đổi trừ khi BN có > ~20 lần khám).
 const REVEAL_MAX_STEP = 40;
 
@@ -91,7 +91,7 @@ function trendFlag(asc: (number | null)[], betterWhenDown: boolean): Flag {
   const down = last < first;
   const improved = betterWhenDown ? down : !down;
   const pct = Math.round((Math.abs(last - first) / Math.abs(first)) * 100);
-  return { bad: !improved, text: `${down ? "↓" : "↑"} ${pct}% so với lần đầu — ${improved ? "cải thiện" : "xấu đi"}` };
+  return { bad: !improved, text: `${down ? "Giảm" : "Tăng"} ${pct}% so với lần đầu — ${improved ? "cải thiện" : "xấu đi"}` };
 }
 
 // "<125" | "0.7–1.3" | "0.7-1.3" | ">5" → {low?, high?}
@@ -203,7 +203,7 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
         svg={lineChart([{ name: "Tâm thu", color: "#dc2626", vals: sys }, { name: "Tâm trương", color: "#f59e0b", vals: dia }], dates, { ref: { high: 140 } })}
         flag={trendFlag(sys, true)} legend={[{ name: "Tâm thu", color: "#dc2626" }, { name: "Tâm trương", color: "#f59e0b" }]} /> },
     { node: <ChartCard key="hr" title="Nhịp tim" unit="lần/phút" style={rv(11)}
-        svg={lineChart([{ name: "HR", color: "#2563eb", vals: hr }], dates, { ref: { low: 60, high: 100 }, abnormal: hr.map((v) => v > 100) })}
+        svg={lineChart([{ name: "HR", color: "#087e8b", vals: hr }], dates, { ref: { low: 60, high: 100 }, abnormal: hr.map((v) => v > 100) })}
         flag={trendFlag(hr, true)} /> },
     { node: <ChartCard key="spo" title="SpO₂" unit="%" style={rv(12)}
         svg={lineChart([{ name: "SpO2", color: "#0891b2", vals: spo }], dates, { ref: { low: 95 }, abnormal: spo.map((v) => v < 95) })}
@@ -240,9 +240,9 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
       </div>
 
       <div className="nav" style={rv(1)}>
-        <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>📋 Tổng quan</button>
-        <button className={tab === "charts" ? "on" : ""} onClick={() => setTab("charts")}>📈 Đồ thị</button>
-        <button className={tab === "timeline" ? "on" : ""} onClick={() => setTab("timeline")}>🗂️ Timeline</button>
+        <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>Tổng quan</button>
+        <button className={tab === "charts" ? "on" : ""} onClick={() => setTab("charts")}>Đồ thị</button>
+        <button className={tab === "timeline" ? "on" : ""} onClick={() => setTab("timeline")}>Timeline</button>
       </div>
 
       {tab === "overview" && (
@@ -257,7 +257,7 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
             ))}
           </div>
           <div className="panel" style={rv(8)}>
-            <h2>🔎 Diễn tiến nổi bật</h2>
+            <h2>Diễn tiến nổi bật</h2>
             <div className="desc">
               Bệnh nhân <b>{name}</b> theo dõi <b>{latest.diagnoses.join(", ") || "—"}</b>.{" "}
               {npro.length >= 2 && (
@@ -272,12 +272,12 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
       {tab === "charts" && (
         <>
           <div className="panel">
-            <h2>❤️ Sinh hiệu</h2>
+            <h2>Sinh hiệu</h2>
             <div className="desc">Xu hướng các chỉ số sinh hiệu qua từng lần khám.</div>
             <div className="chart-grid">{vitalCharts.map((c) => c.node)}</div>
           </div>
           <div className="panel">
-            <h2>🧪 Xét nghiệm</h2>
+            <h2>Xét nghiệm</h2>
             <div className="desc">Vùng tô nhạt là khoảng tham chiếu; điểm đỏ là bất thường.</div>
             <div className="chart-grid">{labCharts}</div>
           </div>
@@ -286,15 +286,15 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
 
       {tab === "timeline" && (
         <div className="panel">
-          <h2>🗂️ Các lần khám</h2>
+          <h2>Các lần khám</h2>
           <div className="desc">Sắp xếp mới → cũ.</div>
           {records.map((r, i) => (
             <div className="visit" key={r.id} style={rv(20 + i)}>
               <div className="d">{r.day}</div>
               <div className="vsub">{r.doctorName} · HA {r.vitals.bloodPressure} · Nhịp {r.vitals.heartRate} · SpO₂ {r.vitals.spO2}% · {r.vitals.temperature}°C</div>
               <div className="row"><div className="k">Chẩn đoán</div>{r.diagnoses.map((d) => <span className="tag" key={d}>{d}</span>)}</div>
-              <div className="row"><div className="k">Thuốc</div>{r.medications.map((m) => <span className="tag med" key={m.name}>💊 {m.name}{m.instruction ? ` · ${m.instruction}` : ""}</span>)}</div>
-              <div className="row"><div className="k">Xét nghiệm</div>{r.labResults.map((l) => <span className={`tag lab ${l.isAbnormal ? "warn" : ""}`} key={l.name}>{l.name}: {String(l.value)} {l.unit}{l.isAbnormal ? " ⚠" : ""}</span>)}</div>
+              <div className="row"><div className="k">Thuốc</div>{r.medications.map((m) => <span className="tag med" key={m.name}>{m.name}{m.instruction ? ` · ${m.instruction}` : ""}</span>)}</div>
+              <div className="row"><div className="k">Xét nghiệm</div>{r.labResults.map((l) => <span className={`tag lab ${l.isAbnormal ? "warn" : ""}`} key={l.name}>{l.name}: {String(l.value)} {l.unit}</span>)}</div>
             </div>
           ))}
         </div>
