@@ -726,6 +726,8 @@ export function PatientDetailTab({
             value={clinical.vitals.spO2}
             unit="%"
             abnormal={isVitalAbnormal("spO2", clinical.vitals.spO2)}
+            agentRef="patient-detail:spO2"
+            agentLabel="SpO2"
           />
         )}
       </InfoRow>
@@ -749,6 +751,8 @@ export function PatientDetailTab({
             value={clinical.vitals.heartRate}
             unit="bpm"
             abnormal={isVitalAbnormal("heartRate", clinical.vitals.heartRate)}
+            agentRef="patient-detail:heartRate"
+            agentLabel="Nhịp tim"
           />
         )}
       </InfoRow>
@@ -767,7 +771,12 @@ export function PatientDetailTab({
             <UnitText>mmHg</UnitText>
           </>
         ) : (
-          <VitalValue value={clinical.vitals.bloodPressure} unit="mmHg" />
+          <VitalValue
+            value={clinical.vitals.bloodPressure}
+            unit="mmHg"
+            agentRef="patient-detail:bloodPressure"
+            agentLabel="Huyết áp"
+          />
         )}
       </InfoRow>
       <InfoRow label="Nhiệt độ">
@@ -787,7 +796,12 @@ export function PatientDetailTab({
             <UnitText>°C</UnitText>
           </>
         ) : (
-          <VitalValue value={clinical.vitals.temperature} unit="°C" />
+          <VitalValue
+            value={clinical.vitals.temperature}
+            unit="°C"
+            agentRef="patient-detail:temperature"
+            agentLabel="Nhiệt độ"
+          />
         )}
       </InfoRow>
 
@@ -822,6 +836,9 @@ export function PatientDetailTab({
                   return (
                     <div
                       key={`${r.name}-${i}`}
+                      data-agent-ref={labEditing ? undefined : `patient-detail:lab-${i}`}
+                      data-agent-role={labEditing ? undefined : "text"}
+                      data-agent-label={labEditing ? undefined : `Xét nghiệm ${r.name}`}
                       className={`grid grid-cols-12 gap-1 py-2 items-center ${
                         r.isAbnormal && !labEditing ? "bg-red-50/60 -mx-2 px-2 rounded" : ""
                       } ${marked ? "opacity-40 line-through" : ""}`}
@@ -988,7 +1005,12 @@ export function PatientDetailTab({
       ) : clinical.diagnoses.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa có chẩn đoán.</div>
       ) : (
-        <ul className="space-y-1">
+        <ul
+          className="space-y-1"
+          data-agent-ref="patient-detail:diagnoses"
+          data-agent-role="text"
+          data-agent-label="Chẩn đoán"
+        >
           {clinical.diagnoses.map((d) => (
             <li key={d} className="text-gray-900">
               • {d}
@@ -1086,6 +1108,9 @@ export function PatientDetailTab({
           {clinical.medications.map((m, i) => (
             <div
               key={`${m.name}-${i}`}
+              data-agent-ref={`patient-detail:med-${i}`}
+              data-agent-role="text"
+              data-agent-label={`Thuốc ${m.name}`}
               className="grid grid-cols-12 gap-2 items-center py-1"
             >
               <div className="col-span-5 min-w-0">
@@ -1240,10 +1265,15 @@ function VitalValue({
   value,
   unit,
   abnormal,
+  agentRef,
+  agentLabel,
 }: {
   value: string | number;
   unit: string;
   abnormal?: boolean;
+  // Phơi sinh hiệu (chế độ Xem) cho snapshot panel — agent đọc lại được số thật.
+  agentRef?: string;
+  agentLabel?: string;
 }) {
   return (
     <span
@@ -1252,6 +1282,9 @@ function VitalValue({
           ? "px-2 py-0.5 rounded-full bg-red-50 text-red-700 font-medium text-xs"
           : "text-gray-900 font-medium"
       }
+      data-agent-ref={agentRef}
+      data-agent-role={agentRef ? "text" : undefined}
+      data-agent-label={agentRef ? agentLabel : undefined}
     >
       {value} {unit}
     </span>

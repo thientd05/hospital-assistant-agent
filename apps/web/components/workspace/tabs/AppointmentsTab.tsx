@@ -80,6 +80,9 @@ export function AppointmentsTab({
   const renderCard = (a: (typeof rows)[number]) => (
     <li
       key={a.id}
+      data-agent-ref={`appointment:${a.id}:info`}
+      data-agent-role="text"
+      data-agent-label="Lịch hẹn"
       className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
     >
       <div className="text-xs text-gray-500 font-medium tabular-nums">

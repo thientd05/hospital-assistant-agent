@@ -60,6 +60,9 @@ export function PatientsTab({ version, active, role, onSelect }: Props) {
         {list.map((p) => (
           <li
             key={p.id}
+            data-agent-ref={`patient:${p.id}:info`}
+            data-agent-role="text"
+            data-agent-label={`Bệnh nhân ${p.name}`}
             className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-start justify-between gap-2">
