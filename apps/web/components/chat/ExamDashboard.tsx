@@ -10,6 +10,14 @@ import { useExamHistory } from "@/hooks/useExamHistory";
 // REVEAL DẦN từng phần (mô phỏng "agent đang gen"). Skill nhờ vậy còn vài dòng,
 // token sinh ra ~0 dù bác sĩ hỏi lại bao nhiêu lần.
 
+// ====== TỐC ĐỘ "FAKE GEN" CỦA DASHBOARD — chỉnh ở đây ======
+// Mỗi mốc nội dung (header → tab → từng thẻ → từng biểu đồ → từng lần khám) hiện
+// cách nhau REVEAL_STEP_MS mili-giây. NHỎ hơn = gen NHANH hơn. Đặt 0 = hiện tức thì
+// (tắt hiệu ứng). Vd: 40 = rất nhanh, 75 = mặc định, 150 = chậm rãi.
+const REVEAL_STEP_MS = 75;
+// Số mốc tối đa cần lộ (đủ phủ mọi phần; không cần đổi trừ khi BN có > ~20 lần khám).
+const REVEAL_MAX_STEP = 40;
+
 type Props = { patientId: string; patientName?: string };
 
 const shortDate = (d: string) => (d.length >= 10 ? d.slice(5) : d);
@@ -124,16 +132,21 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
   const [tab, setTab] = useState<"overview" | "charts" | "timeline">("overview");
   const [step, setStep] = useState(0);
 
-  // Reveal dần từng phần khi data về (mô phỏng agent gen): tăng `step` đều tay.
+  // Reveal dần từng phần khi data về (mô phỏng agent gen): tăng `step` đều tay theo
+  // REVEAL_STEP_MS. REVEAL_STEP_MS=0 → hiện ngay tức thì (bỏ hiệu ứng).
   useEffect(() => {
     if (!data) return;
+    if (REVEAL_STEP_MS <= 0) {
+      setStep(REVEAL_MAX_STEP + 1);
+      return;
+    }
     setStep(0);
     let s = 0;
     const id = setInterval(() => {
       s += 1;
       setStep(s);
-      if (s > 40) clearInterval(id);
-    }, 75);
+      if (s > REVEAL_MAX_STEP) clearInterval(id);
+    }, REVEAL_STEP_MS);
     return () => clearInterval(id);
   }, [data]);
 
