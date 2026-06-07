@@ -545,15 +545,14 @@ export function PatientDetailTab({
       {/* Bộ chọn lần khám (gộp tab Lịch sử khám vào hồ sơ) — chỉ bác sĩ, khi đã có
           lịch sử. "Hiện tại" = hồ sơ đang làm việc; chọn ngày = xem lần khám cũ. */}
       {!selfMode && records.length > 0 && (
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-xs text-gray-500 shrink-0">Lần khám</span>
+        <InfoRow label="Lần khám">
           <select
             value={selectedRecordId ?? ""}
             onChange={(e) => selectRecord(e.target.value || null)}
             data-agent-ref="patient-detail:exam-select"
             data-agent-role="combobox"
             data-agent-label="Chọn lần khám"
-            className="ws-input-sm flex-1 min-w-0"
+            className={INLINE_SELECT}
           >
             <option value="">Hiện tại</option>
             {records.map((r) => (
@@ -563,7 +562,7 @@ export function PatientDetailTab({
               </option>
             ))}
           </select>
-        </div>
+        </InfoRow>
       )}
 
       {/* Thông báo kết quả Ghi nhận (đỏ = chưa có thay đổi / lỗi; xanh = đã tạo). */}
