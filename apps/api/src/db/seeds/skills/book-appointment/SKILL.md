@@ -61,7 +61,21 @@ act({ actions: [
 - **Bác sĩ:** mặc định form đã chọn sẵn bác sĩ quản lý (hoặc "" = phòng khám sắp xếp).
   Chỉ thêm bước `{ action: "select", ref: "booking-form:doctorId", value: "<id>" }`
   khi bệnh nhân yêu cầu bác sĩ cụ thể khác mặc định.
-- Form đóng = đã đặt lịch thành công.
+
+## ✅ Sau khi submit — XÁC NHẬN THÀNH CÔNG, KHÔNG đặt lại
+
+Sau khi click `booking-form:submit`, **đọc snapshot trả về**:
+
+- Snapshot **KHÔNG còn các ô `booking-form:*`** và **đã có lại nút `appointment:create`**
+  → **LỊCH ĐÃ ĐẶT THÀNH CÔNG. DỪNG NGAY.** Chỉ báo kết quả cho bệnh nhân bằng lời.
+- ⛔ **TUYỆT ĐỐI KHÔNG** click `appointment:create` lần nữa, KHÔNG mở lại form, KHÔNG
+  điền/submit lại "để xem chi tiết / kiểm tra cho chắc". **Mở lại form rồi submit =
+  ĐẶT TRÙNG MỘT LỊCH THỨ HAI** — lỗi nặng làm phiền bệnh nhân và bác sĩ.
+- Panel **không có màn hình chi tiết lịch** để xem lại; danh sách lịch không phơi ref nên
+  snapshot không liệt kê lịch vừa đặt — **đó là bình thường, KHÔNG phải dấu hiệu thất bại.**
+  Form đóng đã đủ chứng minh thành công; tin vào điều đó, đừng đi "xác minh".
+- Chỉ coi là **thất bại** khi snapshot **vẫn còn `booking-form:*`** kèm `booking-form:error`
+  (alert) — lúc đó mới theo badcase "Submit lỗi".
 
 ## Badcase
 - **Submit lỗi** (snapshot còn `booking-form:error` hoặc `patient-detail:error`): đọc
@@ -72,3 +86,5 @@ act({ actions: [
   làm hết thời gian server.
 - **Bệnh nhân đổi ý:** click `booking-form:cancel` / `patient-detail:cancel` để đóng form.
 - **Không nói rõ thời gian:** hỏi cụ thể ngày + giờ trước khi điền, đừng tự đoán.
+- **Form đã đóng sau submit nhưng muốn "xem lại cho chắc":** ĐỪNG mở lại form — xem mục
+  "Sau khi submit" ở trên. Mở lại + submit lại là đặt trùng lịch lần hai.
