@@ -132,10 +132,20 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
   const [tab, setTab] = useState<"overview" | "charts" | "timeline">("overview");
   const [step, setStep] = useState(0);
 
+  // Chữ ký NỘI DUNG của data — đổi khi và chỉ khi nội dung thực sự khác. useResource
+  // revalidate nền trả về object MỚI dù nội dung y hệt; nếu phụ thuộc thẳng vào `data`
+  // thì hiệu ứng reveal bị reset giữa chừng (giật, render lại từ đầu). Dùng chữ ký này
+  // làm dependency → revalidate trùng nội dung KHÔNG khởi động lại animation.
+  const dataSig = data
+    ? `${data.patientId}:${data.count}:${data.records
+        .map((r) => `${r.id}@${String(r.updatedAt)}`)
+        .join(",")}`
+    : null;
+
   // Reveal dần từng phần khi data về (mô phỏng agent gen): tăng `step` đều tay theo
   // REVEAL_STEP_MS. REVEAL_STEP_MS=0 → hiện ngay tức thì (bỏ hiệu ứng).
   useEffect(() => {
-    if (!data) return;
+    if (!dataSig) return;
     if (REVEAL_STEP_MS <= 0) {
       setStep(REVEAL_MAX_STEP + 1);
       return;
@@ -148,7 +158,7 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
       if (s > REVEAL_MAX_STEP) clearInterval(id);
     }, REVEAL_STEP_MS);
     return () => clearInterval(id);
-  }, [data]);
+  }, [dataSig]);
 
   // opacity/transform theo ngưỡng reveal k
   const rv = (k: number): React.CSSProperties => ({
