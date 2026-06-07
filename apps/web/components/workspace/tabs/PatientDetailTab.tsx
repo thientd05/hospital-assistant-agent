@@ -544,7 +544,8 @@ export function PatientDetailTab({
 
       {/* Bộ chọn lần khám (gộp tab Lịch sử khám vào hồ sơ) — chỉ bác sĩ, khi đã có
           lịch sử. "Hiện tại" = hồ sơ đang làm việc; chọn ngày = xem lần khám cũ. */}
-      {!selfMode && records.length > 0 && (
+      {/* Khi đang Sửa thì ẩn — chỉ sửa được lần khám hiện tại. */}
+      {!selfMode && !editing && records.length > 0 && (
         <InfoRow label="Lần khám">
           <select
             value={selectedRecordId ?? ""}
@@ -552,13 +553,12 @@ export function PatientDetailTab({
             data-agent-ref="patient-detail:exam-select"
             data-agent-role="combobox"
             data-agent-label="Chọn lần khám"
-            className={INLINE_SELECT}
+            className={INLINE_SELECT_PLAIN}
           >
             <option value="">Hiện tại</option>
             {records.map((r) => (
               <option key={r.id} value={r.id}>
                 {formatDate(r.examDate)}
-                {r.doctorName ? ` · ${r.doctorName}` : ""}
               </option>
             ))}
           </select>
@@ -1164,6 +1164,10 @@ const INLINE_INPUT =
 // option rộng nhất). Chỉ danh sách option khi mở mới căn trái.
 const INLINE_SELECT =
   "min-w-0 text-right text-sm text-[#087E8B] font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
+
+// Biến thể chữ ĐEN (không màu lục lam đặc trưng) — dùng cho bộ chọn lần khám.
+const INLINE_SELECT_PLAIN =
+  "min-w-0 text-right text-sm text-gray-900 font-medium bg-transparent px-0 py-0 outline-none border-0 cursor-pointer [field-sizing:content] [&>option]:text-left [&>option]:text-gray-900";
 
 // Biến thể CĂN TRÁI cho dòng xét nghiệm mới (cột Xét nghiệm/Kết quả căn trái như
 // các dòng đã có). Tên XN: select inline kiểu "Khoa" (mũi tên native, không ô).
