@@ -12,14 +12,32 @@ type Props = {
 };
 
 export function MessageList({ messages, bubbles }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  // Chỉ TỰ cuộn xuống cuối khi người dùng đang ở sát đáy. Kéo lên (vd để xem dashboard
+  // đang vẽ dần) → ngừng ghim; cuộn lại sát đáy → ghim tiếp.
+  const stickRef = useRef(true);
+
+  function onScroll() {
+    const el = containerRef.current;
+    if (!el) return;
+    const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickRef.current = dist < 80;
+  }
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (!stickRef.current) return;
+    // Cuộn tức thời (không "smooth") để không tạo animation kéo dài tranh chấp với
+    // thao tác cuộn tay của người dùng giữa các delta stream.
+    endRef.current?.scrollIntoView({ block: "end" });
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto thin-scrollbar px-6 py-6">
+    <div
+      ref={containerRef}
+      onScroll={onScroll}
+      className="flex-1 overflow-y-auto thin-scrollbar px-6 py-6"
+    >
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} bubbles={bubbles} />
