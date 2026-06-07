@@ -7,7 +7,6 @@ import remarkGfm from "remark-gfm";
 import { ToolCallCard } from "./ToolCallCard";
 import { AssistantProcess } from "./AssistantProcess";
 import { VizBlock } from "./VizBlock";
-import { HtmlArtifact } from "./HtmlArtifact";
 import { ExamDashboard } from "./ExamDashboard";
 
 // Khối ```exam-dashboard``` chứa JSON {patientId, patientName}. Trong lúc stream
@@ -54,7 +53,6 @@ const markdownComponents: Components = {
       return data ? <ExamDashboard patientId={data.patientId} patientName={data.patientName} /> : null;
     }
     if (/language-svg/.test(className)) return <VizBlock code={code} />;
-    if (/language-html/.test(className)) return <HtmlArtifact code={code} />;
     return <pre>{children}</pre>;
   },
 };
