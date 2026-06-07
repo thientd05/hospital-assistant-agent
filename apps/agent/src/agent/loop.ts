@@ -69,10 +69,10 @@ async function buildSystemPrompt(
 const anthropic = new Anthropic();
 
 // Đổi model ở đây khi cần — chỉ việc thay chuỗi bên dưới bằng 1 trong các ID:
-//   "claude-opus-4-8"            // Opus 4.8 — mạnh nhất (đang dùng)
+//   "claude-opus-4-8"            // Opus 4.8 — mạnh nhất
 //   "claude-sonnet-4-6"          // Sonnet 4.6 — cân bằng tốc độ/chi phí
 //   "claude-haiku-4-5-20251001"  // Haiku 4.5 — nhanh & rẻ nhất
-const MODEL_ID = "claude-opus-4-8";
+const MODEL_ID = "claude-haiku-4-5-20251001";
 
 export type OnChunk = (text: string) => void;
 export type OnToolCall = (toolCall: {
@@ -166,7 +166,7 @@ export async function runAgentLoop(
   while (true) {
     const stream = anthropic.messages.stream({
       model: MODEL_ID,
-      max_tokens: 8192,
+      max_tokens: 16384,
       system: [{ type: "text", text: systemPrompt, cache_control: EPHEMERAL }],
       tools: withToolsCache(allowedTools),
       messages: withMessagesCache(working),
