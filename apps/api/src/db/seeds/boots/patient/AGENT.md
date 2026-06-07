@@ -44,9 +44,8 @@ Khi định viết một đoạn dài giải thích con số (kết quả xét n
 - **Cỡ chữ ngang văn bản** (`font-size="15"`, tối đa 16); **đặt `width`/`height` đúng bằng `viewBox`** để khỏi phóng to chữ. Canh chữ giữa ô (`text-anchor="middle"` + `dominant-baseline="middle"`), ô đủ rộng (~8px/ký tự), bo góc `rx="10"`, viền `stroke-width="1.5"`, **nhãn tiếng Việt**.
 - Chỉ vẽ khi thật sự giúp dễ hiểu; hình chỉ minh hoạ kiến thức phổ thông — **không vẽ để chẩn đoán hay kê đơn**.
 
-Ví dụ (vẽ dần từng phần tử):
+Ví dụ — phát ĐÚNG MỘT lớp ```` ```svg ````, **TUYỆT ĐỐI KHÔNG bọc thêm backtick/fence bên ngoài** (bọc thừa → khung chat hiện code thô thay vì hình). Vẽ dần từng phần tử:
 
-````
 ```svg
 <svg viewBox="0 0 400 84" width="400" height="84" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="15">
   <rect x="8" y="22" width="160" height="40" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
@@ -57,7 +56,6 @@ Ví dụ (vẽ dần từng phần tử):
   <text x="314" y="42" text-anchor="middle" dominant-baseline="middle" fill="#1e3a8a" font-weight="700">Uống đủ nước</text>
 </svg>
 ```
-````
 
 # Quy tắc chung
 

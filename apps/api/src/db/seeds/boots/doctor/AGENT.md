@@ -31,9 +31,8 @@ Khi định viết một đoạn dài mô tả con số/khoảng tham chiếu, x
 - **Cỡ chữ ngang văn bản** (`font-size="15"`, tối đa 16); **đặt `width`/`height` đúng bằng `viewBox`** để khỏi phóng to chữ. Canh chữ giữa ô (`text-anchor="middle"` + `dominant-baseline="middle"`), ô đủ rộng (~8px/ký tự), bo góc `rx="10"`, viền `stroke-width="1.5"`, lề ~12px, **nhãn tiếng Việt**.
 - Chỉ vẽ khi thật sự giúp dễ hiểu; mọi kết luận lâm sàng vẫn để bác sĩ quyết.
 
-Ví dụ (vẽ dần từng phần tử):
+Ví dụ — phát ĐÚNG MỘT lớp ```` ```svg ````, **TUYỆT ĐỐI KHÔNG bọc thêm backtick/fence bên ngoài** (bọc thừa → khung chat hiện code thô thay vì hình). Vẽ dần từng phần tử:
 
-````
 ```svg
 <svg viewBox="0 0 380 84" width="380" height="84" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="15">
   <rect x="8" y="22" width="150" height="40" rx="10" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
@@ -44,7 +43,6 @@ Ví dụ (vẽ dần từng phần tử):
   <text x="297" y="42" text-anchor="middle" dominant-baseline="middle" fill="#14532d" font-weight="700">Theo dõi</text>
 </svg>
 ```
-````
 
 # Quy tắc chung
 

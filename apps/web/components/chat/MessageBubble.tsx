@@ -33,6 +33,24 @@ function nodeText(node: unknown): string {
   return "";
 }
 
+// Phòng thủ: đôi khi model lỡ bọc khối ```svg (hoặc ```exam-dashboard) trong một
+// fence 4-backtick bên ngoài (bắt chước cách boot trình bày ví dụ). Khi đó
+// react-markdown coi cả cụm là code-block THƯỜNG (không có info-string) và nội dung
+// literal bắt đầu bằng ```svg. Bóc lớp ngoài để vẫn render trực quan thay vì hiện
+// code. Khoá đóng `​```` có thể chưa stream tới → vẫn lấy phần thân đang lớn dần.
+function unwrapNestedFence(
+  code: string
+): { lang: "svg" | "exam-dashboard"; inner: string } | null {
+  const head = /^```(svg|exam-dashboard)[ \t]*\r?\n/.exec(code.trimStart());
+  if (!head) return null;
+  const lang = head[1] as "svg" | "exam-dashboard";
+  const inner = code
+    .trimStart()
+    .slice(head[0].length)
+    .replace(/\r?\n```[ \t]*$/, "");
+  return { lang, inner };
+}
+
 // Override <pre>: khối ```svg → render trực quan tăng dần (VizBlock) thay vì code
 // thường. react-markdown bọc fenced code trong <pre><code class="language-x">, nên
 // ta bắt ở tầng <pre> để không lồng <div> SVG vào trong <pre>. Khối khác giữ
@@ -45,14 +63,26 @@ const markdownComponents: Components = {
       child && typeof child === "object" && "props" in child
         ? ((child as { props?: { className?: string } }).props?.className ?? "")
         : "";
-    const code = nodeText(
+    let code = nodeText(
       (child as { props?: { children?: unknown } }).props?.children
     ).replace(/\n$/, "");
-    if (/language-exam-dashboard/.test(className)) {
+    let isDash = /language-exam-dashboard/.test(className);
+    let isSvg = /language-svg/.test(className);
+    // Code-block thường (không info-string) nhưng thân lại là một fence ```svg lồng
+    // → bóc lớp ngoài rồi xử lý như fence đúng.
+    if (!isDash && !isSvg && !className) {
+      const nested = unwrapNestedFence(code);
+      if (nested) {
+        code = nested.inner;
+        isDash = nested.lang === "exam-dashboard";
+        isSvg = nested.lang === "svg";
+      }
+    }
+    if (isDash) {
       const data = parseExamDashboard(code);
       return data ? <ExamDashboard patientId={data.patientId} patientName={data.patientName} /> : null;
     }
-    if (/language-svg/.test(className)) return <VizBlock code={code} />;
+    if (isSvg) return <VizBlock code={code} />;
     return <pre>{children}</pre>;
   },
 };
