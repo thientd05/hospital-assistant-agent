@@ -224,7 +224,7 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
     const ref = parseRef(sample?.referenceRange);
     const colors = ["#dc2626", "#ea580c", "#9333ea", "#0891b2", "#16a34a", "#db2777"];
     return (
-      <ChartCard key={nm} title={nm} unit={unit} style={rv(20 + idx)}
+      <ChartCard key={nm} title={nm} unit={unit} style={rv(14 + idx)}
         svg={lineChart([{ name: nm, color: colors[idx % colors.length], vals: series }], dates, { ref, abnormal: abn })}
         flag={trendFlag(series, true)} />
     );
