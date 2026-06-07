@@ -114,6 +114,27 @@ export function convertMessages(
         }
       }
     }
+    // Một lượt chat của agent được lưu thành NHIỀU assistant MessageParam (mỗi vòng
+    // tool-use một bản ghi, xen kẽ user/tool_result đã bị bỏ qua ở trên). Gộp các
+    // assistant liên tiếp lại thành MỘT Message để FE thu gọn cả "quá trình" vào một
+    // dòng (giống lúc stream). Tin user thật (có text) cắt chuỗi gộp này.
+    const prev = out[out.length - 1];
+    if (prev && prev.role === "assistant") {
+      prev.content = (prev.content ?? "") + text;
+      if (toolCalls.length > 0) {
+        prev.toolCalls = [...(prev.toolCalls ?? []), ...toolCalls];
+      }
+      if (parts.length > 0) {
+        const merged = prev.parts ?? [];
+        for (const p of parts) {
+          const last = merged[merged.length - 1];
+          if (p.type === "text" && last && last.type === "text") last.text += p.text;
+          else merged.push(p);
+        }
+        prev.parts = merged;
+      }
+      continue;
+    }
     out.push({
       id: nextId(),
       role: "assistant",
