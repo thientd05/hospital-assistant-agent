@@ -166,7 +166,7 @@ export async function runAgentLoop(
   while (true) {
     const stream = anthropic.messages.stream({
       model: MODEL_ID,
-      max_tokens: 16384,
+      max_tokens: 32000,
       system: [{ type: "text", text: systemPrompt, cache_control: EPHEMERAL }],
       tools: withToolsCache(allowedTools),
       messages: withMessagesCache(working),
