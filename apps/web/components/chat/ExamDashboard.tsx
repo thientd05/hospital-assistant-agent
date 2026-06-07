@@ -1,8 +1,17 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { createContext, memo, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ExamRecord } from "@pr_hospitalagent/types";
 import { useExamHistory } from "@/hooks/useExamHistory";
+
+// Tín hiệu "dashboard đã hiện xong phần nhìn thấy (tab Tổng quan)" → MessageBubble
+// dùng để CHẶN render văn bản phía sau cho tới khi dashboard reveal xong. Vì ta đang
+// FAKE-STREAM UI từ agent: thứ tự phải là gen-xong-dashboard → mới gen text tiếp.
+export const ExamDashboardGate = createContext<(() => void) | null>(null);
+
+// Bước reveal cuối của tab Tổng quan (mặc định hiển thị): hd(0) nav(1) 6 thẻ(2-7)
+// panel(8). Reveal qua mốc này = phần nhìn thấy của dashboard đã hiện đủ.
+const OVERVIEW_REVEAL_DONE = 8;
 
 // Artifact dashboard lịch sử khám. Agent KHÔNG tự gõ HTML — chỉ phát một khối
 // ```exam-dashboard``` chứa {patientId, patientName} (như gọi tool). Component này
@@ -159,6 +168,20 @@ function ExamDashboardInner({ patientId, patientName }: Props) {
     }, REVEAL_STEP_MS);
     return () => clearInterval(id);
   }, [dataSig]);
+
+  // Mở khóa văn bản phía sau khi dashboard đã hiện xong phần nhìn thấy. Fire MỘT lần.
+  // Trường hợp lỗi/không có data cũng fire để KHÔNG kẹt text vĩnh viễn (chỉ chờ khi
+  // đang loading hợp lệ).
+  const gate = useContext(ExamDashboardGate);
+  const gateFired = useRef(false);
+  useEffect(() => {
+    if (gateFired.current || !gate) return;
+    const terminal = error != null || (!loading && !data);
+    if (terminal || step >= OVERVIEW_REVEAL_DONE) {
+      gateFired.current = true;
+      gate();
+    }
+  }, [gate, error, loading, data, step]);
 
   // opacity/transform theo ngưỡng reveal k
   const rv = (k: number): React.CSSProperties => ({

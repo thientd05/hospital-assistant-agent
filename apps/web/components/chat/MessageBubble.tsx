@@ -1,13 +1,13 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 import type { Message, MessagePart } from "@pr_hospitalagent/types";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ToolCallCard } from "./ToolCallCard";
 import { AssistantProcess } from "./AssistantProcess";
 import { VizBlock } from "./VizBlock";
-import { ExamDashboard } from "./ExamDashboard";
+import { ExamDashboard, ExamDashboardGate } from "./ExamDashboard";
 
 // Khối ```exam-dashboard``` chứa JSON {patientId, patientName}. Trong lúc stream
 // JSON có thể còn dở → parse fail thì trả null (chờ delta sau). Agent chỉ phát data
@@ -56,6 +56,39 @@ const markdownComponents: Components = {
     return <pre>{children}</pre>;
   },
 };
+
+// Khối ```exam-dashboard``` (fenced) trong một text part. Dùng để tách phần TRƯỚC +
+// dashboard khỏi văn bản phía SAU nó.
+const EXAM_FENCE = /```exam-dashboard\s*\n[\s\S]*?\n```/;
+
+function Markdown({ text }: { text: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      {text}
+    </ReactMarkdown>
+  );
+}
+
+// Render một text part. Nếu chứa khối exam-dashboard: hiện phần trước + dashboard,
+// rồi CHẶN văn bản phía sau cho tới khi dashboard báo đã reveal xong (ExamDashboardGate)
+// — giữ đúng thứ tự "fake stream": dashboard gen xong mới tới text. Không có dashboard
+// thì render thẳng như thường.
+function GatedMarkdown({ text }: { text: string }) {
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
+  const m = text.match(EXAM_FENCE);
+  if (!m || m.index === undefined) return <Markdown text={text} />;
+  const before = text.slice(0, m.index);
+  const fence = m[0];
+  const after = text.slice(m.index + fence.length);
+  const head = before.trim() ? `${before}\n\n${fence}` : fence;
+  return (
+    <ExamDashboardGate.Provider value={onReady}>
+      <Markdown text={head} />
+      {ready && after.trim() ? <Markdown text={after} /> : null}
+    </ExamDashboardGate.Provider>
+  );
+}
 
 type Props = {
   message: Message;
@@ -143,9 +176,7 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
         key={key}
         className="text-gray-900 break-words leading-relaxed markdown-body"
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-          {part.text}
-        </ReactMarkdown>
+        <GatedMarkdown text={part.text} />
       </div>
     );
   };
