@@ -7,65 +7,113 @@ type Props = {
   code: string;
 };
 
-// Khối HTML đã "đủ" để render? Tránh mount iframe khi còn đang stream dở (remount
-// mỗi token gây nhấp nháy + chạy lại JS). Coi là xong khi có thẻ đóng cuối hoặc
-// fence đã khép (parent truyền code đã trim).
+// Khối HTML đã "đủ" để chạy JS? Trong lúc stream ta render HTML/CSS dần (không chạy
+// script); chỉ khi khối hoàn chỉnh mới phát tín hiệu `done` để chạy script một lần.
 function isComplete(code: string): boolean {
   return /<\/html\s*>|<\/body\s*>/i.test(code);
 }
 
-// Script chèn vào iframe để tự báo chiều cao thật về parent (qua postMessage).
-// allow-scripts cho phép chạy; KHÔNG allow-same-origin nên origin mờ, không đọc
-// được gì của app cha.
-function wrap(html: string, channel: string): string {
-  const resizer = `<script>(function(){function h(){try{parent.postMessage({__ch:${JSON.stringify(
-    channel
-  )},height:document.documentElement.scrollHeight},"*")}catch(e){}}new ResizeObserver(h).observe(document.documentElement);window.addEventListener("load",h);setTimeout(h,50);setTimeout(h,400)})();<\/script>`;
-  if (/<\/body\s*>/i.test(html)) {
-    return html.replace(/<\/body\s*>/i, `${resizer}</body>`);
+// Shell CỐ ĐỊNH nạp vào iframe MỘT lần (không phụ thuộc `code` → iframe không bao
+// giờ remount, hết nhấp nháy). Bootstrap script chạy trong origin mờ của iframe
+// (sandbox allow-scripts, KHÔNG same-origin) và:
+//   - nhận {html} mỗi delta → set #root.innerHTML (HTML/CSS hiện dần; <script> trơ
+//     vì innerHTML không execute → an toàn lúc stream);
+//   - nhận {done} → tạo lại mọi <script> bằng createElement để JS chạy ĐÚNG MỘT
+//     lần với DOM đã đầy đủ;
+//   - ResizeObserver báo chiều cao thật về cha qua postMessage;
+//   - postMessage {ready} để cha flush payload mới nhất (tránh mất delta đầu).
+// allow-scripts (KHÔNG allow-same-origin) → iframe không đọc được DOM/cookie/token
+// app cha. Không sanitize — cô lập là ranh giới an toàn.
+function buildShell(channel: string): string {
+  const ch = JSON.stringify(channel);
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0}</style></head><body><div id="root"></div><script>(function(){
+var CH=${ch};
+var root=document.getElementById('root');
+function reportHeight(){try{parent.postMessage({__ch:CH,height:document.documentElement.scrollHeight},'*')}catch(e){}}
+function runScripts(){
+  var olds=root.querySelectorAll('script');
+  for(var i=0;i<olds.length;i++){
+    var o=olds[i];var s=document.createElement('script');
+    for(var j=0;j<o.attributes.length;j++){var a=o.attributes[j];s.setAttribute(a.name,a.value)}
+    s.text=o.textContent;
+    o.parentNode.replaceChild(s,o);
   }
-  return html + resizer;
+  reportHeight();setTimeout(reportHeight,50);setTimeout(reportHeight,400);
+}
+window.addEventListener('message',function(e){
+  var d=e.data;if(!d||d.__ch!==CH)return;
+  if(typeof d.html==='string'){root.innerHTML=d.html;reportHeight();}
+  if(d.done){runScripts();}
+});
+try{new ResizeObserver(reportHeight).observe(document.documentElement)}catch(e){}
+window.addEventListener('load',reportHeight);
+parent.postMessage({__ch:CH,ready:true},'*');
+})();<\/script></body></html>`;
 }
 
-// Dashboard/báo cáo HTML do agent sinh — render trong <iframe sandbox> CÔ LẬP.
-// Bảo mật: chỉ "allow-scripts" (KHÔNG "allow-same-origin") → iframe không đọc được
-// DOM/cookie/localStorage/token của app cha; JS chạy nhưng bị nhốt. Không sanitize
-// (cô lập là ranh giới an toàn). Render khi khối hoàn chỉnh, KHÔNG spinner.
+// Dashboard/báo cáo HTML do agent sinh — render TĂNG DẦN (realtime) trong <iframe
+// sandbox> CÔ LẬP, JS chạy MỘT lần ở cuối. Xem buildShell cho cơ chế + bảo mật.
 function HtmlArtifactInner({ code }: Props) {
   const channel = useMemo(
     () => `html-artifact-${Math.random().toString(36).slice(2)}`,
     []
   );
+  const shell = useMemo(() => buildShell(channel), [channel]);
   const ref = useRef<HTMLIFrameElement>(null);
-  const [height, setHeight] = useState(120);
-  const ready = isComplete(code);
-  const srcDoc = useMemo(
-    () => (ready ? wrap(code, channel) : ""),
-    [ready, code, channel]
-  );
+  const [height, setHeight] = useState(60);
 
+  // Payload mới nhất + cờ ready/doneSent giữ qua re-render mà không gây render lại.
+  const readyRef = useRef(false);
+  const doneSentRef = useRef(false);
+  const latestRef = useRef<{ html: string; done: boolean }>({
+    html: "",
+    done: false,
+  });
+
+  // Gửi payload mới nhất xuống iframe (chỉ khi đã ready). `done` chỉ gửi một lần.
+  function flush() {
+    if (!readyRef.current) return;
+    const win = ref.current?.contentWindow;
+    if (!win) return;
+    const { html, done } = latestRef.current;
+    const sendDone = done && !doneSentRef.current;
+    win.postMessage({ __ch: channel, html, done: sendDone }, "*");
+    if (sendDone) doneSentRef.current = true;
+  }
+
+  // Nhận chiều cao + handshake ready từ iframe.
   useEffect(() => {
     function onMsg(e: MessageEvent) {
       const d = e.data;
-      if (d && d.__ch === channel && typeof d.height === "number") {
-        setHeight(Math.min(2000, Math.max(80, Math.ceil(d.height) + 4)));
+      if (!d || d.__ch !== channel) return;
+      if (d.ready) {
+        readyRef.current = true;
+        flush(); // flush payload đã tích luỹ trước khi bootstrap kịp chạy
+      }
+      if (typeof d.height === "number") {
+        setHeight(Math.min(2000, Math.max(60, Math.ceil(d.height) + 4)));
       }
     }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
+    // flush dùng ref nên không cần dep; channel ổn định.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel]);
 
-  // Chưa hoàn chỉnh → dòng chữ nhẹ (KHÔNG vòng quay).
-  if (!ready) {
-    return <div className="html-artifact-loading">đang dựng bảng…</div>;
-  }
+  // Mỗi lần `code` lớn lên: cập nhật payload + gửi xuống iframe (nếu ready).
+  useEffect(() => {
+    latestRef.current = { html: code, done: isComplete(code) };
+    flush();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+
   return (
     <div className="html-artifact">
       <iframe
         ref={ref}
         title="dashboard"
         sandbox="allow-scripts"
-        srcDoc={srcDoc}
+        srcDoc={shell}
         style={{ width: "100%", height, border: "0", display: "block" }}
       />
     </div>
