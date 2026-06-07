@@ -6,7 +6,8 @@ export const definition: Anthropic.Tool = {
     "Thực hiện MỘT CHUỖI thao tác mô phỏng con người trên panel (giống agent code thao tác web). " +
     "Truyền `actions` là MẢNG các bước; frontend chạy TUẦN TỰ, có độ trễ giữa mỗi bước để bác sĩ quan sát. " +
     "Hãy gộp nhiều bước vào MỘT lần gọi `act` để chạy nhanh, thay vì gọi từng bước một. " +
-    "Mỗi action nhắm một phần tử qua `ref` lấy từ snapshot (read_panel). " +
+    "Mỗi action nhắm một phần tử qua `ref` lấy từ snapshot (read_panel) — TUYỆT ĐỐI không đoán `ref`. " +
+    "Có thể gộp cả bước MỞ form (click nút mở) lẫn bước điền field bên trong nó trong cùng một batch: frontend tự CHỜ phần tử xuất hiện trước khi thao tác bước kế. " +
     "Kết quả: nếu mọi bước OK → { ok: true, executed, snapshot } (đọc snapshot để xác nhận, ví dụ form đã đóng = thành công); " +
     "nếu một bước lỗi → DỪNG ngay và trả { ok: false, failedAt, error, steps, snapshot } để bạn debug (đọc phần tử role 'alert' để biết lỗi validation).",
   input_schema: {

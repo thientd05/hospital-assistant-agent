@@ -49,12 +49,17 @@ async function buildSkillIndex(
   return lines.join("\n");
 }
 
+// Tách system prompt thành 2 mảnh để thân thiện prompt-cache:
+//  - `stable`: boot + skill index + USER + SOUL — gần như bất biến trong một cuộc
+//    trò chuyện → mang cache breakpoint, được cache độc lập.
+//  - `memory`: MEMORY.md — agent có thể TỰ cập nhật (bài học khi mắc lỗi). Đặt
+//    SAU `stable` và KHÔNG mang breakpoint riêng: khi memory đổi, mảnh `stable`
+//    vẫn hit cache, chỉ phần memory (nhỏ) + tools + messages phải xử lý lại.
+// Cả hai đọc qua REST mỗi lượt → cập nhật memory ở lượt này tự hiện ở lượt sau.
 async function buildSystemPrompt(
   token: string,
   role: AuthRole
-): Promise<string> {
-  // Boot prompt (AGENT.md), skill index và workspace đều đọc qua REST backend
-  // mỗi lượt → áp dụng ngay, agent không chạm Mongo / filesystem.
+): Promise<{ stable: string; memory: string }> {
   const parts = [(await fetchBoot(token, role)).trim()];
   const skillIndex = await buildSkillIndex(token, role);
   if (skillIndex) parts.push(skillIndex);
@@ -63,7 +68,11 @@ async function buildSystemPrompt(
   const soul = ws.soul.trim();
   if (user) parts.push(user);
   if (soul) parts.push(soul);
-  return parts.join("\n\n---\n\n");
+  const memory = ws.memory.trim();
+  const memoryBlock = memory
+    ? `# MEMORY — bài học đã rút ra, LUÔN áp dụng\n\n${memory}`
+    : "";
+  return { stable: parts.join("\n\n---\n\n"), memory: memoryBlock };
 }
 
 const anthropic = new Anthropic();
@@ -159,7 +168,13 @@ export async function runAgentLoop(
   token: string
 ): Promise<Anthropic.MessageParam[]> {
   let working = [...messages];
-  const systemPrompt = await buildSystemPrompt(token, role);
+  const { stable, memory } = await buildSystemPrompt(token, role);
+  // `stable` mang breakpoint (được cache độc lập). `memory` nối SAU, không có
+  // breakpoint riêng → đổi memory không làm hỏng cache của `stable`.
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    { type: "text", text: stable, cache_control: EPHEMERAL },
+  ];
+  if (memory) systemBlocks.push({ type: "text", text: memory });
   const allowedToolNames = getAllowedTools(role);
   const allowedTools = tools.filter((t) => allowedToolNames.has(t.name));
 
@@ -167,7 +182,7 @@ export async function runAgentLoop(
     const stream = anthropic.messages.stream({
       model: MODEL_ID,
       max_tokens: 8192,
-      system: [{ type: "text", text: systemPrompt, cache_control: EPHEMERAL }],
+      system: systemBlocks,
       tools: withToolsCache(allowedTools),
       messages: withMessagesCache(working),
     });
