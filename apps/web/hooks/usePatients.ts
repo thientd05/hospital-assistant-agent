@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  ExamRecord,
   PatientPublic,
   PatientUpdateInput,
   LabResult,
@@ -77,4 +78,11 @@ export const patientsApi = {
     http.delete<{ ok: boolean; removedIndex: number }>(
       `/api/patients/${id}/labs/${index}`
     ),
+  // Ghi nhận lần khám: chốt trạng thái lâm sàng hiện tại thành bản ghi lịch sử.
+  // created:false ⇒ không có thay đổi so với lần khám gần nhất.
+  recordExam: (id: string) =>
+    http.post<
+      | { created: true; record: ExamRecord }
+      | { created: false; reason: "no-change" }
+    >(`/api/patients/${id}/exam-records`, {}),
 };

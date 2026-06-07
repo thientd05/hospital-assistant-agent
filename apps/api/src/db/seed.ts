@@ -1412,8 +1412,12 @@ async function seed() {
   // 15. Lịch sử khám (examrecords) — snapshot lâm sàng theo từng lần khám.
   const examRecords = db.collection<ExamRecord>("examrecords");
   await examRecords.deleteMany({});
+  // Mỗi lần bác sĩ "Ghi nhận" có thay đổi = một bản ghi MỚI → KHÔNG còn unique
+  // {patientId, day} (cho phép nhiều lần khám trong cùng ngày). dropIndexes để gỡ
+  // index unique cũ còn sót từ các lần seed trước.
+  await examRecords.dropIndexes().catch(() => {});
   await examRecords.createIndex({ id: 1 }, { unique: true });
-  await examRecords.createIndex({ patientId: 1, day: 1 }, { unique: true });
+  await examRecords.createIndex({ patientId: 1, examDate: -1 });
   const examRecordDocs = buildExamRecords();
   await examRecords.insertMany(examRecordDocs);
 

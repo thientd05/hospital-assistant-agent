@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { PatientPublic, Prescription } from "@pr_hospitalagent/types";
+import type { LabResult, PatientPublic, Prescription } from "@pr_hospitalagent/types";
 import { findLabEntry } from "@pr_hospitalagent/types";
 import { usePatient, useLabs, patientsApi } from "@/hooks/usePatients";
+import { useExamHistory } from "@/hooks/useExamHistory";
 import { useMyLabs } from "@/hooks/useMyLabs";
 import { useMedications } from "@/hooks/useMedications";
 import { useLabCatalog } from "@/hooks/useLabCatalog";
 import { MedicationPicker } from "@/components/workspace/MedicationPicker";
 import { drugCheckApi, type DrugCheckResponse } from "@/hooks/useDrugCheck";
 import { http } from "@/lib/apiClient";
+import { formatDate } from "@/lib/format";
 import { useAuth } from "@/app/providers/AuthProvider";
 
 // Hai tập quyền sửa RỜI NHAU (không giao). Mã BN (id) không ai sửa.
@@ -141,6 +143,21 @@ export function PatientDetailTab({
   const [labEdits, setLabEdits] = useState<
     Record<number, { name: string; value: string }>
   >({});
+  // Lịch sử khám (gộp từ tab cũ vào đây) — chỉ bác sĩ. selectedRecordId === null →
+  // xem hồ sơ HIỆN TẠI (lần khám gần nhất, sửa/ghi nhận được); khác null → xem một
+  // lần khám CŨ (read-only, không sửa/ghi nhận).
+  const examHist = useExamHistory(patientId, version, active && !selfMode);
+  const records = examHist.data?.records ?? [];
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const viewingRecord = selectedRecordId
+    ? records.find((r) => r.id === selectedRecordId) ?? null
+    : null;
+  const isHistory = viewingRecord !== null;
+  // Kết quả "Ghi nhận" — thông báo (đỏ khi không có thay đổi / lỗi; xanh khi tạo mới).
+  const [recordMsg, setRecordMsg] = useState<
+    { kind: "error" | "success"; text: string } | null
+  >(null);
+  const [recording, setRecording] = useState(false);
 
   useEffect(() => {
     setEditing(false);
@@ -151,6 +168,8 @@ export function PatientDetailTab({
     setNewLabs([]);
     setRemoveLabIdx(new Set());
     setLabEdits({});
+    setSelectedRecordId(null);
+    setRecordMsg(null);
   }, [patientId]);
 
   if (!selfMode && !patientId) {
@@ -196,6 +215,45 @@ export function PatientDetailTab({
     setNewLabs([]);
     setRemoveLabIdx(new Set());
     setLabEdits({});
+  }
+
+  // Chọn lần khám để xem: "" (hoặc null) = hồ sơ hiện tại; id = lần khám cũ. Đổi
+  // lựa chọn thì thoát chế độ sửa + xoá thông báo ghi nhận cũ.
+  function selectRecord(id: string | null) {
+    if (editing) cancelEdit();
+    setSelectedRecordId(id);
+    setRecordMsg(null);
+  }
+
+  // Bác sĩ bấm "Ghi nhận" → chốt trạng thái lâm sàng hiện tại thành một lần khám.
+  // Backend chỉ tạo bản ghi mới khi có thay đổi so với lần gần nhất; nếu trùng →
+  // báo chữ đỏ cho bác sĩ. (Chỉ ở hồ sơ hiện tại, không ở lần khám cũ.)
+  async function handleRecord() {
+    if (!data) return;
+    setRecording(true);
+    setRecordMsg(null);
+    try {
+      const res = await patientsApi.recordExam(data.id);
+      if (res.created) {
+        setRecordMsg({
+          kind: "success",
+          text: "Đã ghi nhận lần khám mới vào lịch sử.",
+        });
+        examHist.refetch();
+      } else {
+        setRecordMsg({
+          kind: "error",
+          text: "Chưa có thay đổi so với lần khám gần nhất — không tạo bản ghi mới.",
+        });
+      }
+    } catch (e) {
+      setRecordMsg({
+        kind: "error",
+        text: e instanceof Error ? e.message : String(e),
+      });
+    } finally {
+      setRecording(false);
+    }
   }
 
   // Chuẩn hoá danh sách dòng nhập: bỏ các dòng rỗng ở CUỐI (vd vừa xoá nội dung
@@ -401,6 +459,12 @@ export function PatientDetailTab({
     }
   }
 
+  // Nguồn dữ liệu LÂM SÀNG để hiển thị (read-only): xem lần khám cũ → lấy từ bản
+  // ghi đó; ngược lại → hồ sơ hiện tại. Thông tin cá nhân luôn lấy từ hồ sơ hiện
+  // tại (bản ghi lịch sử không lưu name/age/…).
+  const clinical = viewingRecord ?? data;
+  const displayLabs: LabResult[] = viewingRecord ? viewingRecord.labResults : labs;
+
   return (
     <div className="px-5 py-4 text-sm">
       {onBack && (
@@ -420,7 +484,8 @@ export function PatientDetailTab({
           <div className="text-lg font-semibold text-gray-900">{data.name}</div>
           <div className="text-xs text-gray-500 mt-0.5">{data.id}</div>
         </div>
-        {editing ? (
+        {/* Xem lần khám cũ → read-only, không có nút Sửa/Ghi nhận. */}
+        {isHistory ? null : editing ? (
           <div className="flex gap-1.5">
             <button
               type="button"
@@ -447,18 +512,82 @@ export function PatientDetailTab({
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={startEdit}
-            data-agent-ref="patient-detail:edit"
-            data-agent-role="button"
-            data-agent-label="Sửa hồ sơ"
-            className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
-          >
-            Sửa
-          </button>
+          <div className="flex gap-1.5">
+            {/* Ghi nhận: chốt lần khám vào lịch sử (tách khỏi Sửa). Chỉ bác sĩ. */}
+            {!selfMode && (
+              <button
+                type="button"
+                onClick={handleRecord}
+                disabled={recording}
+                data-agent-ref="patient-detail:record"
+                data-agent-role="button"
+                data-agent-label="Ghi nhận lần khám"
+                data-agent-busy={recording ? "true" : undefined}
+                className="text-[11px] px-2.5 py-1 rounded-md bg-[#087E8B] text-white hover:bg-[#066671] disabled:opacity-50"
+              >
+                {recording ? "Đang ghi…" : "Ghi nhận"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={startEdit}
+              data-agent-ref="patient-detail:edit"
+              data-agent-role="button"
+              data-agent-label="Sửa hồ sơ"
+              className="text-[11px] px-2.5 py-1 rounded-md border border-[#C8E7E9] text-[#087E8B] hover:bg-[#C8E7E9]"
+            >
+              Sửa
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Bộ chọn lần khám (gộp tab Lịch sử khám vào hồ sơ) — chỉ bác sĩ, khi đã có
+          lịch sử. "Hiện tại" = hồ sơ đang làm việc; chọn ngày = xem lần khám cũ. */}
+      {!selfMode && records.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-gray-500 shrink-0">Lần khám</span>
+          <select
+            value={selectedRecordId ?? ""}
+            onChange={(e) => selectRecord(e.target.value || null)}
+            data-agent-ref="patient-detail:exam-select"
+            data-agent-role="combobox"
+            data-agent-label="Chọn lần khám"
+            className="ws-input-sm flex-1 min-w-0"
+          >
+            <option value="">Hiện tại</option>
+            {records.map((r) => (
+              <option key={r.id} value={r.id}>
+                {formatDate(r.examDate)}
+                {r.doctorName ? ` · ${r.doctorName}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Thông báo kết quả Ghi nhận (đỏ = chưa có thay đổi / lỗi; xanh = đã tạo). */}
+      {!isHistory && recordMsg && (
+        <div
+          className={`mt-3 text-sm rounded-lg px-3 py-2 border ${
+            recordMsg.kind === "error"
+              ? "text-red-600 bg-red-50 border-red-200"
+              : "text-emerald-700 bg-emerald-50 border-emerald-200"
+          }`}
+          data-agent-ref="patient-detail:record-msg"
+          data-agent-role="alert"
+          data-agent-label="Kết quả ghi nhận lần khám"
+        >
+          {recordMsg.text}
+        </div>
+      )}
+
+      {isHistory && (
+        <div className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Đang xem lần khám ngày {formatDate(viewingRecord!.examDate)} (chỉ xem).
+          Chọn <b>Hiện tại</b> để sửa hoặc ghi nhận.
+        </div>
+      )}
 
       <SectionLabel>Thông tin</SectionLabel>
       <InfoRow label="Họ tên">
@@ -539,7 +668,7 @@ export function PatientDetailTab({
           </select>
         ) : (
           <ValueText agentRef="patient-detail:ward" agentLabel="Khoa">
-            {data.ward || "—"}
+            {clinical.ward || "—"}
           </ValueText>
         )}
       </InfoRow>
@@ -595,9 +724,9 @@ export function PatientDetailTab({
           </>
         ) : (
           <VitalValue
-            value={data.vitals.spO2}
+            value={clinical.vitals.spO2}
             unit="%"
-            abnormal={isVitalAbnormal("spO2", data.vitals.spO2)}
+            abnormal={isVitalAbnormal("spO2", clinical.vitals.spO2)}
           />
         )}
       </InfoRow>
@@ -618,9 +747,9 @@ export function PatientDetailTab({
           </>
         ) : (
           <VitalValue
-            value={data.vitals.heartRate}
+            value={clinical.vitals.heartRate}
             unit="bpm"
-            abnormal={isVitalAbnormal("heartRate", data.vitals.heartRate)}
+            abnormal={isVitalAbnormal("heartRate", clinical.vitals.heartRate)}
           />
         )}
       </InfoRow>
@@ -639,7 +768,7 @@ export function PatientDetailTab({
             <UnitText>mmHg</UnitText>
           </>
         ) : (
-          <VitalValue value={data.vitals.bloodPressure} unit="mmHg" />
+          <VitalValue value={clinical.vitals.bloodPressure} unit="mmHg" />
         )}
       </InfoRow>
       <InfoRow label="Nhiệt độ">
@@ -659,16 +788,16 @@ export function PatientDetailTab({
             <UnitText>°C</UnitText>
           </>
         ) : (
-          <VitalValue value={data.vitals.temperature} unit="°C" />
+          <VitalValue value={clinical.vitals.temperature} unit="°C" />
         )}
       </InfoRow>
 
       {/* Xét nghiệm — nằm giữa Sinh hiệu và Chẩn đoán. KHÔNG đặt tiêu đề riêng
           (trùng với cột "Xét nghiệm" của bảng). Bác sĩ sửa được; BN chỉ xem. */}
       <div className="mt-5">
-          {labsRes.loading ? (
+          {!isHistory && labsRes.loading ? (
             <div data-agent-loading="true" className="text-xs text-gray-400">Đang tải…</div>
-          ) : labs.length === 0 && !labEditing ? (
+          ) : displayLabs.length === 0 && !labEditing ? (
             <div className="text-xs text-gray-400">Chưa có kết quả xét nghiệm.</div>
           ) : (
             <div className="text-sm">
@@ -684,7 +813,7 @@ export function PatientDetailTab({
                 {labEditing && <div className="col-span-1" />}
               </div>
               <div className="divide-y divide-gray-100">
-                {labs.map((r, i) => {
+                {displayLabs.map((r, i) => {
                   const marked = removeLabIdx.has(i);
                   // Khi sửa: dùng giá trị đang chỉnh (nếu có) + suy đơn vị/khoảng từ
                   // danh mục theo tên hiện tại, fallback về giá trị đã lưu.
@@ -857,11 +986,11 @@ export function PatientDetailTab({
           data-agent-role="textbox"
           data-agent-label="Chẩn đoán"
         />
-      ) : data.diagnoses.length === 0 ? (
+      ) : clinical.diagnoses.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa có chẩn đoán.</div>
       ) : (
         <ul className="space-y-1">
-          {data.diagnoses.map((d) => (
+          {clinical.diagnoses.map((d) => (
             <li key={d} className="text-gray-900">
               • {d}
             </li>
@@ -950,12 +1079,12 @@ export function PatientDetailTab({
             </div>
           )}
         </div>
-      ) : data.medications.length === 0 ? (
+      ) : clinical.medications.length === 0 ? (
         <div className="text-xs text-gray-400">Chưa kê thuốc.</div>
       ) : (
         // Bảng xem: cột Thuốc (chip) | cột Chỉ định dùng. Không kẻ viền; cắt "…" nếu dài.
         <div>
-          {data.medications.map((m, i) => (
+          {clinical.medications.map((m, i) => (
             <div
               key={`${m.name}-${i}`}
               className="grid grid-cols-12 gap-2 items-center py-1"

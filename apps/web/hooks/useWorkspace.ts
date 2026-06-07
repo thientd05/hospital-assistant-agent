@@ -12,10 +12,11 @@ export type WorkspaceTab =
   | "my-appointments";
 
 export const ROLE_TABS: Record<string, WorkspaceTab[]> = {
-  // "patient" (Hồ sơ) đã gộp vào "patients" (Bệnh nhân): chọn BN → tab Bệnh nhân
-  // hiện hồ sơ ngay (master-detail), không còn tab Hồ sơ riêng. Tương tác thuốc
-  // không còn là tab — kiểm tra tự động khi lưu form chọn thuốc trong hồ sơ.
-  doctor: ["patients", "exam-history", "appointments"],
+  // "patient" (Hồ sơ) + "exam-history" (Lịch sử khám) đã gộp vào "patients" (Bệnh
+  // nhân): chọn BN → tab Bệnh nhân hiện hồ sơ + bộ chọn các lần khám lịch sử ngay
+  // trong hồ sơ (master-detail). Tương tác thuốc không còn là tab — kiểm tra tự
+  // động khi lưu form chọn thuốc trong hồ sơ.
+  doctor: ["patients", "appointments"],
   patient: ["my-record", "my-appointments"],
 };
 
@@ -61,8 +62,6 @@ export function useWorkspace() {
       if (!refresh) return;
       const tab = REFRESH_TO_TAB[refresh];
       if (tab) bumpTab(tab);
-      // Sửa lâm sàng (patient/lab) sinh snapshot lịch sử mới → đồng bộ tab Lịch sử.
-      if (refresh === "patient" || refresh === "lab") bumpTab("exam-history");
     },
     [bumpTab]
   );
