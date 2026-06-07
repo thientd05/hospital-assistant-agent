@@ -72,7 +72,7 @@ const anthropic = new Anthropic();
 //   "claude-opus-4-8"            // Opus 4.8 — mạnh nhất
 //   "claude-sonnet-4-6"          // Sonnet 4.6 — cân bằng tốc độ/chi phí
 //   "claude-haiku-4-5-20251001"  // Haiku 4.5 — nhanh & rẻ nhất
-const MODEL_ID = "claude-haiku-4-5-20251001";
+const MODEL_ID = "claude-sonnet-4-6";
 
 export type OnChunk = (text: string) => void;
 export type OnToolCall = (toolCall: {
