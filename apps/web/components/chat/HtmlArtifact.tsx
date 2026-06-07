@@ -64,7 +64,7 @@ function buildShell(channel: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0}</style></head><body><div id="root"></div><script>(function(){
 var CH=${ch};
 var root=document.getElementById('root');
-function reportHeight(){try{parent.postMessage({__ch:CH,height:document.documentElement.scrollHeight},'*')}catch(e){}}
+function reportHeight(){try{var b=document.body;var h=b?b.scrollHeight:document.documentElement.scrollHeight;parent.postMessage({__ch:CH,height:h},'*')}catch(e){}}
 function runScripts(){
   var olds=root.querySelectorAll('script');
   for(var i=0;i<olds.length;i++){
@@ -162,7 +162,10 @@ function HtmlArtifactInner({ code }: Props) {
       const d = e.data;
       if (!d || d.__ch !== channel) return;
       if (typeof d.height === "number") {
-        setHeight(Math.min(2000, Math.max(60, Math.ceil(d.height) + 4)));
+        // KHÔNG cộng pad: shell đo body.scrollHeight (chiều cao nội dung thật, không
+        // phình theo viewport). Cộng thêm sẽ tạo vòng lặp tự tăng (resize → observer
+        // → báo lớn hơn → resize…) làm nền dài vô hạn tới trần.
+        setHeight(Math.min(6000, Math.max(60, Math.ceil(d.height))));
       }
     }
     window.addEventListener("message", onMsg);
