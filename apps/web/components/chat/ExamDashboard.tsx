@@ -14,7 +14,7 @@ import { useExamHistory } from "@/hooks/useExamHistory";
 // Mỗi mốc nội dung (header → tab → từng thẻ → từng biểu đồ → từng lần khám) hiện
 // cách nhau REVEAL_STEP_MS mili-giây. NHỎ hơn = gen NHANH hơn. Đặt 0 = hiện tức thì
 // (tắt hiệu ứng). Vd: 40 = rất nhanh, 75 = mặc định, 150 = chậm rãi.
-const REVEAL_STEP_MS = 200;
+const REVEAL_STEP_MS = 400;
 // Số mốc tối đa cần lộ (đủ phủ mọi phần; không cần đổi trừ khi BN có > ~20 lần khám).
 const REVEAL_MAX_STEP = 40;
 
