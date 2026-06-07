@@ -14,7 +14,7 @@ Mục tiêu: lấy lịch sử khám của bệnh nhân rồi **dựng một das
 
 ## Nguyên tắc dashboard (bám theo template dưới)
 - **QUAN TRỌNG — viết NỘI DUNG bằng HTML TĨNH, KHÔNG dựng bằng JS.** Header (tên/khoa/số lần), các **thẻ tóm tắt** (điền sẵn giá trị thật), và **timeline từng lần khám** phải nằm thẳng trong HTML với dữ liệu đã điền — để dashboard **vẽ dần realtime** khi stream (chữ/box hiện tới đâu thấy tới đó). KHÔNG để `<div id=...>` rỗng rồi `innerHTML` bằng JS — làm vậy nội dung sẽ "bụp" ra cùng lúc ở cuối.
-- **`<script>` CHỈ dùng cho biểu đồ tương tác** (đổi chỉ số bằng nút). Trong script chỉ cần `const S=[...]` = chuỗi sinh hiệu tối thiểu cho biểu đồ (`{date,sys,hr,spo2}`, đảo **cũ→mới**). Biểu đồ là phần JS duy nhất → nó hiện một lần ở cuối (chấp nhận được).
+- **Đồ thị cũng vẽ dần:** vẽ **SVG TĨNH** cho chỉ số mặc định (huyết áp tâm thu) + 3 **nút TĨNH** ngay trong markup → hiện dần khi stream. Toạ độ tính theo đúng công thức trong `draw()`: `pad=40,W=800,H=240`; `mn=min(sys)*0.95, mx=max(sys)*1.05`; `x_i=40+i*720/(n-1)`; `y=200-(v-mn)/(mx-mn)*160`; nhãn số ở `y-12`, nhãn ngày ở `y=218`. `<script>` ở cuối CHỈ gắn `onclick` cho nút + gọi `draw()` (chuẩn hoá lại + cho đổi chỉ số); chứa `const S=[...]` (`{date,sys,hr,spo2}`, cũ→mới). **Nút chưa bấm được tới khi gen xong** (script chạy ở cuối) — đúng mong muốn.
 - Thành phần: **header** · **thẻ tóm tắt** (lần gần nhất, chẩn đoán chính, số thuốc, HA gần nhất) · **biểu đồ xu hướng** (sys/nhịp/SpO2 đổi bằng nút) · **timeline** mỗi lần khám (ngày + chẩn đoán + thuốc + lab bất thường tô đỏ), sắp **mới→cũ**.
 - Màu nhã, nền nhạt, bo góc, có khoảng thở; chữ rõ; **tiếng Việt**; `max-width:100%` responsive. Lab `isAbnormal` → class `tag warn` (đỏ).
 - Không bịa số — chỉ dùng dữ liệu trả về. Không có lịch sử (`count===0`) → báo gọn bằng chữ, không vẽ.
@@ -50,8 +50,16 @@ Mục tiêu: lấy lịch sử khám của bệnh nhân rồi **dựng một das
     <div class="card"><div class="lbl">Số thuốc đang dùng</div><div class="val">2</div></div>
     <div class="card"><div class="lbl">Huyết áp gần nhất</div><div class="val">148/92</div></div>
   </div>
-  <!-- BIỂU ĐỒ: phần JS duy nhất -->
-  <div class="panel"><h2>Xu hướng sinh hiệu</h2><div class="tabs" id="tabs"></div><svg id="chart" viewBox="0 0 800 240" width="100%" height="240"></svg></div>
+  <!-- BIỂU ĐỒ: SVG TĨNH (mặc định sys) + nút TĨNH → vẽ dần; script gắn tương tác ở cuối -->
+  <div class="panel"><h2>Xu hướng sinh hiệu</h2>
+    <div class="tabs" id="tabs"><button class="on">Huyết áp tâm thu</button><button>Nhịp tim</button><button>SpO2</button></div>
+    <svg id="chart" viewBox="0 0 800 240" width="100%" height="240">
+      <line x1="40" y1="200" x2="760" y2="200" stroke="#cbd5e1"/>
+      <polyline fill="none" stroke="#dc2626" stroke-width="3" points="40,84 400,149 760,160"/>
+      <circle cx="40" cy="84" r="5" fill="#dc2626"/><text x="40" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">162</text><text x="40" y="218" text-anchor="middle" font-size="12" fill="#64748b">04-08</text>
+      <circle cx="400" cy="149" r="5" fill="#dc2626"/><text x="400" y="137" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">150</text><text x="400" y="218" text-anchor="middle" font-size="12" fill="#64748b">05-08</text>
+      <circle cx="760" cy="160" r="5" fill="#dc2626"/><text x="760" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">148</text><text x="760" y="218" text-anchor="middle" font-size="12" fill="#64748b">06-04</text>
+    </svg></div>
   <!-- TIMELINE tĩnh: mỗi lần khám một .visit, sắp mới→cũ; lab bất thường thêm class warn -->
   <div class="panel"><h2>Các lần khám</h2>
     <div class="visit"><div class="d">2026-06-04</div><div class="sub">HA 148/92 · Nhịp 102 · SpO2 91%</div>
@@ -65,14 +73,15 @@ Mục tiêu: lấy lịch sử khám của bệnh nhân rồi **dựng một das
       <div style="margin-top:6px;color:#475569">💊 Amlodipine 5mg, Metformin 500mg</div></div>
   </div>
 </div><script>
-// CHỈ cho biểu đồ — thay S bằng chuỗi sinh hiệu thật, đảo cũ→mới. sys suy từ "148/92".
+// Script CHỈ gắn tương tác cho biểu đồ → nút bấm được SAU khi gen xong (script chạy ở cuối).
+// S = chuỗi sinh hiệu thật (cũ→mới); sys suy từ HA "148/92". draw() chuẩn hoá lại SVG tĩnh.
 const S=[{date:"2026-04-08",sys:162,hr:110,spo2:89},{date:"2026-05-08",sys:150,hr:104,spo2:90},{date:"2026-06-04",sys:148,hr:102,spo2:91}];
 const METRICS={sys:["Huyết áp tâm thu","#dc2626"],hr:["Nhịp tim","#2563eb"],spo2:["SpO2","#16a34a"]};
-let cur="sys";
+const keys=Object.keys(METRICS); let cur="sys";
 const tabs=document.getElementById("tabs");
-Object.keys(METRICS).forEach(k=>{const b=document.createElement("button");b.textContent=METRICS[k][0];b.onclick=()=>{cur=k;draw()};tabs.appendChild(b)});
+[...tabs.children].forEach((b,i)=>{b.onclick=()=>{cur=keys[i];draw()}});
 function draw(){
-  [...tabs.children].forEach((b,i)=>b.classList.toggle("on",Object.keys(METRICS)[i]===cur));
+  [...tabs.children].forEach((b,i)=>b.classList.toggle("on",keys[i]===cur));
   const vals=S.map(d=>d[cur]),color=METRICS[cur][1],W=800,H=240,pad=40;
   const mn=Math.min(...vals)*0.95,mx=Math.max(...vals)*1.05||1;
   const x=i=>pad+i*(W-2*pad)/Math.max(1,S.length-1);
