@@ -1,7 +1,8 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import { autofixSvg } from "@/lib/svg-autofix";
 
 type Props = {
   /** Nội dung khối ```svg```, lớn dần theo từng delta stream. */
@@ -47,6 +48,7 @@ function buildProgressiveSvg(code: string): string | null {
 // an toàn SSR — DOMPurify cần `window`. KHÔNG hiện spinner/loading.
 function VizBlockInner({ code }: Props) {
   const [clean, setClean] = useState<string>("");
+  const hostRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const partial = buildProgressiveSvg(code);
     if (!partial) {
@@ -60,10 +62,23 @@ function VizBlockInner({ code }: Props) {
     );
   }, [code]);
 
+  // Sau khi SVG đã nằm trong DOM (mỗi lần `clean` đổi = mỗi delta stream), đo bằng
+  // getBBox rồi tự nắn layout (thu chữ tràn ô, đẩy giãn phần tử chồng nhau, nới ô
+  // cha/khung). dangerouslySetInnerHTML dựng lại DOM mỗi lượt → fix luôn áp trên DOM
+  // mới, không tích luỹ. useLayoutEffect để nắn TRƯỚC khi trình duyệt vẽ (khỏi nháy).
+  useLayoutEffect(() => {
+    const svg = hostRef.current?.querySelector("svg");
+    if (svg) autofixSvg(svg as SVGSVGElement);
+  }, [clean]);
+
   // Chưa có gì vẽ được → không hiện gì (KHÔNG spinner).
   if (!clean) return null;
   return (
-    <div className="viz-block" dangerouslySetInnerHTML={{ __html: clean }} />
+    <div
+      ref={hostRef}
+      className="viz-block"
+      dangerouslySetInnerHTML={{ __html: clean }}
+    />
   );
 }
 
