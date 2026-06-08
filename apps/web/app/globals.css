@@ -189,6 +189,24 @@ body {
   max-width: 100%;
   height: auto;
 }
+/* Mỗi phần tử agent vừa vẽ xong xuất hiện từ từ (fade-in) vào đúng vị trí của nó —
+   không bụp ra ngay. Append-only nên phần tử cũ không bị vẽ lại = không giật. */
+.viz-block .viz-appear {
+  animation: viz-appear 0.45s ease-out both;
+}
+@keyframes viz-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viz-block .viz-appear {
+    animation: none;
+  }
+}
 
 /* Dashboard/báo cáo HTML do agent sinh — render trong iframe cô lập */
 .html-artifact {
