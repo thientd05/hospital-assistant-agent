@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useAppointments, appointmentsApi } from "@/hooks/useAppointments";
 import { formatDateTime as fmt } from "@/lib/format";
+import { type CalView, inView } from "@/lib/calendar";
+import { CalendarToolbar, MonthGrid } from "../AppointmentCalendar";
 
 type Props = {
   version: number;
@@ -28,6 +30,8 @@ export function AppointmentsTab({
   const { data, loading, error, refetch } = useAppointments(version, active);
   const [busy, setBusy] = useState<string | null>(null);
   const [subTab, setSubTab] = useState<SubTab>("pending");
+  const [view, setView] = useState<CalView>("month");
+  const [cursor, setCursor] = useState<Date>(() => new Date());
 
   // Mỗi tab con sắp xếp theo thời gian hẹn TĂNG DẦN (gần nhất → xa nhất).
   const byStatus = useMemo(() => {
@@ -77,13 +81,22 @@ export function AppointmentsTab({
   const owned = rows.filter((a) => a.doctorId !== "");
   const pool = subTab === "pending" ? rows.filter((a) => a.doctorId === "") : [];
 
+  // Chế độ Tháng dùng bảng lịch (mọi trạng thái); Tuần/Ngày lọc thẻ theo phạm vi.
+  // Thẻ ngoài phạm vi vẫn gắn DOM (ẩn bằng `hidden`) để agent đọc ngầm được hết.
+  const visible = (a: (typeof rows)[number]) =>
+    view !== "month" && inView(a.scheduledAt, view, cursor);
+  const visibleCount =
+    owned.filter(visible).length + pool.filter(visible).length;
+
   const renderCard = (a: (typeof rows)[number]) => (
     <li
       key={a.id}
       data-agent-ref={`appointment:${a.id}:info`}
       data-agent-role="text"
       data-agent-label="Lịch hẹn"
-      className="rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50"
+      className={`rounded-lg border border-gray-200 px-3 py-2.5 hover:bg-gray-50 ${
+        visible(a) ? "" : "hidden"
+      }`}
     >
       <div className="text-xs text-gray-500 font-medium tabular-nums">
         {fmt(a.scheduledAt)}
@@ -140,6 +153,37 @@ export function AppointmentsTab({
 
   return (
     <div className="px-5 py-4 space-y-3">
+      <CalendarToolbar
+        view={view}
+        cursor={cursor}
+        onView={setView}
+        onCursor={setCursor}
+      />
+
+      {loading && (
+        <div data-agent-loading="true" className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
+      )}
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      {/* Chế độ Tháng: bảng lịch cả tháng với dấu chấm theo trạng thái. */}
+      {view === "month" && !loading && (
+        <MonthGrid
+          cursor={cursor}
+          appointments={data ?? []}
+          onPickDay={(d) => {
+            setCursor(d);
+            setView("day");
+          }}
+        />
+      )}
+
+      {/* Chế độ Tuần/Ngày: thẻ lịch (như cũ). Khối luôn gắn DOM cho agent; ẩn
+          khi đang xem Tháng. */}
+      <div className={view === "month" ? "hidden" : "space-y-3"}>
       {/* Tab con: Chờ duyệt | Đã duyệt */}
       <div className="flex gap-1 border-b border-gray-200">
         {SUB_TABS.map((t) => {
@@ -166,17 +210,9 @@ export function AppointmentsTab({
         })}
       </div>
 
-      {loading && (
-        <div data-agent-loading="true" className="text-sm text-gray-400 text-center py-4">Đang tải…</div>
-      )}
-      {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-          {error}
-        </div>
-      )}
-      {!loading && rows.length === 0 && (
+      {!loading && visibleCount === 0 && (
         <div className="text-sm text-gray-400 text-center py-4">
-          Không có lịch hẹn nào.
+          Không có lịch hẹn nào trong {view === "day" ? "ngày" : "tuần"} này.
         </div>
       )}
       {owned.length > 0 && (
@@ -184,7 +220,11 @@ export function AppointmentsTab({
       )}
       {pool.length > 0 && (
         <>
-          <div className="flex items-center gap-2 py-1 text-[11px] uppercase tracking-wider text-purple-600 font-medium">
+          <div
+            className={`items-center gap-2 py-1 text-[11px] uppercase tracking-wider text-purple-600 font-medium ${
+              pool.some(visible) ? "flex" : "hidden"
+            }`}
+          >
             <span className="flex-1 border-t border-dashed border-purple-200" />
             Hàng chờ chung
             <span className="flex-1 border-t border-dashed border-purple-200" />
@@ -192,6 +232,7 @@ export function AppointmentsTab({
           <ul className="space-y-2">{pool.map(renderCard)}</ul>
         </>
       )}
+      </div>
     </div>
   );
 }

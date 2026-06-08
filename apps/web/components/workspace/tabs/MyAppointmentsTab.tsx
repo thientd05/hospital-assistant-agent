@@ -6,6 +6,8 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { useManagingDoctors } from "@/hooks/useManagingDoctors";
 import { formatDateTime as fmt } from "@/lib/format";
 import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
+import { type CalView, inView } from "@/lib/calendar";
+import { CalendarToolbar, MonthGrid } from "../AppointmentCalendar";
 import { Field } from "../forms/Field";
 import { FormModal, FormHeader, FormError, FormActions } from "../forms/ui";
 import { AGENT_URL } from "@/lib/api";
@@ -22,10 +24,19 @@ export function MyAppointmentsTab({ version, active, aiConversationId }: Props) 
   const { data, loading, error, refetch } = useAppointments(version, active);
   const doctorsRes = useDoctors(0, active);
   const [showForm, setShowForm] = useState(false);
+  const [view, setView] = useState<CalView>("month");
+  const [cursor, setCursor] = useState<Date>(() => new Date());
 
   const doctorById = new Map(
     (doctorsRes.data?.doctors ?? []).map((d) => [d.id, d])
   );
+
+  // Tuần/Ngày lọc thẻ theo phạm vi; thẻ ngoài phạm vi vẫn gắn DOM (ẩn bằng
+  // `hidden`) để agent đọc ngầm được hết. Tháng dùng bảng lịch.
+  const rows = data ?? [];
+  const visible = (scheduledAt: string | Date) =>
+    view !== "month" && inView(scheduledAt, view, cursor);
+  const visibleCount = rows.filter((a) => visible(a.scheduledAt)).length;
 
   return (
     <div className="px-5 py-4 space-y-3">
@@ -65,14 +76,43 @@ export function MyAppointmentsTab({ version, active, aiConversationId }: Props) 
           {error}
         </div>
       )}
-      <ul className="space-y-2">
-        {(data ?? []).map((a) => (
+
+      <CalendarToolbar
+        view={view}
+        cursor={cursor}
+        onView={setView}
+        onCursor={setCursor}
+      />
+
+      {/* Chế độ Tháng: bảng lịch cả tháng với dấu chấm theo trạng thái. */}
+      {view === "month" && !loading && (
+        <MonthGrid
+          cursor={cursor}
+          appointments={rows}
+          onPickDay={(d) => {
+            setCursor(d);
+            setView("day");
+          }}
+        />
+      )}
+
+      {!loading && view !== "month" && visibleCount === 0 && (
+        <div className="text-sm text-gray-400 text-center py-4">
+          Không có lịch hẹn nào trong {view === "day" ? "ngày" : "tuần"} này.
+        </div>
+      )}
+
+      {/* Thẻ lịch luôn gắn DOM cho agent; ẩn khi xem Tháng hoặc ngoài phạm vi. */}
+      <ul className={view === "month" ? "hidden" : "space-y-2"}>
+        {rows.map((a) => (
           <li
             key={a.id}
             data-agent-ref={`appointment:item:${a.id}`}
             data-agent-role="text"
             data-agent-label="Lịch hẹn"
-            className="rounded-lg border border-gray-200 px-3 py-2.5"
+            className={`rounded-lg border border-gray-200 px-3 py-2.5 ${
+              visible(a.scheduledAt) ? "" : "hidden"
+            }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="text-xs text-gray-500 font-medium tabular-nums">
