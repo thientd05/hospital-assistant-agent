@@ -16,7 +16,8 @@ import { useAuth } from "@/app/providers/AuthProvider";
 
 // Hai tập quyền sửa RỜI NHAU (không giao). Mã BN (id) không ai sửa.
 // Bệnh nhân (selfMode) — thông tin cá nhân, khớp PatientProfileSchema backend.
-const SELF_EDITABLE = new Set(["name", "age", "gender", "address", "phone"]);
+// SĐT cố định (tài khoản đăng nhập) — không cho sửa.
+const SELF_EDITABLE = new Set(["name", "age", "gender", "address"]);
 // Bác sĩ — phần lâm sàng, khớp PatientUpdateSchema backend.
 const DOCTOR_EDITABLE = new Set([
   "ward",
@@ -358,7 +359,6 @@ export function PatientDetailTab({
       age: ageNum,
       gender: draft.gender,
       address: draft.address.trim(),
-      phone: draft.phone.trim(),
     };
     setSubmitting(true);
     setEditError(null);
@@ -688,20 +688,10 @@ export function PatientDetailTab({
         )}
       </InfoRow>
       <InfoRow label="Điện thoại">
-        {editing && draft && canEdit("phone") ? (
-          <input
-            value={draft.phone}
-            onChange={(e) => updateDraft("phone", e.target.value)}
-            className={INLINE_INPUT}
-            data-agent-ref="patient-detail:phone"
-            data-agent-role="textbox"
-            data-agent-label="Điện thoại"
-          />
-        ) : (
-          <ValueText agentRef="patient-detail:phone" agentLabel="Điện thoại">
-            {data.phone || "—"}
-          </ValueText>
-        )}
+        {/* SĐT cố định (tài khoản đăng nhập) — chỉ xem, không ai sửa. */}
+        <ValueText agentRef="patient-detail:phone" agentLabel="Điện thoại">
+          {data.phone || "—"}
+        </ValueText>
       </InfoRow>
 
       <SectionLabel>Sinh hiệu</SectionLabel>

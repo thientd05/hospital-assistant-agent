@@ -1,6 +1,6 @@
 ---
 name: collect-patient-info
-description: Thu thập và điền thông tin cá nhân vào hồ sơ của chính bệnh nhân — họ tên, tuổi, giới tính, địa chỉ, số điện thoại (tab Hồ sơ, chế độ Sửa). Dùng khi bệnh nhân muốn "cập nhật/điền/sửa thông tin cá nhân, địa chỉ, số điện thoại" hoặc khi hồ sơ còn trống cần hoàn thiện.
+description: Thu thập và điền thông tin cá nhân vào hồ sơ của chính bệnh nhân — họ tên, tuổi, giới tính, địa chỉ (tab Hồ sơ, chế độ Sửa). Dùng khi bệnh nhân muốn "cập nhật/điền/sửa thông tin cá nhân, địa chỉ" hoặc khi hồ sơ còn trống cần hoàn thiện.
 ---
 
 # Thu thập thông tin bệnh nhân
@@ -11,8 +11,8 @@ han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không t
 ## Chuỗi lệnh
 1. `read_panel({ tab: "my-record", mode: "public" })`. Đọc snapshot xem trường nào đã có / còn trống.
 2. Hỏi bệnh nhân những thông tin còn thiếu (họ tên, tuổi, giới tính, địa chỉ).
-   **KHÔNG hỏi SĐT** — đã có sẵn (tài khoản đăng nhập); chỉ điền `patient-detail:phone`
-   khi bệnh nhân **chủ động** muốn đổi số. Chỉ điền khi bệnh nhân đã cung cấp — KHÔNG suy diễn.
+   **KHÔNG hỏi/điền SĐT** — số điện thoại CỐ ĐỊNH (là tài khoản đăng nhập), không ai
+   sửa được kể cả bệnh nhân. Chỉ điền khi bệnh nhân đã cung cấp — KHÔNG suy diễn.
 3. Vào chế độ sửa, điền đúng các trường có dữ liệu trong MỘT batch `act`:
    ```
    act({ actions: [
@@ -25,11 +25,13 @@ han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không t
    ]})
    ```
    Chỉ `type`/`select` trường nào bệnh nhân vừa cung cấp; bỏ qua trường chưa có.
-   **Bỏ qua `patient-detail:phone`** trừ khi bệnh nhân chủ động muốn đổi số (đã có sẵn).
+   **KHÔNG có ô SĐT** — số điện thoại cố định, không có ref để nhắm.
 4. Form đóng = đã lưu.
 
 ## Ràng buộc QUAN TRỌNG
-- Bệnh nhân CHỈ sửa được: `name`, `age`, `gender`, `address`, `phone`.
+- Bệnh nhân CHỈ sửa được: `name`, `age`, `gender`, `address`.
+- **SĐT cố định** (tài khoản đăng nhập) — không ai sửa được. Bệnh nhân đòi đổi số:
+  giải thích số điện thoại gắn với tài khoản nên không thể thay đổi.
 - Snapshot ở chế độ sửa KHÔNG có ô sinh hiệu / chẩn đoán / thuốc / Khoa / mã BN —
   đó là phần do **bác sĩ** quản lý. ĐỪNG cố sửa, không có ref để nhắm.
 

@@ -21,8 +21,8 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
 
 1. **Hỏi bằng lời** (chưa mở panel): **BẮT BUỘC có TÊN** — chưa có tên thì hỏi cho bằng
    được, chưa đặt lịch. Hỏi thêm **càng nhiều càng tốt**: tuổi, giới tính, địa chỉ.
-   **KHÔNG hỏi SĐT** — đã có sẵn (tài khoản đăng nhập); chỉ điền lại khi bệnh nhân chủ
-   động muốn đổi số. **Hỏi lại để xác nhận** trước khi lưu. Chỉ điền thông tin bệnh nhân thực sự cung cấp.
+   **KHÔNG hỏi SĐT** — số điện thoại cố định (là tài khoản đăng nhập), không sửa được.
+   **Hỏi lại để xác nhận** trước khi lưu. Chỉ điền thông tin bệnh nhân thực sự cung cấp.
 2. **Nếu bệnh nhân tỏ ý không muốn cung cấp thêm** ("thôi đủ rồi", giục đặt lịch, lảng
    tránh) → **lưu luôn** với những gì đã có (miễn là có TÊN), đừng ép hỏi tiếp.
 3. Lưu hồ sơ trong **MỘT batch `act`** (theo skill `collect-patient-info`):
@@ -37,8 +37,8 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
      { action: "click",  ref: "patient-detail:save" }
    ]})
    ```
-   Chỉ `type`/`select` trường nào có dữ liệu. **Bỏ qua `patient-detail:phone`** trừ khi
-   bệnh nhân chủ động muốn đổi số (SĐT đã có sẵn). Form đóng = đã lưu.
+   Chỉ `type`/`select` trường nào có dữ liệu. **KHÔNG có ô SĐT** — số điện thoại cố định,
+   không có ref để nhắm. Form đóng = đã lưu.
 4. **DỪNG LƯỢT:** báo "Đã lưu hồ sơ. Giờ mình đặt lịch nhé — bạn muốn khám ngày nào,
    mấy giờ, vì lý do gì?" rồi chờ bệnh nhân trả lời. **Không** đặt lịch ngay trong lượt này.
 

@@ -62,7 +62,7 @@ export const PatientProfileSchema = z
     age: z.number().int().nonnegative().optional(),
     gender: z.enum(["Nam", "Nữ"]).optional(),
     address: z.string().optional(),
-    phone: z.string().optional(),
+    // SĐT cố định — là tài khoản đăng nhập, không ai sửa (kể cả bệnh nhân).
   })
   .strict();
 
