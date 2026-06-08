@@ -12,7 +12,7 @@ tự do); mỗi thuốc thành một hàng kèm ô **chỉ định dùng** (các
 
 Vì có form chọn thuốc (modal) xen giữa, làm theo **3 nhịp** (mỗi nhịp 1 `act`, đọc snapshot trả về để lấy ref động):
 
-1. Phân nhánh theo snapshot hồ sơ (`read_panel({ tab: "patients" })`):
+1. Phân nhánh theo snapshot hồ sơ (`read_panel({ tab: "patients", mode: "public" })`):
    - **BN mới** ("Chưa kê thuốc"): cố gắng hỏi đủ **phác đồ + cách dùng** rồi làm.
    - **BN cũ**: bác sĩ nói gì làm luôn, không hỏi thêm.
 2. **Mở form chọn thuốc:** `act([ {click patient-detail:edit}, {click patient-detail:medications-open} ])`. Snapshot trả về có các checkbox `med-picker:med:<id>` (`label` = tên thuốc, `checked` = đang kê). Danh mục dài → có thể `type med-picker:search` lọc rồi đọc lại.

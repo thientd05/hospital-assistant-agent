@@ -8,7 +8,7 @@ description: Xem lại LỊCH SỬ KHÁM / diễn tiến / quá trình điều t
 Để hiện dashboard lịch sử khám trực quan, bạn **KHÔNG tự vẽ HTML/SVG**. Giao diện đã có sẵn ở app — bạn chỉ cần **phát data**, app tự dựng dashboard (header + tab Tổng quan/Đồ thị/Timeline + biểu đồ sinh hiệu & xét nghiệm) và tự vẽ dần.
 
 ## Chuỗi lệnh
-1. `read_panel({ tab: "patients" })` → tìm **mã bệnh nhân đang chọn** + **tên** (hồ sơ chi tiết / ref `patient:<id>:open`). Chưa chọn BN → bảo bác sĩ chọn một bệnh nhân ở tab Bệnh nhân trước (xem Badcase).
+1. `read_panel({ tab: "patients", mode: "public" })` → tìm **mã bệnh nhân đang chọn** + **tên** (hồ sơ chi tiết / ref `patient:<id>:open`). Chưa chọn BN → bảo bác sĩ chọn một bệnh nhân ở tab Bệnh nhân trước (xem Badcase).
 2. Xuất **ĐÚNG MỘT** khối ```` ```exam-dashboard ```` chứa **JSON một dòng** `{"patientId":"<mã>","patientName":"<tên>"}`. App nhận id này, tự lấy lịch sử khám và dựng dashboard.
 3. Kèm **đúng 1 câu** dẫn nhập trước/sau khối (vd "Đây là tổng quan các lần khám của bác …"). KHÔNG mô tả lại nội dung bằng chữ, KHÔNG kẻ bảng markdown — dashboard tự nói.
 

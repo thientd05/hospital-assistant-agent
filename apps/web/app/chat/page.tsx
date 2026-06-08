@@ -40,7 +40,7 @@ export default function ChatPage() {
   }, [role, authLoading, router]);
 
   const workspace = useWorkspace();
-  const { openPanel, setTab } = workspace;
+  const { openPanel, mountHidden, setTab } = workspace;
   const [chatMode, setChatMode] = useState<ChatMode>("ai");
   // Mobile (< lg): chỉ 1 trong 3 (sidebar | chat | panel) hiện full-screen 1 lúc.
   // Desktop (lg+) bỏ qua state này, vẫn hiển thị cả 3 cột như cũ.
@@ -60,10 +60,17 @@ export default function ChatPage() {
     async (command: string, rawArgs: unknown): Promise<unknown> => {
       const args = (rawArgs ?? {}) as Record<string, unknown>;
       if (command === "read_panel") {
-        // Luôn đọc được panel: nếu đang đóng thì tự mở. Tuỳ chọn chuyển tab.
-        openPanel();
-        // Mobile: đưa panel lên full-screen để bác sĩ thấy agent thao tác.
-        setMobileView("panel");
+        // 2 chế độ: "public" mở panel cho người dùng thấy (chuẩn bị act/sửa);
+        // "silent" đọc ngầm — gắn panel vào DOM để đọc snapshot nhưng KHÔNG hiển
+        // thị (panel vô hình). Mặc định/không hợp lệ = public (tương thích cũ).
+        const silent = args.mode === "silent";
+        if (silent) {
+          mountHidden();
+        } else {
+          openPanel();
+          // Mobile: đưa panel lên full-screen để bác sĩ thấy agent thao tác.
+          setMobileView("panel");
+        }
         const tab = args.tab;
         const validTabs = (role && ROLE_TABS[role]) || [];
         if (
@@ -90,7 +97,7 @@ export default function ChatPage() {
       }
       return { error: `Unknown tool command: ${command}` };
     },
-    [openPanel, setTab, role]
+    [openPanel, mountHidden, setTab, role]
   );
 
   const chat = useChat({
@@ -314,6 +321,7 @@ export default function ChatPage() {
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}
+        isMounted={workspace.isMounted}
         activeTab={workspace.activeTab}
         versions={workspace.versions}
         selectedPatientId={workspace.selectedPatientId}

@@ -4,8 +4,9 @@ export const definition: Anthropic.Tool = {
   name: "read_panel",
   description:
     "Đọc SNAPSHOT của panel bên phải. " +
-    "LUÔN đọc được panel bất kể đang đóng hay mở — nếu panel đang đóng, tool TỰ ĐỘNG mở rồi đọc. " +
+    "LUÔN đọc được panel bất kể đang đóng hay mở — nếu panel đang đóng, tool TỰ ĐỘNG mở (hoặc gắn ngầm) rồi đọc. " +
     "Truyền `tab` (tuỳ chọn) để chuyển sang tab cần xem trước khi đọc; bỏ trống để giữ tab hiện tại. " +
+    "Truyền `mode` để chọn chế độ đọc: `public` (mặc định) MỞ panel cho người dùng THẤY — dùng khi bạn CHUẨN BỊ `act`/sửa (người dùng cần thấy bạn thao tác); `silent` đọc NGẦM — panel KHÔNG hiện ra, người dùng không thấy gì — dùng khi bạn CHỈ đọc để trình bày/vẽ (không sửa). Nếu sau khi đọc bạn sẽ `act` để điều hướng đọc tiếp (vd chọn bệnh nhân để xem) thì cứ dùng `silent`: `act` kế thừa trạng thái ẩn nên vẫn ngầm. " +
     "Dùng để định hướng (xem đang ở tab nào, có những phần tử nào, giá trị/lỗi hiện tại) hoặc kiểm tra kết quả sau khi `act`. " +
     "Trả về SNAPSHOT { panelOpen, activeTab, tabs, elements }. " +
     "Mỗi phần tử trong `elements` có { ref, role, label, value?, checked?, disabled? } — dùng `ref` để nhắm phần tử khi gọi tool `act`. " +
@@ -20,6 +21,12 @@ export const definition: Anthropic.Tool = {
         enum: ["patients", "appointments", "my-record", "my-appointments"],
         description:
           "Tab muốn xem. Bác sĩ: patients (Bệnh nhân — gồm cả hồ sơ chi tiết, xét nghiệm, lịch sử khám của BN đang chọn), appointments (Lịch hẹn). Bệnh nhân: my-record (Hồ sơ + xét nghiệm của chính mình), my-appointments (Lịch hẹn). Bỏ trống để giữ tab hiện tại.",
+      },
+      mode: {
+        type: "string",
+        enum: ["public", "silent"],
+        description:
+          "public (mặc định): mở panel cho người dùng thấy — dùng khi sắp act/sửa. silent: đọc ngầm, panel không hiện — dùng khi chỉ đọc để trình bày/vẽ.",
       },
     },
     required: [],

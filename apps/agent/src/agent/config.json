@@ -13,7 +13,10 @@
       "edit-diagnoses",
       "prescribe-medications",
       "assign-ward",
-      "view-exam-history"
+      "view-exam-history",
+      "view-patient-info",
+      "view-appointments",
+      "draw-svg"
     ]
   },
   "patient": {
@@ -24,6 +27,6 @@
       "update_workspace_file",
       "read_service_prices"
     ],
-    "skills": ["collect-patient-info", "book-appointment"]
+    "skills": ["collect-patient-info", "book-appointment", "draw-svg"]
   }
 }

@@ -41,16 +41,35 @@ const ZERO_VERSIONS: Versions = {
 };
 
 export function useWorkspace() {
+  // `isOpen` = panel ĐANG HIỂN THỊ cho người dùng. `isMounted` = panel root đã
+  // gắn vào DOM (để agent đọc snapshot ngầm + tab fetch data) dù chưa hiển thị.
+  // Đọc ngầm (silent): mount mà không mở → panel vô hình (width 0). Đọc công khai
+  // (public) / mở tay: cả hai cùng true.
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("patients");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null
   );
   const [versions, setVersions] = useState<Versions>(ZERO_VERSIONS);
 
-  const openPanel = useCallback(() => setIsOpen(true), []);
+  const openPanel = useCallback(() => {
+    setIsMounted(true);
+    setIsOpen(true);
+  }, []);
+  // Đọc ngầm: gắn panel vào DOM nhưng KHÔNG hiển thị (giữ vô hình).
+  const mountHidden = useCallback(() => setIsMounted(true), []);
+  // Đóng = ẩn khỏi mắt người dùng; giữ isMounted để khỏi fetch lại (đằng nào cũng
+  // vô hình khi !isOpen).
   const closePanel = useCallback(() => setIsOpen(false), []);
-  const togglePanel = useCallback(() => setIsOpen((v) => !v), []);
+  const togglePanel = useCallback(
+    () =>
+      setIsOpen((v) => {
+        if (!v) setIsMounted(true);
+        return !v;
+      }),
+    []
+  );
   const setTab = useCallback((tab: WorkspaceTab) => setActiveTab(tab), []);
 
   const bumpTab = useCallback((tab: WorkspaceTab) => {
@@ -72,10 +91,12 @@ export function useWorkspace() {
 
   return {
     isOpen,
+    isMounted,
     activeTab,
     versions,
     selectedPatientId,
     openPanel,
+    mountHidden,
     closePanel,
     togglePanel,
     setTab,

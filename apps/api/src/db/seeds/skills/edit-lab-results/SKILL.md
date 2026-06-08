@@ -12,7 +12,7 @@ bất thường hệ thống tự suy — KHÔNG nhập tay.
 **Tối thiểu:** 1 kết quả (tên + giá trị). **Tối đa:** nhiều tuỳ bác sĩ.
 
 ## Chuỗi lệnh
-1. `read_panel({ tab: "patients" })`. Phải đang ở **hồ sơ chi tiết** (thấy `patient-detail:edit`); nếu chỉ thấy danh sách (`patient:<id>:open`) → xem Badcase.
+1. `read_panel({ tab: "patients", mode: "public" })`. Phải đang ở **hồ sơ chi tiết** (thấy `patient-detail:edit`); nếu chỉ thấy danh sách (`patient:<id>:open`) → xem Badcase.
 2. Phân nhánh theo snapshot:
    - **BN mới** (có dòng "Chưa có kết quả xét nghiệm"): cố gắng **hỏi hết** các kết quả bác sĩ đang có, rồi điền MỘT LƯỢT.
    - **BN cũ** (đã có kết quả): bác sĩ bảo sửa/thêm/xoá cái nào làm đúng cái đó, **không hỏi thêm**.

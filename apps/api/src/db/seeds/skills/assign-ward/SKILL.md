@@ -10,7 +10,7 @@ Khoa nằm trong **hồ sơ chi tiết** (tab Bệnh nhân): ô `patient-detail:
 **Tối thiểu:** 1 trường (Khoa).
 
 ## Chuỗi lệnh
-1. `read_panel({ tab: "patients" })`. Phải đang ở hồ sơ chi tiết (thấy `patient-detail:edit`); nếu chỉ thấy danh sách → xem Badcase.
+1. `read_panel({ tab: "patients", mode: "public" })`. Phải đang ở hồ sơ chi tiết (thấy `patient-detail:edit`); nếu chỉ thấy danh sách → xem Badcase.
 2. Vào sửa, chọn Khoa, lưu — MỘT batch `act`:
    ```
    act([

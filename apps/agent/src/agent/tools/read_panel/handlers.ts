@@ -19,6 +19,9 @@ export async function handleReadPanel(
   if (typeof input.tab === "string" && TABS.includes(input.tab)) {
     args.tab = input.tab;
   }
+  if (input.mode === "public" || input.mode === "silent") {
+    args.mode = input.mode;
+  }
   const result = await panel.sendCommand("read_panel", args);
   return JSON.stringify(result);
 }

@@ -9,7 +9,7 @@ Hồ sơ bệnh nhân tự đăng ký thường còn TRỐNG (chỉ có số đi
 han, xác nhận từng thông tin rồi điền giúp bệnh nhân — không tự bịa.
 
 ## Chuỗi lệnh
-1. `read_panel({ tab: "my-record" })`. Đọc snapshot xem trường nào đã có / còn trống.
+1. `read_panel({ tab: "my-record", mode: "public" })`. Đọc snapshot xem trường nào đã có / còn trống.
 2. Hỏi bệnh nhân những thông tin còn thiếu (họ tên, tuổi, giới tính, địa chỉ).
    **KHÔNG hỏi SĐT** — đã có sẵn (tài khoản đăng nhập); chỉ điền `patient-detail:phone`
    khi bệnh nhân **chủ động** muốn đổi số. Chỉ điền khi bệnh nhân đã cung cấp — KHÔNG suy diễn.

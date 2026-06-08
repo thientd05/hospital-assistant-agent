@@ -11,7 +11,7 @@ Sinh hiệu nằm trong **hồ sơ chi tiết** (tab Bệnh nhân, sau khi chọ
 **Tối thiểu:** 1/4 trường. **Tối đa:** 4/4.
 
 ## Chuỗi lệnh
-1. `read_panel({ tab: "patients" })`. Phải đang ở hồ sơ chi tiết (thấy `patient-detail:edit`); nếu chỉ thấy danh sách → xem Badcase.
+1. `read_panel({ tab: "patients", mode: "public" })`. Phải đang ở hồ sơ chi tiết (thấy `patient-detail:edit`); nếu chỉ thấy danh sách → xem Badcase.
 2. Phân nhánh theo snapshot:
    - **BN mới** (cả 4 sinh hiệu trống — value rỗng/placeholder "0"): cố gắng **hỏi đủ 4** rồi cập nhật một thể.
    - **BN cũ**: cập nhật đúng 1 hay nhiều trường bác sĩ nêu, **KHÔNG hỏi "cần sửa thêm sinh hiệu nào không"**.

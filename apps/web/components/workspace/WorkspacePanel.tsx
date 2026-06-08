@@ -21,6 +21,8 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
 
 type Props = {
   isOpen: boolean;
+  /** Panel root đã gắn DOM (kể cả khi đọc ngầm chưa hiển thị) → snapshot đọc được. */
+  isMounted: boolean;
   activeTab: WorkspaceTab;
   versions: Record<WorkspaceTab, number>;
   selectedPatientId: string | null;
@@ -37,6 +39,7 @@ type Props = {
 
 export function WorkspacePanel({
   isOpen,
+  isMounted,
   activeTab,
   versions,
   selectedPatientId,
@@ -133,7 +136,7 @@ export function WorkspacePanel({
       <div
         className="h-full flex flex-col max-lg:!w-full"
         style={{ width }}
-        data-agent-panel-root={isOpen ? "" : undefined}
+        data-agent-panel-root={isMounted ? "" : undefined}
       >
         <header className="flex items-center gap-2 px-4 pt-3 pb-0 border-b border-gray-200">
           <div
@@ -186,7 +189,7 @@ export function WorkspacePanel({
               <PatientDetailTab
                 patientId={selectedPatientId}
                 version={versions.patient}
-                active={isOpen && activeTab === "patients"}
+                active={isMounted && activeTab === "patients"}
                 onChanged={onChanged}
                 onBack={() => onSelectPatient(null)}
               />
@@ -194,7 +197,7 @@ export function WorkspacePanel({
               <PatientsTab
                 role="doctor"
                 version={versions.patients}
-                active={isOpen && activeTab === "patients"}
+                active={isMounted && activeTab === "patients"}
                 onSelect={handleSelectPatient}
                 onChanged={onChanged}
               />
@@ -202,7 +205,7 @@ export function WorkspacePanel({
           {role === "doctor" && activeTab === "appointments" && (
             <AppointmentsTab
               version={versions.appointments}
-              active={isOpen && activeTab === "appointments"}
+              active={isMounted && activeTab === "appointments"}
               onChanged={onChanged}
               onAccepted={onAcceptAppointment}
             />
@@ -212,14 +215,14 @@ export function WorkspacePanel({
               selfMode
               patientId={null}
               version={versions["my-record"]}
-              active={isOpen && activeTab === "my-record"}
+              active={isMounted && activeTab === "my-record"}
               onChanged={() => {}}
             />
           )}
           {role === "patient" && activeTab === "my-appointments" && (
             <MyAppointmentsTab
               version={versions["my-appointments"]}
-              active={isOpen && activeTab === "my-appointments"}
+              active={isMounted && activeTab === "my-appointments"}
             />
           )}
         </div>
