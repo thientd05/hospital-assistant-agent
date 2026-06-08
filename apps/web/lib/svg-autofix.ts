@@ -24,6 +24,9 @@ const area = (b: Box) => b.w * b.h;
 // chồng ngang thực sự (>1px) — hai ô cạnh nhau theo cột khác nhau sẽ KHÔNG bị coi là chồng
 const hOverlap = (a: Box, b: Box) =>
   Math.min(right(a), right(b)) - Math.max(a.x, b.x) > 1;
+// cùng DÒNG: dải dọc giao nhau quá nửa chiều cao chữ thấp hơn (lệch dòng → không tính)
+const sameLine = (a: Box, b: Box) =>
+  Math.min(bottom(a), bottom(b)) - Math.max(a.y, b.y) > Math.min(a.h, b.h) * 0.5;
 const union = (a: Box, b: Box): Box => {
   const x = Math.min(a.x, b.x);
   const y = Math.min(a.y, b.y);
@@ -54,6 +57,17 @@ function curFont(el: Element): number {
   return 15;
 }
 
+// Text-anchor hiệu lực (kế thừa cây cha), mặc định "start".
+function textAnchor(el: Element): string {
+  let n: Element | null = el;
+  while (n) {
+    const a = n.getAttribute?.("text-anchor");
+    if (a) return a;
+    n = n.parentElement;
+  }
+  return "start";
+}
+
 // Dịch một phần tử xuống dy (theo trục y). rect/text có thuộc tính y → đổi thẳng
 // (getBBox lượt sau phản ánh ngay); tspan con cũng dịch theo nếu đặt y tuyệt đối.
 function shiftY(el: Element, dy: number) {
@@ -62,6 +76,17 @@ function shiftY(el: Element, dy: number) {
   el.querySelectorAll("tspan[y]").forEach((ts) => {
     const ty = parseFloat(ts.getAttribute("y") ?? "NaN");
     if (!isNaN(ty)) ts.setAttribute("y", String(ty + dy));
+  });
+}
+
+// Dịch một phần tử sang phải dx (trục x). Dịch x của chính text + mọi tspan[x] (kể
+// cả text-anchor middle/end: x là điểm neo, cộng dx → cả chữ trượt phải dx).
+function shiftX(el: Element, dx: number) {
+  const cur = parseFloat(el.getAttribute("x") ?? "NaN");
+  if (!isNaN(cur)) el.setAttribute("x", String(cur + dx));
+  el.querySelectorAll("tspan[x]").forEach((ts) => {
+    const tx = parseFloat(ts.getAttribute("x") ?? "NaN");
+    if (!isNaN(tx)) ts.setAttribute("x", String(tx + dx));
   });
 }
 
@@ -151,12 +176,39 @@ export function autofixSvg(svg: SVGSVGElement): void {
         const next = Math.max(MIN_FONT, Math.floor((cur * maxW) / tb.w));
         if (next < cur) t.setAttribute("font-size", String(next));
       }
+      // chữ căn trái dính/đè mép trái ô → đẩy phải cho cách PAD (chữ căn giữa/phải
+      // neo theo điểm khác, đừng đụng kẻo lệch tâm tiêu đề)
+      if (textAnchor(t) === "start" && tb.x < host.x + PAD) {
+        shiftX(t, host.x + PAD - tb.x);
+      }
     }
 
     // === Pass B: đẩy giãn các nhóm (ô-lá + chữ) chồng dọc nhau ===
     const rectsM = rectEls.map((el) => ({ el, box: bbox(el) })).filter((r): r is { el: SVGGraphicsElement; box: Box } => !!r.box);
     const textsM = textEls.map((el) => ({ el, box: bbox(el) })).filter((t): t is { el: SVGGraphicsElement; box: Box } => !!t.box);
     deOverlap(buildGroups(rectsM, textsM));
+
+    // === Pass H: tách chữ chồng NGANG trên cùng dòng. Quét trái→phải; chữ nào đè lên
+    // chữ bên trái (cùng dòng, mép phải trái > mép trái phải) thì ĐẨY sang phải cho
+    // cách GAP. Chỉ đụng khi CHỒNG thật → hai cột cách nhau vẫn yên. ===
+    const textsH = textEls
+      .map((el) => ({ el, box: bbox(el) }))
+      .filter((t): t is { el: SVGGraphicsElement; box: Box } => !!t.box)
+      .sort((a, b) => a.box.x - b.box.x);
+    const placedH: { el: SVGGraphicsElement; box: Box }[] = [];
+    for (const t of textsH) {
+      let need = t.box.x;
+      for (const p of placedH) {
+        if (sameLine(p.box, t.box) && right(p.box) > t.box.x && right(p.box) + GAP > need)
+          need = right(p.box) + GAP;
+      }
+      const dx = need - t.box.x;
+      if (dx > 0.5) {
+        shiftX(t.el, dx);
+        t.box.x += dx;
+      }
+      placedH.push(t);
+    }
 
     // === Pass C: nới rộng mỗi ô để ôm trọn con (rect/chữ đã dịch). Xử lý ô NHỎ
     // trước (sort theo diện tích tăng) để khi nới ô-bao thì con đã ở vị trí cuối. ===
