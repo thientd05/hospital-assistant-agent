@@ -47,13 +47,22 @@ export function AppointmentsTab({
     [data]
   );
 
+  // Số đếm trên chip lọc bám theo PHẠM VI đang xem (ngày/tuần), không phải tổng
+  // toàn bộ — để ngày chỉ có 1 lịch không hiện "Tất cả · 2" như tuần.
+  const inRange = useMemo(
+    () =>
+      sorted.filter(
+        (a) => view !== "month" && inView(a.scheduledAt, view, cursor)
+      ),
+    [sorted, view, cursor]
+  );
   const counts = useMemo(
     () => ({
-      all: sorted.length,
-      pending: sorted.filter((a) => a.status === "Chờ duyệt").length,
-      approved: sorted.filter((a) => a.status === "Đã duyệt").length,
+      all: inRange.length,
+      pending: inRange.filter((a) => a.status === "Chờ duyệt").length,
+      approved: inRange.filter((a) => a.status === "Đã duyệt").length,
     }),
-    [sorted]
+    [inRange]
   );
 
   // Duyệt/nhận lịch (gồm cả hàng chờ chung): ai duyệt trước thì nhận bệnh nhân.
