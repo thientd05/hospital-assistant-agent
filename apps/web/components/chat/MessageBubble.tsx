@@ -164,7 +164,7 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
     if (isUser) {
       return (
         <div className="flex items-start justify-end">
-          <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
+          <div className="bg-[#F4F4F0] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
             {message.content}
           </div>
         </div>
