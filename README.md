@@ -4,9 +4,9 @@
 
 ### 🎬 Video demo
 
-[![Xem demo trên YouTube](https://img.shields.io/badge/▶_Xem_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/your-demo-link-here)
+[![Xem demo trên YouTube](https://img.shields.io/badge/▶_Xem_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/ITKtBXB5ASc)
 
-> 📺 **Link demo:** https://youtu.be/your-demo-link-here *(sẽ cập nhật)*
+> 📺 **Link demo:** https://youtu.be/ITKtBXB5ASc *(sẽ cập nhật)*
 
 🔗 **Live deployment:** [family-healthcare-ai-thienta.vercel.app](https://family-healthcare-ai-thienta.vercel.app)
 
