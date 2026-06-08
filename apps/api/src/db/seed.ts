@@ -447,9 +447,9 @@ function at(daysFromNow: number, hour: number, minute: number): Date {
 }
 
 const appointmentSeeds: Appointment[] = [
-  { id: "APT001", patientId: "BN001", doctorId: "BS001", scheduledAt: at(1, 8, 0), reason: "Tái khám tăng huyết áp, kiểm tra HA và điều chỉnh thuốc", status: "Chờ duyệt", createdAt: now, updatedAt: now },
-  { id: "APT002", patientId: "BN002", doctorId: "BS001", scheduledAt: at(2, 9, 30), reason: "Đánh giá sau đợt nhồi máu cơ tim, xem ECG", status: "Đã duyệt", createdAt: now, updatedAt: now },
-  { id: "APT003", patientId: "BN004", doctorId: "BS002", scheduledAt: at(1, 14, 0), reason: "Theo dõi COPD đợt cấp, kiểm tra SpO2 và khí máu", status: "Chờ duyệt", createdAt: now, updatedAt: now },
+  { id: "APT001", patientId: "BN001", doctorId: "BS001", scheduledAt: at(1, 8, 0), reason: "Bệnh nhân than đau đầu âm ỉ vùng gáy 3 ngày nay, đo HA tại nhà 150/95. Đang dùng thuốc hạ áp nhưng quên liều vài hôm.", patientNote: "Bác sĩ ơi cho em khám sớm chút được không, chiều em phải đón cháu.", status: "Chờ duyệt", createdAt: now, updatedAt: now },
+  { id: "APT002", patientId: "BN002", doctorId: "BS001", scheduledAt: at(2, 9, 30), reason: "Bệnh nhân tái khám sau đợt nhồi máu cơ tim, hiện ổn nhưng thỉnh thoảng hồi hộp, muốn kiểm tra ECG.", status: "Đã duyệt", createdAt: now, updatedAt: now },
+  { id: "APT003", patientId: "BN004", doctorId: "BS002", scheduledAt: at(1, 14, 0), reason: "Bệnh nhân than khó thở tăng khi gắng sức, ho có đờm 1 tuần, tiền sử COPD. Nghi đợt cấp.", patientNote: "Em hơi lo, mấy hôm nay leo cầu thang là mệt.", status: "Chờ duyệt", createdAt: now, updatedAt: now },
   { id: "APT004", patientId: "BN007", doctorId: "BS003", scheduledAt: at(4, 10, 0), reason: "Tái khám sốt xuất huyết, đếm tiểu cầu", status: "Đã duyệt", createdAt: now, updatedAt: now },
   { id: "APT005", patientId: "BN006", doctorId: "BS002", scheduledAt: at(3, 15, 30), reason: "Hội chẩn tiền sản giật, đo HA và protein niệu", status: "Đã duyệt", createdAt: now, updatedAt: now },
 ];

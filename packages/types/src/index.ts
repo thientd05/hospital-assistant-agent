@@ -264,7 +264,11 @@ export type Appointment = {
   // `""` = chưa có bác sĩ nhận (lịch ở hàng chờ chung); bác sĩ nào duyệt trước thì nhận.
   doctorId: string;
   scheduledAt: Date;
+  // `reason` = tóm tắt triệu chứng/tình trạng do trợ lý ảo tổng hợp từ hội thoại
+  // (hiển thị "Tóm tắt từ trợ lý ảo"), KHÔNG phải lời bệnh nhân tự ghi.
   reason: string;
+  // `patientNote` = lời nhắn bệnh nhân muốn gửi bác sĩ trước khi khám (tuỳ chọn).
+  patientNote?: string;
   status: AppointmentStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -300,6 +304,7 @@ export type PatientUpdateInput = {
 export type PatientAppointmentCreateInput = {
   scheduledAt: string | Date;
   reason: string;
+  patientNote?: string;
   doctorId?: string;
 };
 
@@ -339,6 +344,7 @@ export type AppointmentCreateInput = {
   doctorId?: string;
   scheduledAt: string | Date;
   reason: string;
+  patientNote?: string;
   status?: AppointmentStatus;
 };
 

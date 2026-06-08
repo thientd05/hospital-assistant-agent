@@ -40,22 +40,44 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
    Chỉ `type`/`select` trường nào có dữ liệu. **KHÔNG có ô SĐT** — số điện thoại cố định,
    không có ref để nhắm. Form đóng = đã lưu.
 4. **DỪNG LƯỢT:** báo "Đã lưu hồ sơ. Giờ mình đặt lịch nhé — bạn muốn khám ngày nào,
-   mấy giờ, vì lý do gì?" rồi chờ bệnh nhân trả lời. **Không** đặt lịch ngay trong lượt này.
+   mấy giờ?" rồi chờ bệnh nhân trả lời. **Không** đặt lịch ngay trong lượt này.
+
+## ⚠️ KHÔNG hỏi "lý do khám" — TỰ tổng hợp tóm tắt
+
+Trường tóm tắt (`booking-form:reason`, hiển thị **"Tóm tắt từ trợ lý ảo"**) do **CHÍNH
+BẠN viết** từ những gì đã trò chuyện/tư vấn với bệnh nhân — **KHÔNG hỏi bệnh nhân "khám
+vì lý do gì"**, KHÔNG chép nguyên một câu của bệnh nhân.
+
+- Đọc lại cả cuộc trò chuyện → **viết một đoạn tóm tắt ngắn gọn, khách quan** về triệu
+  chứng + tình trạng bệnh nhân để bác sĩ nắm nhanh trước khi khám. Gồm (nếu có): triệu
+  chứng chính, thời gian/diễn tiến, mức độ, yếu tố liên quan, tiền sử/thuốc đang dùng.
+  Viết ngôi thứ ba ("Bệnh nhân than…"), 1–3 câu, **chỉ dựa trên điều bệnh nhân đã nói** —
+  không bịa, không tự chẩn đoán.
+- Nếu cuộc trò chuyện chưa đủ dữ liệu để tóm tắt → **hỏi thêm về triệu chứng/tình trạng**
+  (đây là tư vấn, không phải hỏi "lý do khám") cho đủ rồi mới viết tóm tắt.
+
+**Thay vì hỏi lý do, hãy hỏi lời nhắn:** trước khi gửi form, hỏi bệnh nhân **"Bạn có muốn
+nhắn gì cho bác sĩ trước khi khám không?"** → câu trả lời đặt vào `booking-form:patientNote`
+(để TRỐNG nếu bệnh nhân không có gì nhắn). Đây là lời **của bệnh nhân**, khác với tóm tắt
+**của bạn**.
 
 ## Bước 1 (lượt B) — điền & gửi form đặt lịch
 
-Khi đã có thời gian + lý do, làm trong **MỘT batch `act`**:
+Khi đã có thời gian (và đã hỏi lời nhắn), làm trong **MỘT batch `act`**:
 
 ```
 read_panel({ tab: "my-appointments", mode: "public" })
 act({ actions: [
   { action: "click",  ref: "appointment:create" },
-  { action: "type",   ref: "booking-form:datetime", value: "<YYYY-MM-DDTHH:MM>" },
-  { action: "type",   ref: "booking-form:reason",   value: "<lý do khám>" },
+  { action: "type",   ref: "booking-form:datetime",    value: "<YYYY-MM-DDTHH:MM>" },
+  { action: "type",   ref: "booking-form:reason",      value: "<tóm tắt BẠN tự viết>" },
+  { action: "type",   ref: "booking-form:patientNote", value: "<lời nhắn của bệnh nhân>" },
   { action: "click",  ref: "booking-form:submit" }
 ]})
 ```
 
+- `booking-form:reason` = **tóm tắt do bạn tổng hợp** (bắt buộc). `booking-form:patientNote`
+  = **lời nhắn của bệnh nhân** (tuỳ chọn — bỏ bước `type` này nếu bệnh nhân không nhắn gì).
 - `booking-form:datetime` là MỘT ô ngày-giờ, định dạng "YYYY-MM-DDTHH:MM" 24 giờ
   (vd "2026-06-10T09:30", "2026-06-10T14:00"). Chỉ đặt được thời điểm tương lai.
 - **Bác sĩ:** mặc định form đã chọn sẵn bác sĩ quản lý (hoặc "" = phòng khám sắp xếp).

@@ -13,7 +13,7 @@ trình bày bằng SVG. KHÔNG bấm "Duyệt"/"Nhận"/"Huỷ" (đó là việc
 2. Tab Lịch hẹn có 2 subtab: `appointment-subtab:pending` ("Chờ duyệt") và
    `appointment-subtab:approved` ("Đã duyệt"); subtab đang mở có `data-agent-active`.
    Mỗi lịch là một phần tử `appointment:<id>:info` (role `text`, `value` = ngày giờ +
-   tên/mã BN + lý do).
+   tên/mã BN + tóm tắt từ trợ lý ảo + lời nhắn từ bệnh nhân nếu có).
 3. Lấy đủ dữ liệu theo **phạm vi** bác sĩ hỏi:
    - Chỉ **chờ duyệt** → đọc subtab pending (mặc định thường mở sẵn).
    - Chỉ **đã duyệt** → nếu chưa mở: `act([{ action: "click", ref: "appointment-subtab:approved" }])`
@@ -21,7 +21,7 @@ trình bày bằng SVG. KHÔNG bấm "Duyệt"/"Nhận"/"Huỷ" (đó là việc
    - **Cả hai** → đọc subtab hiện tại, rồi `act` chuyển subtab kia và đọc tiếp.
 4. `read_skills(['draw-svg'])` lấy quy tắc kỹ thuật, rồi vẽ **một** khối ```` ```svg ````
    + 1–2 câu dẫn. Gợi ý bố cục: liệt kê theo thời gian (sớm → muộn), **mỗi lịch một dòng
-   `y` riêng** (ngày giờ · BN · lý do). Phân màu theo trạng thái: **chờ duyệt = cam/xanh
+   `y` riêng** (ngày giờ · BN · tóm tắt). Phân màu theo trạng thái: **chờ duyệt = cam/xanh
    dương**, **đã duyệt = xanh lá**. Xem cả hai thì tách 2 nhóm có tiêu đề rõ.
 
 ## Badcase

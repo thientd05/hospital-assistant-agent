@@ -104,9 +104,22 @@ export function MyAppointmentsTab({ version, active }: Props) {
                 Đang chờ phòng khám phân bác sĩ
               </div>
             )}
-            <div className="mt-0.5 text-xs text-gray-500 line-clamp-2">
-              {a.reason}
-            </div>
+            {a.reason && (
+              <div className="mt-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-[#087E8B] font-medium">
+                  Tóm tắt từ trợ lý ảo
+                </div>
+                <div className="text-xs text-gray-600">{a.reason}</div>
+              </div>
+            )}
+            {a.patientNote && (
+              <div className="mt-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">
+                  Lời nhắn của bạn
+                </div>
+                <div className="text-xs text-gray-600">{a.patientNote}</div>
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -130,6 +143,7 @@ function BookingForm({
   const [doctorTouched, setDoctorTouched] = useState(false);
   const [datetime, setDatetime] = useState("");
   const [reason, setReason] = useState("");
+  const [patientNote, setPatientNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -155,7 +169,7 @@ function BookingForm({
     e.preventDefault();
     setError(null);
     if (!datetime || !reason.trim()) {
-      setError("Cần nhập đủ thời gian và lý do.");
+      setError("Cần nhập đủ thời gian và tóm tắt tình trạng.");
       return;
     }
     // datetime-local trả "YYYY-MM-DDTHH:MM" theo giờ địa phương.
@@ -169,6 +183,7 @@ function BookingForm({
       await appointmentsApi.createAsPatient({
         scheduledAt: scheduled.toISOString(),
         reason: reason.trim(),
+        ...(patientNote.trim() ? { patientNote: patientNote.trim() } : {}),
         ...(doctorId ? { doctorId } : {}),
       });
       onSaved();
@@ -221,16 +236,29 @@ function BookingForm({
           data-agent-label="Thời gian khám"
         />
       </Field>
-      <Field label="Lý do khám">
+      <Field label="Tóm tắt từ trợ lý ảo">
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           className="ws-input"
-          rows={2}
+          rows={3}
           required
+          placeholder="Tóm tắt triệu chứng, tình trạng do trợ lý ảo tổng hợp sau khi trò chuyện."
           data-agent-ref="booking-form:reason"
           data-agent-role="textbox"
-          data-agent-label="Lý do khám"
+          data-agent-label="Tóm tắt từ trợ lý ảo"
+        />
+      </Field>
+      <Field label="Lời nhắn cho bác sĩ (tuỳ chọn)">
+        <textarea
+          value={patientNote}
+          onChange={(e) => setPatientNote(e.target.value)}
+          className="ws-input"
+          rows={2}
+          placeholder="Điều bạn muốn nhắn riêng với bác sĩ trước khi khám (nếu có)."
+          data-agent-ref="booking-form:patientNote"
+          data-agent-role="textbox"
+          data-agent-label="Lời nhắn cho bác sĩ"
         />
       </Field>
       {error && (

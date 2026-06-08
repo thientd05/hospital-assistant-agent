@@ -91,7 +91,22 @@ export function AppointmentsTab({
       <div className="mt-1 text-sm text-gray-900 font-medium">
         {a.patientName ? `${a.patientName} · ${a.patientId}` : a.patientId}
       </div>
-      <div className="mt-0.5 text-xs text-gray-500 line-clamp-2">{a.reason}</div>
+      {a.reason && (
+        <div className="mt-1.5">
+          <div className="text-[10px] uppercase tracking-wider text-[#087E8B] font-medium">
+            Tóm tắt từ trợ lý ảo
+          </div>
+          <div className="text-xs text-gray-600">{a.reason}</div>
+        </div>
+      )}
+      {a.patientNote && (
+        <div className="mt-1.5">
+          <div className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">
+            Lời nhắn từ bệnh nhân
+          </div>
+          <div className="text-xs text-gray-600">{a.patientNote}</div>
+        </div>
+      )}
       <div className="mt-2 flex items-center justify-end gap-1.5">
         {subTab === "pending" && (
           <button

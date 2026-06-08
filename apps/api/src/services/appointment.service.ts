@@ -30,6 +30,7 @@ async function joinPatientNames(rows: Appointment[]) {
     doctorId: a.doctorId,
     scheduledAt: a.scheduledAt,
     reason: a.reason,
+    patientNote: a.patientNote ?? "",
     status: a.status,
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
@@ -66,6 +67,7 @@ export const appointmentService = {
           ? data.scheduledAt
           : new Date(data.scheduledAt),
       reason: data.reason,
+      patientNote: data.patientNote?.trim() || "",
       status: "Chờ duyệt",
       createdAt: now,
       updatedAt: now,
@@ -106,6 +108,7 @@ export const appointmentService = {
     const $set: Record<string, unknown> = { updatedAt: new Date() };
     if (data.patientId !== undefined) $set.patientId = data.patientId;
     if (data.reason !== undefined) $set.reason = data.reason;
+    if (data.patientNote !== undefined) $set.patientNote = data.patientNote;
     if (data.status !== undefined) $set.status = data.status;
     if (data.scheduledAt !== undefined) {
       $set.scheduledAt =

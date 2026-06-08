@@ -8,16 +8,19 @@ export const AppointmentUpdateSchema = z
     patientId: z.string().min(1).optional(),
     scheduledAt: DateLike.optional(),
     reason: z.string().min(1).optional(),
+    patientNote: z.string().optional(),
     status: AppointmentStatusEnum.optional(),
   })
   .strict();
 
-// Bệnh nhân tự đặt lịch: chỉ thời gian + lý do; doctorId tuỳ chọn
-// (rỗng/không truyền = vào hàng chờ chung, bác sĩ nào duyệt trước thì nhận).
+// Bệnh nhân tự đặt lịch: thời gian + tóm tắt (do trợ lý ảo tổng hợp) + lời nhắn
+// tuỳ chọn; doctorId tuỳ chọn (rỗng/không truyền = vào hàng chờ chung, bác sĩ nào
+// duyệt trước thì nhận).
 export const AppointmentPatientCreateSchema = z
   .object({
     scheduledAt: DateLike,
     reason: z.string().min(1),
+    patientNote: z.string().optional(),
     doctorId: z.string().optional(),
   })
   .strict();
