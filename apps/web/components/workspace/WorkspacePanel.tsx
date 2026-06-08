@@ -35,6 +35,8 @@ type Props = {
   bumpTab: (tab: WorkspaceTab) => void;
   /** Bác sĩ duyệt/nhận lịch hẹn → chuyển sang chat trực tiếp với BN đó. */
   onAcceptAppointment?: (patientId: string) => void;
+  /** Hội thoại AI hiện tại — hook đặt lịch nhờ trợ lý ảo tóm tắt triệu chứng. */
+  aiConversationId?: string | null;
 };
 
 export function WorkspacePanel({
@@ -50,6 +52,7 @@ export function WorkspacePanel({
   onSelectPatient,
   bumpTab,
   onAcceptAppointment,
+  aiConversationId,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -223,6 +226,7 @@ export function WorkspacePanel({
             <MyAppointmentsTab
               version={versions["my-appointments"]}
               active={isMounted && activeTab === "my-appointments"}
+              aiConversationId={aiConversationId}
             />
           )}
         </div>

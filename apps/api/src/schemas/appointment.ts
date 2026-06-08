@@ -19,7 +19,8 @@ export const AppointmentUpdateSchema = z
 export const AppointmentPatientCreateSchema = z
   .object({
     scheduledAt: DateLike,
-    reason: z.string().min(1),
+    // Tóm tắt từ trợ lý ảo: tuỳ chọn (rỗng khi chưa trò chuyện / chưa đủ data).
+    reason: z.string().optional(),
     patientNote: z.string().optional(),
     doctorId: z.string().optional(),
   })

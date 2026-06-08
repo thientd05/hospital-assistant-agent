@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
-import { runAgentLoop } from "../agent/loop.ts";
+import { runAgentLoop, summarizeSymptoms } from "../agent/loop.ts";
 import { getRefreshTarget } from "../agent/tool-refresh-map.ts";
 import {
   createPanelClient,
@@ -108,6 +108,33 @@ export async function chatRoutes(app: FastifyInstance) {
       } finally {
         reply.raw.end();
       }
+    }
+  );
+
+  // Hook đặt lịch (bệnh nhân tự đặt): tổng hợp tóm tắt triệu chứng cho bác sĩ từ
+  // hội thoại AI hiện tại. Gọi model MỘT lần và KHÔNG lưu prompt/đáp án vào hội
+  // thoại — lượt chat sau của bệnh nhân vẫn tiếp tục như thường. Không có
+  // conversationId / hội thoại rỗng → trả "" (chưa có gì để tóm tắt).
+  app.post(
+    "/chat/summarize",
+    { preHandler: [verifyToken, requireRole("doctor", "patient")] },
+    async (req, reply) => {
+      const parsed = z
+        .object({ conversationId: z.string().nullish() })
+        .safeParse(req.body);
+      if (!parsed.success) {
+        reply.code(400).send({ error: "Invalid body" });
+        return;
+      }
+      const token = bearerToken(req);
+      const convoId = parsed.data.conversationId;
+      let history: StoredMessage[] = [];
+      if (convoId) {
+        const existing = await fetchConversationRaw(token, convoId);
+        if (existing) history = (existing.messages ?? []) as StoredMessage[];
+      }
+      const summary = await summarizeSymptoms(history);
+      return { summary };
     }
   );
 

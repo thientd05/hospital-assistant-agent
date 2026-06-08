@@ -8,13 +8,17 @@ import { formatDateTime as fmt } from "@/lib/format";
 import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
 import { Field } from "../forms/Field";
 import { FormModal, FormHeader, FormError, FormActions } from "../forms/ui";
+import { AGENT_URL } from "@/lib/api";
+import { authFetch } from "@/lib/tokenStore";
 
 type Props = {
   version: number;
   active: boolean;
+  /** Hội thoại AI hiện tại — hook đặt lịch nhờ trợ lý ảo tóm tắt triệu chứng. */
+  aiConversationId?: string | null;
 };
 
-export function MyAppointmentsTab({ version, active }: Props) {
+export function MyAppointmentsTab({ version, active, aiConversationId }: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
   const doctorsRes = useDoctors(0, active);
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +49,7 @@ export function MyAppointmentsTab({ version, active }: Props) {
       {showForm && (
         <BookingForm
           active={active}
+          aiConversationId={aiConversationId}
           onClose={() => setShowForm(false)}
           onSaved={() => {
             setShowForm(false);
@@ -129,10 +134,12 @@ export function MyAppointmentsTab({ version, active }: Props) {
 
 function BookingForm({
   active,
+  aiConversationId,
   onClose,
   onSaved,
 }: {
   active: boolean;
+  aiConversationId?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -145,6 +152,7 @@ function BookingForm({
   const [reason, setReason] = useState("");
   const [patientNote, setPatientNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const managingIds = new Set(
@@ -168,8 +176,8 @@ function BookingForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!datetime || !reason.trim()) {
-      setError("Cần nhập đủ thời gian và tóm tắt tình trạng.");
+    if (!datetime) {
+      setError("Cần chọn thời gian khám.");
       return;
     }
     // datetime-local trả "YYYY-MM-DDTHH:MM" theo giờ địa phương.
@@ -180,9 +188,33 @@ function BookingForm({
     }
     setSubmitting(true);
     try {
+      // Hook TRƯỚC KHI LƯU: trường tóm tắt do trợ lý ảo tổng hợp — bệnh nhân KHÔNG
+      // tự nhập. Nếu chưa có sẵn (vd agent đã tự điền khi đặt giúp) và có hội thoại
+      // AI → nhờ trợ lý ảo tóm tắt triệu chứng (gọi 1 lần, KHÔNG lưu vào hội thoại).
+      // Chưa có hội thoại / chưa đủ data → để rỗng, vẫn đặt lịch bình thường.
+      let summary = reason.trim();
+      if (!summary && aiConversationId) {
+        setSummarizing(true);
+        try {
+          const res = await authFetch(`${AGENT_URL}/api/chat/summarize`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ conversationId: aiConversationId }),
+          });
+          if (res.ok) {
+            const data = (await res.json()) as { summary?: string };
+            summary = (data.summary ?? "").trim();
+            setReason(summary);
+          }
+        } catch {
+          // Tóm tắt lỗi → vẫn cho đặt lịch với tóm tắt rỗng.
+        } finally {
+          setSummarizing(false);
+        }
+      }
       await appointmentsApi.createAsPatient({
         scheduledAt: scheduled.toISOString(),
-        reason: reason.trim(),
+        ...(summary ? { reason: summary } : {}),
         ...(patientNote.trim() ? { patientNote: patientNote.trim() } : {}),
         ...(doctorId ? { doctorId } : {}),
       });
@@ -190,6 +222,7 @@ function BookingForm({
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : String(e2));
     } finally {
+      setSummarizing(false);
       setSubmitting(false);
     }
   }
@@ -236,12 +269,12 @@ function BookingForm({
       </Field>
       <Field label="Tóm tắt từ trợ lý ảo">
         <textarea
-          value={reason}
+          value={summarizing ? "Trợ lý ảo đang tóm tắt…" : reason}
           onChange={(e) => setReason(e.target.value)}
-          className="ws-input"
+          className="ws-input bg-gray-50 text-gray-600 cursor-not-allowed"
           rows={3}
-          required
-          placeholder="Tóm tắt triệu chứng, tình trạng do trợ lý ảo tổng hợp sau khi trò chuyện."
+          readOnly
+          placeholder="Trợ lý ảo tự tổng hợp từ cuộc trò chuyện khi bạn đặt lịch — bạn không cần nhập."
           data-agent-ref="booking-form:reason"
           data-agent-role="textbox"
           data-agent-label="Tóm tắt từ trợ lý ảo"
@@ -268,7 +301,7 @@ function BookingForm({
         onCancel={onClose}
         submitting={submitting}
         submitLabel="Đặt lịch"
-        pendingLabel="Đang gửi…"
+        pendingLabel={summarizing ? "Trợ lý ảo đang tóm tắt…" : "Đang gửi…"}
         cancelProps={{
           "data-agent-ref": "booking-form:cancel",
           "data-agent-role": "button",

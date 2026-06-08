@@ -303,7 +303,8 @@ export type PatientUpdateInput = {
 // (rỗng/không truyền = vào hàng chờ chung).
 export type PatientAppointmentCreateInput = {
   scheduledAt: string | Date;
-  reason: string;
+  // Tóm tắt do trợ lý ảo tổng hợp — có thể rỗng (chưa trò chuyện / chưa đủ data).
+  reason?: string;
   patientNote?: string;
   doctorId?: string;
 };

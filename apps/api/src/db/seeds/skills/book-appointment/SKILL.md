@@ -46,7 +46,8 @@ Trước khi đặt lịch, phải bảo đảm hồ sơ có thông tin cá nhâ
 
 Trường tóm tắt (`booking-form:reason`, hiển thị **"Tóm tắt từ trợ lý ảo"**) do **CHÍNH
 BẠN viết** từ những gì đã trò chuyện/tư vấn với bệnh nhân — **KHÔNG hỏi bệnh nhân "khám
-vì lý do gì"**, KHÔNG chép nguyên một câu của bệnh nhân.
+vì lý do gì"**, KHÔNG chép nguyên một câu của bệnh nhân. (Bệnh nhân KHÔNG tự nhập được ô
+này — nó chỉ-đọc với họ; khi bạn đặt lịch giúp thì BẠN phải điền.)
 
 - Đọc lại cả cuộc trò chuyện → **viết một đoạn tóm tắt ngắn gọn, khách quan** về triệu
   chứng + tình trạng bệnh nhân để bác sĩ nắm nhanh trước khi khám. Gồm (nếu có): triệu

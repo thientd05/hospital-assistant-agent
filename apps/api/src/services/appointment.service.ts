@@ -66,7 +66,7 @@ export const appointmentService = {
         data.scheduledAt instanceof Date
           ? data.scheduledAt
           : new Date(data.scheduledAt),
-      reason: data.reason,
+      reason: data.reason?.trim() || "",
       patientNote: data.patientNote?.trim() || "",
       status: "Chờ duyệt",
       createdAt: now,

@@ -282,6 +282,11 @@ export default function ChatPage() {
 
   const hasPanel = Boolean(role && (ROLE_TABS[role] ?? []).length > 0);
 
+  // Hội thoại AI hiện tại (để hook đặt lịch nhờ trợ lý ảo tóm tắt). Ở mode "ai" là
+  // hội thoại đang xem; ở mode tin nhắn trực tiếp lấy hội thoại AI đã lưu gần nhất.
+  const aiConversationId =
+    chatMode === "ai" ? chat.conversationId : savedConvIdsRef.current.ai;
+
   return (
     <>
       <Sidebar
@@ -335,6 +340,7 @@ export default function ChatPage() {
         onSelectPatient={workspace.selectPatient}
         bumpTab={workspace.bumpTab}
         onAcceptAppointment={isDoctor ? goToDirectChat : undefined}
+        aiConversationId={aiConversationId}
       />
     </>
   );

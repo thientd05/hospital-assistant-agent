@@ -83,6 +83,65 @@ const anthropic = new Anthropic();
 //   "claude-haiku-4-5-20251001"  // Haiku 4.5 — nhanh & rẻ nhất
 const MODEL_ID = "claude-haiku-4-5-20251001";
 
+// Lời nhắc tóm tắt triệu chứng cho bác sĩ — dùng ở hook đặt lịch (bệnh nhân tự
+// đặt). KHÔNG lưu vào hội thoại: gọi một lần, lấy text, bỏ đi.
+const SUMMARY_INSTRUCTION = `Dựa trên cuộc trò chuyện ở trên giữa bạn (trợ lý ảo) và bệnh nhân, hãy viết một đoạn TÓM TẮT NGẮN GỌN, KHÁCH QUAN về triệu chứng và tình trạng của bệnh nhân để bác sĩ nắm nhanh trước khi khám.
+
+Quy tắc:
+- Viết ngôi thứ ba ("Bệnh nhân than…"), 1–3 câu, tiếng Việt.
+- CHỈ dựa trên điều bệnh nhân đã nói; KHÔNG bịa, KHÔNG tự chẩn đoán.
+- Nếu cuộc trò chuyện CHƯA đủ thông tin về triệu chứng/tình trạng để tóm tắt, chỉ trả về đúng dòng: "Chưa có tóm tắt".
+- Chỉ trả về đoạn tóm tắt (hoặc "Chưa có tóm tắt"), không thêm lời dẫn, không markdown.`;
+
+// Rút lịch sử hội thoại về các lượt CHỈ-TEXT (bỏ tool_use/tool_result — gọi tóm
+// tắt không khai báo tools nên không gửi kèm các block đó), gộp lượt liên tiếp
+// cùng vai để giữ xen kẽ user/assistant hợp lệ.
+function toTextTurns(
+  messages: Anthropic.MessageParam[]
+): { role: "user" | "assistant"; content: string }[] {
+  const merged: { role: "user" | "assistant"; content: string }[] = [];
+  for (const m of messages) {
+    const text =
+      typeof m.content === "string"
+        ? m.content
+        : m.content
+            .filter((b): b is Anthropic.TextBlockParam => b.type === "text")
+            .map((b) => b.text)
+            .join("\n");
+    const trimmed = text.trim();
+    if (!trimmed) continue;
+    const last = merged[merged.length - 1];
+    if (last && last.role === m.role) last.content += "\n\n" + trimmed;
+    else merged.push({ role: m.role, content: trimmed });
+  }
+  return merged;
+}
+
+// Tóm tắt triệu chứng từ lịch sử hội thoại bằng MỘT lần gọi model (không tool,
+// không lưu). History rỗng/không có nội dung text → "" (chưa có gì để tóm tắt).
+export async function summarizeSymptoms(
+  history: Anthropic.MessageParam[]
+): Promise<string> {
+  const convo = toTextTurns(history);
+  // API yêu cầu message đầu là user → bỏ assistant dẫn đầu nếu có.
+  while (convo.length && convo[0]!.role === "assistant") convo.shift();
+  if (convo.length === 0) return "";
+  // Nối lời nhắc tóm tắt dưới vai user (gộp nếu lượt cuối đã là user).
+  const last = convo[convo.length - 1]!;
+  if (last.role === "user") last.content += "\n\n" + SUMMARY_INSTRUCTION;
+  else convo.push({ role: "user", content: SUMMARY_INSTRUCTION });
+  const res = await anthropic.messages.create({
+    model: MODEL_ID,
+    max_tokens: 512,
+    messages: convo,
+  });
+  return res.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+}
+
 export type OnChunk = (text: string) => void;
 export type OnToolCall = (toolCall: {
   id: string;
