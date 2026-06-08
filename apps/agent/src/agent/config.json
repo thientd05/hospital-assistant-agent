@@ -27,6 +27,12 @@
       "update_workspace_file",
       "read_service_prices"
     ],
-    "skills": ["collect-patient-info", "book-appointment", "draw-svg"]
+    "skills": [
+      "collect-patient-info",
+      "book-appointment",
+      "view-my-record",
+      "view-my-appointments",
+      "draw-svg"
+    ]
   }
 }
