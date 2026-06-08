@@ -18,6 +18,7 @@ import { handleReadServicePrices } from "./tools/read_service_prices/handlers.ts
 import { definition as readExamHistoryDef } from "./tools/read_exam_history/definitions.ts";
 import { handleReadExamHistory } from "./tools/read_exam_history/handlers.ts";
 import { fetchWorkspace, fetchBoot, fetchSkills } from "./api-client.ts";
+import { runHooks } from "./hooks/index.ts";
 
 const tools: Anthropic.Tool[] = [
   readPanelDef,
@@ -151,18 +152,13 @@ export type OnToolCall = (toolCall: {
   status: "running" | "done";
 }) => void;
 
-async function dispatchTool(
+async function runTool(
   name: string,
   input: Record<string, unknown>,
   role: AuthRole,
   panel: PanelClient,
   token: string
 ): Promise<string> {
-  if (!getAllowedTools(role).has(name)) {
-    return JSON.stringify({
-      error: `Tool "${name}" không khả dụng cho vai trò "${role}". Yêu cầu bị từ chối ở tầng dispatch.`,
-    });
-  }
   try {
     switch (name) {
       case "read_panel":
@@ -185,6 +181,33 @@ async function dispatchTool(
       error: err instanceof Error ? err.message : String(err),
     });
   }
+}
+
+async function dispatchTool(
+  name: string,
+  input: Record<string, unknown>,
+  role: AuthRole,
+  panel: PanelClient,
+  token: string
+): Promise<string> {
+  if (!getAllowedTools(role).has(name)) {
+    return JSON.stringify({
+      error: `Tool "${name}" không khả dụng cho vai trò "${role}". Yêu cầu bị từ chối ở tầng dispatch.`,
+    });
+  }
+  // Hook bao quanh tool: "before" chèn TRƯỚC kết quả, "after" chèn SAU — gộp vào
+  // cùng một tool_result (vd: ngày giờ hiện tại + body skill đặt lịch).
+  const before = await runHooks("before", { tool: name, input, role, token });
+  const result = await runTool(name, input, role, panel, token);
+  const after = await runHooks("after", {
+    tool: name,
+    input,
+    role,
+    token,
+    result,
+  });
+  if (before.length === 0 && after.length === 0) return result;
+  return [...before, result, ...after].join("\n\n");
 }
 
 const EPHEMERAL: Anthropic.CacheControlEphemeral = { type: "ephemeral" };

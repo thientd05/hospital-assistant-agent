@@ -1,0 +1,8 @@
+{
+  "description": "Bơm NGÀY GIỜ HIỆN TẠI (giờ Việt Nam) kèm kết quả khi agent đọc skill đặt lịch, để agent tự tính 'hôm nay', 'ngày mai', 'thứ mấy', 'tuần này/tuần sau' thay vì hỏi bệnh nhân ngày cụ thể.",
+  "tool": "read_skills",
+  "timing": "before",
+  "match": {
+    "names": ["book-appointment"]
+  }
+}

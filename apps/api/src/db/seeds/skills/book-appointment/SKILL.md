@@ -62,6 +62,29 @@ nhắn gì cho bác sĩ trước khi khám không?"** → câu trả lời đặ
 (để TRỐNG nếu bệnh nhân không có gì nhắn). Đây là lời **của bệnh nhân**, khác với tóm tắt
 **của bạn**.
 
+## 📅 TỰ TÍNH ngày giờ từ diễn đạt tương đối — KHÔNG hỏi ngày cụ thể
+
+Đầu nội dung skill này có khối **"# THỜI GIAN HIỆN TẠI"** (do hook tự bơm vào) cho biết
+hôm nay là thứ mấy, ngày/tháng/năm, mấy giờ (giờ Việt Nam). **NEO theo mốc đó để TỰ quy
+đổi** mọi cách nói tương đối của bệnh nhân thành `YYYY-MM-DDTHH:MM` cụ thể — **không hỏi
+lại bệnh nhân ngày/tháng**, cũng không đoán theo trí nhớ.
+
+Quy ước (tuần bắt đầu **Thứ Hai**):
+- **"hôm nay" / "ngày mai" / "ngày kia"** → cộng 0/1/2 ngày vào hôm nay.
+- **"thứ X" (không kèm tuần)** → thứ X **sắp tới gần nhất** (nếu thứ X của tuần này đã qua
+  thì lấy của tuần sau). Chủ Nhật = cuối tuần.
+- **"thứ X tuần này"** → thứ X trong tuần hiện tại; nếu đã qua → hiểu là **tuần sau** (vì
+  chỉ đặt được tương lai).
+- **"thứ X tuần sau"** → thứ X của tuần kế tiếp.
+- **"tuần sau" (không nêu thứ)** → cần biết thứ mấy: hỏi **đúng một câu** "tuần sau bạn
+  muốn khám thứ mấy?" (chỉ hỏi thứ, KHÔNG hỏi ngày dương lịch).
+
+Về **giờ**: nếu bệnh nhân nêu giờ ("9h", "2 giờ chiều" → 14:00) thì dùng; **chỉ thiếu
+giờ** thì hỏi gọn "mấy giờ?" (đừng hỏi lại ngày). Sau khi tính xong, **nói lại cho bệnh
+nhân mốc cụ thể để xác nhận** ("Vậy mình đặt Thứ Sáu 12/06 lúc 09:00 nhé?") rồi mới điền
+form. Thời điểm tính ra phải ở **tương lai**; nếu lỡ rơi vào quá khứ thì đẩy sang lần kế
+hợp lý và xác nhận lại.
+
 ## Bước 1 (lượt B) — điền & gửi form đặt lịch
 
 Khi đã có thời gian (và đã hỏi lời nhắn), làm trong **MỘT batch `act`**:
@@ -108,6 +131,8 @@ Sau khi click `booking-form:submit`, **đọc snapshot trả về**:
   "thao tác bị chậm, bạn thử lại giúp mình nhé" và dừng lượt — gọi lại liên tục chỉ
   làm hết thời gian server.
 - **Bệnh nhân đổi ý:** click `booking-form:cancel` / `patient-detail:cancel` để đóng form.
-- **Không nói rõ thời gian:** hỏi cụ thể ngày + giờ trước khi điền, đừng tự đoán.
+- **Diễn đạt thời gian tương đối** ("thứ 6", "tuần này", "tuần sau", "ngày mai"): TỰ tính
+  ra ngày cụ thể theo khối "THỜI GIAN HIỆN TẠI" (xem mục 📅 ở trên), KHÔNG hỏi lại ngày
+  dương lịch. Chỉ hỏi khi **hoàn toàn không có** mốc thời gian nào, hoặc thiếu **giờ**.
 - **Form đã đóng sau submit nhưng muốn "xem lại cho chắc":** ĐỪNG mở lại form — xem mục
   "Sau khi submit" ở trên. Mở lại + submit lại là đặt trùng lịch lần hai.
