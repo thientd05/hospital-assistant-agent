@@ -73,33 +73,48 @@ function cropSvgToContent(svg: SVGSVGElement): void {
 function VizBlockInner({ code }: Props) {
   const [clean, setClean] = useState<string>("");
   const hostRef = useRef<HTMLDivElement>(null);
-  // Đã có </svg> = vẽ xong → khỏi crop chiều cao theo nội dung (giữ trọn canvas).
+  // Đã có </svg> = vẽ xong → căn chỉnh đầy đủ; còn stream → chỉ crop chiều cao.
   const completeRef = useRef(false);
+  // GỘP cập nhật theo animation frame: nhiều delta token rơi vào cùng một khung hình
+  // chỉ dựng lại DOM + sanitize MỘT lần (thay vì mỗi token) → giảm tải, đỡ giật.
+  const latestRef = useRef(code);
+  const rafRef = useRef<number | null>(null);
   useEffect(() => {
-    const partial = buildProgressiveSvg(code);
-    if (!partial) {
-      setClean("");
-      return;
-    }
-    completeRef.current = /<\/svg\s*>/i.test(code);
-    setClean(
-      DOMPurify.sanitize(partial, {
-        USE_PROFILES: { svg: true, svgFilters: true },
-      })
-    );
+    latestRef.current = code;
+    if (rafRef.current != null) return; // đã có frame chờ → frame đó đọc code mới nhất
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const c = latestRef.current;
+      const partial = buildProgressiveSvg(c);
+      if (!partial) {
+        setClean("");
+        return;
+      }
+      completeRef.current = /<\/svg\s*>/i.test(c);
+      setClean(
+        DOMPurify.sanitize(partial, {
+          USE_PROFILES: { svg: true, svgFilters: true },
+        })
+      );
+    });
   }, [code]);
+  useEffect(
+    () => () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    },
+    []
+  );
 
-  // Sau khi SVG đã nằm trong DOM (mỗi lần `clean` đổi = mỗi delta stream), đo bằng
-  // getBBox rồi tự nắn layout (thu chữ tràn ô, đẩy giãn phần tử chồng nhau, nới ô
-  // cha/khung). dangerouslySetInnerHTML dựng lại DOM mỗi lượt → fix luôn áp trên DOM
-  // mới, không tích luỹ. useLayoutEffect để nắn TRƯỚC khi trình duyệt vẽ (khỏi nháy).
+  // Sau khi SVG đã nằm trong DOM (mỗi lần `clean` đổi), nắn layout. CHỈ chạy autofix
+  // đầy đủ (4 pass đo getBBox + dịch phần tử) khi VẼ XONG — nắn hình dở mỗi delta làm
+  // phần tử nhảy qua lại + rescale viewBox = giật liên tục. Lúc đang stream chỉ crop
+  // chiều cao về phần đã vẽ (1 lần getBBox, không dịch phần tử) để ô lớn dần mượt,
+  // auto-scroll bám đáy cuộn theo. useLayoutEffect để áp TRƯỚC khi trình duyệt vẽ.
   useLayoutEffect(() => {
-    const svg = hostRef.current?.querySelector("svg");
+    const svg = hostRef.current?.querySelector("svg") as SVGSVGElement | null;
     if (!svg) return;
-    autofixSvg(svg as SVGSVGElement);
-    // Còn đang stream → crop chiều cao về phần đã vẽ để ô lớn dần (auto-scroll bám
-    // đáy cuộn theo từng hình thay vì nhảy thẳng xuống cuối canvas đầy đủ).
-    if (!completeRef.current) cropSvgToContent(svg as SVGSVGElement);
+    if (completeRef.current) autofixSvg(svg);
+    else cropSvgToContent(svg);
   }, [clean]);
 
   // Chưa có gì vẽ được → không hiện gì (KHÔNG spinner).
