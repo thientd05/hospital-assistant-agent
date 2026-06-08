@@ -7,7 +7,7 @@ import { useManagingDoctors } from "@/hooks/useManagingDoctors";
 import { formatDateTime as fmt } from "@/lib/format";
 import { APPOINTMENT_STATUS_STYLES as STATUS_STYLES } from "@/lib/appointment";
 import { Field } from "../forms/Field";
-import { FormHeader, FormError, FormActions } from "../forms/ui";
+import { FormModal, FormHeader, FormError, FormActions } from "../forms/ui";
 
 type Props = {
   version: number;
@@ -195,10 +195,8 @@ function BookingForm({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
-    >
+    <FormModal maxWidth={460}>
+      <form onSubmit={submit}>
       <FormHeader title="Đặt lịch hẹn" />
       <div className="p-4 space-y-3.5">
       <Field label="Bác sĩ">
@@ -284,6 +282,7 @@ function BookingForm({
         }}
       />
       </div>
-    </form>
+      </form>
+    </FormModal>
   );
 }
