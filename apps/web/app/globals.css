@@ -183,10 +183,6 @@ body {
   margin: 0.6em 0;
   display: flex;
   justify-content: center;
-  background: #fafafa;
-  border: 1px solid #eef0f2;
-  border-radius: 10px;
-  padding: 0.85em 1em;
   overflow-x: auto;
 }
 .viz-block svg {
