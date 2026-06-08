@@ -10,15 +10,15 @@ trình bày bằng SVG. KHÔNG bấm "Duyệt"/"Nhận"/"Huỷ" (đó là việc
 
 ## Chuỗi lệnh
 1. `read_panel({ tab: "appointments", mode: "silent" })` — đọc ngầm.
-2. Tab Lịch hẹn có 2 subtab: `appointment-subtab:pending` ("Chờ duyệt") và
-   `appointment-subtab:approved` ("Đã duyệt"); subtab đang mở có `data-agent-active`.
-   Mỗi lịch là một phần tử `appointment:<id>:info` (role `text`, `value` = ngày giờ +
-   tên/mã BN + tóm tắt từ trợ lý ảo + lời nhắn từ bệnh nhân nếu có).
-3. Lấy đủ dữ liệu theo **phạm vi** bác sĩ hỏi:
-   - Chỉ **chờ duyệt** → đọc subtab pending (mặc định thường mở sẵn).
-   - Chỉ **đã duyệt** → nếu chưa mở: `act([{ action: "click", ref: "appointment-subtab:approved" }])`
-     (kế thừa chế độ ngầm) rồi đọc snapshot trả về.
-   - **Cả hai** → đọc subtab hiện tại, rồi `act` chuyển subtab kia và đọc tiếp.
+2. Mỗi lịch hẹn là một phần tử `appointment:<id>:info` (role `text`), `value` = ngày giờ
+   + **trạng thái** ("Chờ duyệt" hoặc "Đã duyệt") + tên/mã BN + tóm tắt từ trợ lý ảo +
+   lời nhắn từ bệnh nhân nếu có. Danh sách gồm **MỌI** lịch trong **một** danh sách (cả hai
+   trạng thái lẫn hàng chờ chung) — KHÔNG còn tab con tách trạng thái, đọc một lần là đủ.
+3. Lấy đủ dữ liệu rồi **lọc theo phạm vi** bác sĩ hỏi, dựa vào trạng thái + thời gian đọc
+   được (KHÔNG bịa — chỉ lấy giá trị đọc được):
+   - Chỉ **chờ duyệt** → giữ các lịch trạng thái "Chờ duyệt".
+   - Chỉ **đã duyệt** → giữ các lịch trạng thái "Đã duyệt".
+   - **Cả hai** / hôm nay / tuần này → lọc theo thời gian, giữ cả hai trạng thái.
 4. `read_skills(['draw-svg'])` lấy quy tắc kỹ thuật, rồi vẽ **một** khối ```` ```svg ````
    + 1–2 câu dẫn. Gợi ý bố cục: liệt kê theo thời gian (sớm → muộn), **mỗi lịch một dòng
    `y` riêng** (ngày giờ · BN · tóm tắt). Phân màu theo trạng thái: **chờ duyệt = cam/xanh
