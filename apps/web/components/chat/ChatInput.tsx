@@ -13,7 +13,6 @@ const ROLE_LABEL_VI: Record<string, string> = {
   doctor: "bác sĩ",
   manager: "quản lý",
   expert: "chuyên gia",
-  patient: "bệnh nhân",
 };
 
 function placeholderByRole(role?: string | null): string {

@@ -52,7 +52,6 @@ const ROLE_LABEL_VI: Record<string, string> = {
   doctor: "bác sĩ",
   manager: "quản lý",
   expert: "chuyên gia",
-  patient: "bệnh nhân",
 };
 
 export function EmptyGreeting({
@@ -67,7 +66,7 @@ export function EmptyGreeting({
     <div className="flex items-center gap-5 text-gray-900">
       <AssistantAvatar size={47} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
-        Xin chào {roleLabel} {userName}
+        Xin chào{roleLabel ? ` ${roleLabel}` : ""} {userName}
       </h1>
     </div>
   );
