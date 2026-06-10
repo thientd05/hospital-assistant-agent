@@ -16,9 +16,31 @@ import {
 const BodySchema = z.object({
   conversationId: z.string().nullish(),
   message: z.string().min(1),
+  // Sửa & gửi lại (như ChatGPT/Claude): index lượt user (0-based, CHỈ đếm tin
+  // user thật — content là chuỗi, KHÔNG đếm tool_result) cần thay. Lịch sử bị
+  // cắt TRƯỚC lượt này; `message` trở thành nội dung mới của lượt đó.
+  editUserTurn: z.number().int().min(0).nullish(),
 });
 
 type StoredMessage = Anthropic.MessageParam;
+
+// Cắt lịch sử về TRƯỚC lượt user thứ `turn` (0-based). Tin user "thật" = content
+// dạng chuỗi (tool_result là content mảng → bỏ qua khi đếm). Không tìm thấy →
+// giữ nguyên (không cắt).
+function truncateBeforeUserTurn(
+  history: StoredMessage[],
+  turn: number
+): StoredMessage[] {
+  let seen = 0;
+  for (let i = 0; i < history.length; i++) {
+    const m = history[i];
+    if (m.role === "user" && typeof m.content === "string") {
+      if (seen === turn) return history.slice(0, i);
+      seen += 1;
+    }
+  }
+  return history;
+}
 
 function sse(reply: any, payload: unknown) {
   reply.raw.write(`data: ${JSON.stringify(payload)}\n\n`);
@@ -36,7 +58,7 @@ export async function chatRoutes(app: FastifyInstance) {
         reply.code(400).send({ error: "Invalid body", details: parsed.error });
         return;
       }
-      const { conversationId, message } = parsed.data;
+      const { conversationId, message, editUserTurn } = parsed.data;
       const ownerId = req.user.sub;
       const role = req.user.role;
       if (role !== "doctor" && role !== "patient") {
@@ -66,6 +88,11 @@ export async function chatRoutes(app: FastifyInstance) {
             history = (existing.messages ?? []) as StoredMessage[];
             existingTitle = existing.title;
           }
+        }
+        // Sửa & gửi lại: cắt lịch sử về trước lượt user được sửa (drop lượt đó +
+        // mọi thứ sau nó), rồi `message` mới nối vào như lượt thay thế.
+        if (typeof editUserTurn === "number") {
+          history = truncateBeforeUserTurn(history, editUserTurn);
         }
         if (!convoId) {
           convoId = `conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

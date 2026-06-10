@@ -397,6 +397,7 @@ export default function ChatPage() {
           showSuggestions={chatMode === "ai" && chat.showGreetingSuggestions}
           renderMessageFooter={renderMessageFooter}
           greetingId={chat.greetingId}
+          onEditMessage={(turnIndex, text) => chat.sendMessage(text, turnIndex)}
         />
       </RatingsProvider>
       <WorkspacePanel

@@ -116,6 +116,19 @@ function appendTextPart(
 
 export type ChatMode = "ai" | "patient";
 
+// Cắt danh sách tin về TRƯỚC lượt user thứ `turn` (0-based, đếm role==="user").
+// Khớp cách agent cắt lịch sử khi sửa & gửi lại.
+function truncateBeforeUserTurn(messages: Message[], turn: number): Message[] {
+  let seen = 0;
+  for (let i = 0; i < messages.length; i++) {
+    if (messages[i].role === "user") {
+      if (seen === turn) return messages.slice(0, i);
+      seen += 1;
+    }
+  }
+  return messages;
+}
+
 type UseChatOptions = {
   mode?: ChatMode;
   onToolRefresh?: (refresh: ToolRefresh | undefined) => void;
@@ -296,7 +309,9 @@ export function useChat(opts: UseChatOptions = {}) {
   );
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    // `editUserTurn` (chỉ mode "ai"): sửa & gửi lại lượt user thứ N → cắt cả tin
+    // local lẫn lịch sử server về trước lượt đó, rồi gửi `text` làm lượt thay thế.
+    async (text: string, editUserTurn?: number) => {
       if (!text.trim() || isStreaming) return;
       // User bắt đầu chat thật → chốt lời chào về đủ (giữ làm tin đầu đoạn).
       finalizeGreeting();
@@ -374,7 +389,14 @@ export function useChat(opts: UseChatOptions = {}) {
         createdAt: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMsg, assistantMsg]);
+      setMessages((prev) => {
+        // Sửa & gửi lại → bỏ lượt user cũ + mọi tin sau nó trước khi nối lượt mới.
+        const base =
+          editUserTurn != null
+            ? truncateBeforeUserTurn(prev, editUserTurn)
+            : prev;
+        return [...base, userMsg, assistantMsg];
+      });
       setIsStreaming(true);
 
       const updateAssistant = (mutate: (m: Message) => Message) => {
@@ -387,7 +409,11 @@ export function useChat(opts: UseChatOptions = {}) {
         const res = await authFetch(`${AGENT_URL}/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversationId, message: text }),
+          body: JSON.stringify({
+            conversationId,
+            message: text,
+            ...(editUserTurn != null ? { editUserTurn } : {}),
+          }),
         });
 
         if (res.status === 401) {

@@ -1,6 +1,14 @@
 "use client";
 
-import { memo, useCallback, useState, type ReactNode } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import type { Message, MessagePart } from "@pr_hospitalagent/types";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -126,7 +134,133 @@ type Props = {
   bubbles?: boolean;
   /** Nội dung hiện ngay dưới câu trả lời cuối (assistant) — vd icon chấm sao. */
   footer?: ReactNode;
+  /** Thứ tự lượt user (0-based) — cần để sửa & gửi lại; chỉ set ở mode "ai". */
+  userTurnIndex?: number;
+  /** Sửa & gửi lại tin user thứ `turnIndex` với nội dung mới. */
+  onEditUser?: (turnIndex: number, text: string) => void;
+  /** Cho phép hiện nút sửa (tắt khi đang stream). */
+  canEdit?: boolean;
 };
+
+// Bong bóng tin của user (mode "ai"): hover hiện nút bút bên dưới (căn phải); bấm
+// → ô sửa; Enter gửi lại (cắt hội thoại từ lượt này về sau rồi sinh lại). Như
+// cách các web chat AI phổ biến làm.
+function UserBubble({
+  message,
+  turnIndex,
+  onEditUser,
+  canEdit,
+}: {
+  message: Message;
+  turnIndex?: number;
+  onEditUser?: (turnIndex: number, text: string) => void;
+  canEdit?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(message.content);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const editable = canEdit && !!onEditUser && turnIndex !== undefined;
+
+  useEffect(() => {
+    if (!editing) return;
+    const ta = taRef.current;
+    if (!ta) return;
+    ta.focus();
+    // Con trỏ về cuối + auto-grow chiều cao.
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.style.height = "auto";
+    ta.style.height = `${ta.scrollHeight}px`;
+  }, [editing]);
+
+  const submit = () => {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    setEditing(false);
+    onEditUser!(turnIndex!, trimmed);
+  };
+
+  const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setEditing(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <div className="flex flex-col items-end">
+        <div className="w-full max-w-[75%] rounded-2xl border border-gray-300 bg-white px-3.5 py-2.5 focus-within:border-gray-400 transition-colors">
+          <textarea
+            ref={taRef}
+            value={draft}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              const ta = e.target;
+              ta.style.height = "auto";
+              ta.style.height = `${ta.scrollHeight}px`;
+            }}
+            onKeyDown={handleKey}
+            rows={1}
+            className="w-full resize-none outline-none bg-transparent text-sm leading-[22px] text-gray-900"
+          />
+          <div className="flex items-center justify-end gap-2 mt-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="px-3 py-1 text-sm rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!draft.trim()}
+              className="px-3 py-1 text-sm rounded-full bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Gửi
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group flex flex-col items-end">
+      <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
+        {message.content}
+      </div>
+      {editable && (
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(message.content);
+            setEditing(true);
+          }}
+          aria-label="Sửa tin nhắn"
+          title="Sửa tin nhắn"
+          className="mt-1 p-1 rounded-md text-gray-400 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-gray-100 hover:text-gray-600 transition-opacity"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
 
 // Suy ra danh sách part có thứ tự cho assistant message. Ưu tiên `parts`
 // (giữ xen kẽ text↔tool đúng thứ tự); nếu thiếu (dữ liệu cũ) thì dựng lại từ
@@ -158,7 +292,14 @@ function splitParts(parts: MessagePart[]): {
   };
 }
 
-function MessageBubbleInner({ message, bubbles = false, footer }: Props) {
+function MessageBubbleInner({
+  message,
+  bubbles = false,
+  footer,
+  userTurnIndex,
+  onEditUser,
+  canEdit,
+}: Props) {
   const isUser = message.role === "user";
 
   // === Mode tin nhắn trực tiếp 1-1: cả hai phía đều là bong bóng văn bản thuần ===
@@ -181,14 +322,15 @@ function MessageBubbleInner({ message, bubbles = false, footer }: Props) {
     );
   }
 
-  // user-message bên phải
+  // user-message bên phải (mode "ai") — hover hiện nút sửa & gửi lại.
   if (isUser) {
     return (
-      <div className="flex items-start justify-end">
-        <div className="bg-[#EFEFEB] text-gray-900 rounded-2xl px-3.5 py-2.5 max-w-[75%] whitespace-pre-wrap break-words">
-          {message.content}
-        </div>
-      </div>
+      <UserBubble
+        message={message}
+        turnIndex={userTurnIndex}
+        onEditUser={onEditUser}
+        canEdit={canEdit}
+      />
     );
   }
 
@@ -240,6 +382,8 @@ export const MessageBubble = memo(MessageBubbleInner, (prev, next) => {
   const b = next.message;
   return (
     prev.bubbles === next.bubbles &&
+    prev.canEdit === next.canEdit &&
+    prev.userTurnIndex === next.userTurnIndex &&
     // null↔non-null footer phải re-render (vd lúc stream xong mới hiện chấm sao);
     // còn khi cùng có footer thì StarRating tự cập nhật qua context (khỏi re-render).
     (prev.footer == null) === (next.footer == null) &&

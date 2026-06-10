@@ -27,6 +27,8 @@ type Props = {
   renderMessageFooter?: (message: Message, turnIndex: number) => ReactNode;
   /** id lời chào fake-stream (loại khỏi đếm turnIndex chấm sao). */
   greetingId?: string | null;
+  /** Sửa & gửi lại lượt user thứ `turnIndex` (chỉ mode "ai"). */
+  onEditMessage?: (turnIndex: number, text: string) => void;
 };
 
 export function ChatWindow({
@@ -42,6 +44,7 @@ export function ChatWindow({
   showSuggestions = false,
   renderMessageFooter,
   greetingId,
+  onEditMessage,
 }: Props) {
   // Tăng để yêu cầu ChatInput focus (bấm "Câu hỏi khác").
   const [focusSignal, setFocusSignal] = useState(0);
@@ -190,6 +193,8 @@ export function ChatWindow({
             messages={messages}
             renderMessageFooter={renderMessageFooter}
             greetingId={greetingId}
+            onEditUser={onEditMessage}
+            canEditUser={!isStreaming}
             footer={
               showSuggestions ? (
                 <GreetingSuggestions

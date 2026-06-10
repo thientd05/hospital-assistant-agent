@@ -19,6 +19,10 @@ type Props = {
   renderMessageFooter?: (message: Message, turnIndex: number) => ReactNode;
   /** id tin nhắn lời chào fake-stream (không lưu server) → loại khỏi đếm turnIndex. */
   greetingId?: string | null;
+  /** Sửa & gửi lại lượt user thứ `turnIndex` (chỉ mode "ai"). */
+  onEditUser?: (turnIndex: number, text: string) => void;
+  /** Cho phép nút sửa tin user (tắt khi đang stream). */
+  canEditUser?: boolean;
 };
 
 export function MessageList({
@@ -27,6 +31,8 @@ export function MessageList({
   footer,
   renderMessageFooter,
   greetingId,
+  onEditUser,
+  canEditUser,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -57,11 +63,17 @@ export function MessageList({
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
         {(() => {
           let assistantSeen = 0;
+          let userSeen = 0;
           return messages.map((m) => {
             let turnIndex = -1;
             if (m.role === "assistant" && m.id !== greetingId) {
               turnIndex = assistantSeen;
               assistantSeen += 1;
+            }
+            let userTurnIndex: number | undefined;
+            if (m.role === "user") {
+              userTurnIndex = userSeen;
+              userSeen += 1;
             }
             const msgFooter =
               turnIndex >= 0 ? renderMessageFooter?.(m, turnIndex) : undefined;
@@ -71,6 +83,9 @@ export function MessageList({
                 message={m}
                 bubbles={bubbles}
                 footer={msgFooter ?? undefined}
+                userTurnIndex={userTurnIndex}
+                onEditUser={onEditUser}
+                canEdit={canEditUser}
               />
             );
           });
