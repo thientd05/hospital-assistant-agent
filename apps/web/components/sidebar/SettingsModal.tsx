@@ -12,6 +12,7 @@ import type {
 import { http, ApiError } from "@/lib/apiClient";
 import { dedupedFetch, getCached, setCached } from "@/lib/resourceCache";
 import { useAuth, type AuthAccount } from "@/app/providers/AuthProvider";
+import { FamilyPanel } from "./FamilyPanel";
 
 type Props = {
   open: boolean;
@@ -50,6 +51,7 @@ const WORKSPACE_FILES: WorkspaceFileMeta[] = [
 type Tab =
   | { kind: "profile" }
   | { kind: "password" }
+  | { kind: "family" }
   | { kind: "file"; file: WorkspaceFile };
 
 type FieldDef = {
@@ -180,6 +182,7 @@ export function SettingsModal({ open, onClose }: Props) {
 
   const showWorkspaceFiles =
     account.role === "doctor" || account.role === "patient";
+  const isPatient = account.role === "patient";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -235,6 +238,14 @@ export function SettingsModal({ open, onClose }: Props) {
             >
               Đổi mật khẩu
             </TabButton>
+            {isPatient && (
+              <TabButton
+                active={tab.kind === "family"}
+                onClick={() => setTab({ kind: "family" })}
+              >
+                Gia đình
+              </TabButton>
+            )}
             {showWorkspaceFiles && (
               <>
                 <div className="hidden md:block pt-3 pb-1 px-3 text-xs uppercase tracking-wide text-gray-400">
@@ -301,6 +312,7 @@ export function SettingsModal({ open, onClose }: Props) {
             />
           )}
           {tab.kind === "password" && <PasswordPanel />}
+          {tab.kind === "family" && <FamilyPanel />}
           {tab.kind === "file" && (
             <WorkspaceFilePanel
               key={tab.file}

@@ -39,6 +39,8 @@ import type {
   Revenue,
   RevenueSource,
   DirectThread,
+  Family,
+  FamilyInvite,
   ExamRecord,
   LabResult,
 } from "@pr_hospitalagent/types";
@@ -1187,6 +1189,30 @@ const directMessageSeeds: DirectThread[] = [
   },
 ];
 
+// ───────────────────────────── Gia đình (theo dõi người nhà) ──────────────
+// Demo: BN001 (Nguyễn Văn Hùng) đã mời BN002 → nhóm GD001 đặt tên theo người mời.
+// Một lời mời đang chờ BN003 → BN004 để test luồng chấp nhận trên UI.
+const familySeeds: Family[] = [
+  {
+    id: "GD001",
+    name: "Gia đình của Nguyễn Văn Hùng",
+    memberIds: ["BN001", "BN002"],
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+const familyInviteSeeds: FamilyInvite[] = [
+  {
+    id: "FI001",
+    fromPatientId: "BN003",
+    toPatientId: "BN004",
+    status: "pending",
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
 // ───────────────────── Hội thoại AI ↔ người dùng (chat co-pilot) ──────────
 // `doctorId` = ID owner BẤT KỲ role (BS00X = bác sĩ, BN00X = bệnh nhân) — lý do
 // lịch sử. CHỈ seed cho mã CỐ ĐỊNH của seed (BS001..3, BN001..10); register chỉ
@@ -1400,6 +1426,20 @@ async function seed() {
   );
   await directMessages.insertMany(directMessageSeeds);
 
+  // 13b. Gia đình + lời mời gia đình (theo dõi người nhà).
+  const families = db.collection<Family>("families");
+  await families.deleteMany({});
+  await families.createIndex({ id: 1 }, { unique: true });
+  await families.createIndex({ memberIds: 1 });
+  await families.insertMany(familySeeds);
+
+  const familyInvites = db.collection<FamilyInvite>("familyinvites");
+  await familyInvites.deleteMany({});
+  await familyInvites.createIndex({ id: 1 }, { unique: true });
+  await familyInvites.createIndex({ toPatientId: 1, status: 1 });
+  await familyInvites.createIndex({ fromPatientId: 1, toPatientId: 1, status: 1 });
+  await familyInvites.insertMany(familyInviteSeeds);
+
   // 14. Conversations — XOÁ SẠCH rồi insert vài hội thoại mẫu cho MÃ CỐ ĐỊNH.
   // Bắt buộc dọn: register cấp mã BN bằng nextId (tái dùng BN011, BN012… sau mỗi
   // seed) → nếu còn rác, BN mới trùng mã thừa hưởng hội thoại "ma" (lọc theo
@@ -1439,6 +1479,8 @@ async function seed() {
   console.log(`  skills       ${skillDocs.length}`);
   console.log(`  workspaces   ${workspaceDocs.length}  (soul/user: BS001 + BN001)`);
   console.log(`  directmsgs   ${directMessageSeeds.length}`);
+  console.log(`  families     ${familySeeds.length}  (GD001: BN001+BN002)`);
+  console.log(`  familyinvites ${familyInviteSeeds.length}  (FI001: BN003→BN004)`);
   console.log(`  conversations ${conversationSeeds.length}  (AI↔BN, AI↔BS mẫu)`);
   console.log(`  examrecords  ${examRecordDocs.length}  (lịch sử khám BN001/BN002)`);
   console.log("\nTài khoản:");

@@ -600,3 +600,62 @@ export type FinancialStatsData = {
   };
 };
 
+// ───────────────────────────── Gia đình (theo dõi người nhà) ───────────────
+// Nhóm gia đình giúp bệnh nhân cùng theo dõi hồ sơ + kết quả khám của nhau
+// (KHÔNG thấy lịch hẹn của nhau, KHÔNG phải nhóm nhắn tin). Mỗi BN thuộc tối đa
+// MỘT gia đình (bất biến enforce ở service). Hình thành khi một BN mời người nhà
+// theo SĐT và người kia chấp nhận.
+export type Family = {
+  id: string; // "GD00X"
+  name: string;
+  memberIds: string[]; // danh sách id bệnh nhân trong nhóm
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type FamilyInviteStatus = "pending" | "accepted" | "declined";
+
+export type FamilyInvite = {
+  id: string; // "FI00X"
+  fromPatientId: string; // người mời (người tạo nhóm khi được chấp nhận)
+  toPatientId: string; // người được mời
+  status: FamilyInviteStatus;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type FamilyMemberSummary = { id: string; name: string };
+
+// Trả về cho FE: nhóm + danh sách thành viên (tên rút gọn). null = chưa có nhóm.
+export type FamilyView = {
+  family: { id: string; name: string; createdAt: Date; updatedAt: Date };
+  members: FamilyMemberSummary[];
+} | null;
+
+// Lời mời đang chờ (góc nhìn người nhận) kèm tên người gửi để hiển thị.
+export type FamilyInviteView = {
+  id: string;
+  fromPatientId: string;
+  fromName: string;
+  status: FamilyInviteStatus;
+  createdAt: Date;
+};
+
+// Chi tiết một thành viên cho người cùng nhóm xem: CHỈ hồ sơ + xét nghiệm.
+// Dùng Pick để CỐ Ý loại lịch hẹn (thành viên không thấy lịch hẹn của nhau).
+export type FamilyMemberDetail = {
+  patient: Pick<
+    PatientPublic,
+    | "id"
+    | "name"
+    | "age"
+    | "gender"
+    | "ward"
+    | "address"
+    | "phone"
+    | "diagnoses"
+    | "vitals"
+  >;
+  labResults: LabResult[];
+};
+
