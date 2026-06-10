@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import type { Message } from "@pr_hospitalagent/types";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { EmptyGreeting, MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
+import { GreetingSuggestions } from "./GreetingSuggestions";
 import type { ChatMode } from "@/hooks/useChat";
 
 type Props = {
@@ -19,6 +21,8 @@ type Props = {
   panelHasAlert?: boolean;
   /** Mobile (< lg): mở sidebar full-screen. */
   onOpenSidebar?: () => void;
+  /** Hiện list nút gợi ý dưới lời chào (bệnh nhân vừa vào app). */
+  showSuggestions?: boolean;
 };
 
 export function ChatWindow({
@@ -31,7 +35,14 @@ export function ChatWindow({
   hasSelection = false,
   panelHasAlert = false,
   onOpenSidebar,
+  showSuggestions = false,
 }: Props) {
+  // Tăng để yêu cầu ChatInput focus (bấm "Câu hỏi khác").
+  const [focusSignal, setFocusSignal] = useState(0);
+  const handlePickSuggestion = (message: string | null) => {
+    if (message === null) setFocusSignal((v) => v + 1);
+    else onSend(message);
+  };
   const { doctor, manager, patient, expert, role } = useAuth();
   const bareName =
     doctor?.fullName ?? manager?.fullName ?? expert?.fullName ?? patient?.name ?? "";
@@ -169,8 +180,23 @@ export function ChatWindow({
         </div>
       ) : (
         <>
-          <MessageList messages={messages} />
-          <ChatInput onSend={onSend} disabled={isStreaming} role={role} />
+          <MessageList
+            messages={messages}
+            footer={
+              showSuggestions ? (
+                <GreetingSuggestions
+                  onPick={handlePickSuggestion}
+                  disabled={isStreaming}
+                />
+              ) : undefined
+            }
+          />
+          <ChatInput
+            onSend={onSend}
+            disabled={isStreaming}
+            role={role}
+            focusSignal={focusSignal}
+          />
         </>
       )}
     </div>

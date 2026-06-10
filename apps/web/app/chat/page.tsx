@@ -376,6 +376,7 @@ export default function ChatPage() {
         hasSelection={hasSelection}
         panelHasAlert={isDoctor && apptAlerts.hasNew}
         onOpenSidebar={() => setMobileView("sidebar")}
+        showSuggestions={chatMode === "ai" && chat.showGreetingSuggestions}
       />
       <WorkspacePanel
         isOpen={workspace.isOpen}

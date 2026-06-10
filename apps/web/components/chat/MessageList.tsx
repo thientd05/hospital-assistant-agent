@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { Message } from "@pr_hospitalagent/types";
 import { MessageBubble } from "./MessageBubble";
 import { AssistantAvatar } from "@/components/AssistantAvatar";
@@ -9,9 +9,11 @@ type Props = {
   messages: Message[];
   /** Bố cục tin nhắn trực tiếp 1-1: tin của mình bên phải, đối phương bên trái (đều có bong bóng). */
   bubbles?: boolean;
+  /** Nội dung hiện ngay dưới tin cuối, trong vùng cuộn (vd: list nút gợi ý sau lời chào). */
+  footer?: ReactNode;
 };
 
-export function MessageList({ messages, bubbles }: Props) {
+export function MessageList({ messages, bubbles, footer }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   // Chỉ TỰ cuộn xuống cuối khi người dùng đang ở sát đáy. Kéo lên (vd để xem dashboard
@@ -42,6 +44,7 @@ export function MessageList({ messages, bubbles }: Props) {
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} bubbles={bubbles} />
         ))}
+        {footer}
         <div ref={endRef} />
       </div>
     </div>

@@ -148,6 +148,10 @@ export function useChat(opts: UseChatOptions = {}) {
   // hội thoại khác. Nếu user gửi tin trong lúc đang chạy → snap lời chào về đủ.
   const greetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const greetRef = useRef<{ id: string; full: string } | null>(null);
+  // id lời chào đang hiển thị (null = không có); cờ đang gõ chữ. Suy ra lúc nào
+  // hiện list nút gợi ý: lời chào còn đó + đã gõ xong.
+  const [greetingId, setGreetingId] = useState<string | null>(null);
+  const [greetingStreaming, setGreetingStreaming] = useState(false);
 
   const finalizeGreeting = useCallback(() => {
     if (greetTimerRef.current) {
@@ -156,6 +160,8 @@ export function useChat(opts: UseChatOptions = {}) {
     }
     const g = greetRef.current;
     greetRef.current = null;
+    setGreetingId(null);
+    setGreetingStreaming(false);
     if (g) {
       setMessages((prev) =>
         prev.map((m) =>
@@ -172,6 +178,8 @@ export function useChat(opts: UseChatOptions = {}) {
       if (greetTimerRef.current) clearTimeout(greetTimerRef.current);
       const id = newId();
       greetRef.current = { id, full: fullText };
+      setGreetingId(id);
+      setGreetingStreaming(true);
       const base: Message = {
         id,
         role: "assistant",
@@ -197,6 +205,7 @@ export function useChat(opts: UseChatOptions = {}) {
         } else {
           greetTimerRef.current = null;
           greetRef.current = null;
+          setGreetingStreaming(false); // gõ xong → hiện nút gợi ý
         }
       };
       greetTimerRef.current = setTimeout(step, 18);
@@ -205,6 +214,9 @@ export function useChat(opts: UseChatOptions = {}) {
   );
 
   useEffect(() => () => finalizeGreeting(), [finalizeGreeting]);
+
+  // Hiện list nút gợi ý khi lời chào đã gõ xong và vẫn là tin duy nhất.
+  const showGreetingSuggestions = greetingId !== null && !greetingStreaming;
 
   const selectConversation = useCallback(
     async (id: string | null) => {
@@ -507,6 +519,7 @@ export function useChat(opts: UseChatOptions = {}) {
     sendMessage,
     selectConversation,
     showGreeting,
+    showGreetingSuggestions,
   };
 }
 

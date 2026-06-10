@@ -7,6 +7,8 @@ type Props = {
   disabled: boolean;
   role?: string | null;
   placeholder?: string;
+  /** Tăng giá trị này để yêu cầu focus vào ô nhập (vd: bấm "Câu hỏi khác"). */
+  focusSignal?: number;
 };
 
 const ROLE_LABEL_VI: Record<string, string> = {
@@ -29,9 +31,16 @@ export function ChatInput({
   disabled,
   role,
   placeholder,
+  focusSignal,
 }: Props) {
   const [value, setValue] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // Bấm "Câu hỏi khác" → đưa con trỏ về ô nhập (không gửi gì).
+  useEffect(() => {
+    if (focusSignal === undefined || focusSignal === 0) return;
+    taRef.current?.focus();
+  }, [focusSignal]);
 
   useEffect(() => {
     const ta = taRef.current;
