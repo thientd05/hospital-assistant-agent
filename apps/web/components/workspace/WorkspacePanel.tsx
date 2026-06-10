@@ -6,6 +6,7 @@ import { PatientsTab } from "./tabs/PatientsTab";
 import { PatientDetailTab } from "./tabs/PatientDetailTab";
 import { AppointmentsTab } from "./tabs/AppointmentsTab";
 import { MyAppointmentsTab } from "./tabs/MyAppointmentsTab";
+import { NotificationsTab } from "./tabs/NotificationsTab";
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = MIN_WIDTH * 1.5;
@@ -17,6 +18,7 @@ const TAB_LABELS: Record<WorkspaceTab, string> = {
   "exam-history": "Lịch sử khám",
   "my-record": "Hồ sơ",
   "my-appointments": "Lịch hẹn",
+  notifications: "Thông báo",
 };
 
 type Props = {
@@ -245,6 +247,13 @@ export function WorkspacePanel({
               version={versions["my-appointments"]}
               active={isMounted && activeTab === "my-appointments"}
               aiConversationId={aiConversationId}
+            />
+          )}
+          {activeTab === "notifications" && (
+            <NotificationsTab
+              role={role}
+              version={versions.notifications}
+              active={isMounted && activeTab === "notifications"}
             />
           )}
         </div>
