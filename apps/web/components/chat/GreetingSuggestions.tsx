@@ -2,7 +2,8 @@
 
 // List nút gợi ý hiện dưới lời chào của bệnh nhân. Bấm 1 nút → gửi ngay câu hỏi
 // tương ứng tới chatbot; riêng "Câu hỏi khác" chỉ đưa con trỏ về ô nhập để bệnh
-// nhân tự gõ (message = null). Viền đậm, nền trắng, chữ màu đặc trưng (brand).
+// nhân tự gõ (message = null). Nút tông brand đồng nhất (viền/nền/chữ cùng hệ
+// màu), có đổ bóng + nhấc nhẹ khi hover + lún khi bấm để trông bấm được.
 
 type Suggestion = { label: string; message: string | null };
 
@@ -30,7 +31,7 @@ export function GreetingSuggestions({
           type="button"
           disabled={disabled}
           onClick={() => onPick(s.message)}
-          className="rounded-lg border border-gray-900 bg-white px-3.5 py-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 disabled:opacity-50"
+          className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 shadow-sm transition-all hover:-translate-y-px hover:border-brand-300 hover:bg-brand-100 hover:shadow active:translate-y-0 active:shadow-sm disabled:opacity-50"
         >
           {s.label}
         </button>
