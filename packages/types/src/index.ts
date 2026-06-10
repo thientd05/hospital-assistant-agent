@@ -654,6 +654,7 @@ export type FamilyMemberDetail = {
     | "address"
     | "phone"
     | "diagnoses"
+    | "medications"
     | "vitals"
   >;
   labResults: LabResult[];

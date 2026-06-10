@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type {
   FamilyMemberDetail,
   LabResult,
+  Prescription,
 } from "@pr_hospitalagent/types";
 import { ApiError } from "@/lib/apiClient";
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -194,33 +195,51 @@ function FamilyView({
         )}
       </div>
 
-      {/* Danh sách thành viên */}
-      <ul className="divide-y divide-gray-100">
+      {/* Danh sách thành viên — dạng thẻ, 2 thẻ / hàng */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {members.map((m) => {
           const isMe = m.id === myId;
+          const label = m.name || m.id;
           return (
-            <li key={m.id} className="flex items-center gap-2 py-2">
-              <button
-                type="button"
-                onClick={() => onOpenMember(m.id)}
-                className="flex-1 text-left text-sm text-gray-800 hover:text-[#087E8B]"
-              >
-                {m.name || m.id}
-                {isMe && <span className="text-gray-400"> (Bạn)</span>}
-              </button>
-              {!isMe && (
+            <div
+              key={m.id}
+              className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 shrink-0 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold">
+                  {label.trim().charAt(0).toUpperCase() || "?"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {label}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {isMe ? "Bạn" : m.id}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => removeMember(m.id, m.name || m.id)}
-                  className="text-xs text-red-500 hover:text-red-600 hover:underline"
+                  onClick={() => onOpenMember(m.id)}
+                  className="ws-btn-ghost text-xs px-3 py-1.5"
                 >
-                  Xoá
+                  Xem chi tiết
                 </button>
-              )}
-            </li>
+                {!isMe && (
+                  <button
+                    type="button"
+                    onClick={() => removeMember(m.id, label)}
+                    className="ml-auto text-xs text-red-500 hover:text-red-600 hover:underline"
+                  >
+                    Xoá
+                  </button>
+                )}
+              </div>
+            </div>
           );
         })}
-      </ul>
+      </div>
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
@@ -472,6 +491,14 @@ function MemberDetail({
             </dl>
           </div>
 
+          {/* Thuốc đang dùng */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-1">
+              Thuốc đang dùng
+            </h4>
+            <MedicationList meds={data.patient.medications} />
+          </div>
+
           {/* Xét nghiệm */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-1">
@@ -504,6 +531,27 @@ function Info({
 
 function vitalStr(v: number | undefined, suffix: string): string {
   return v ? `${v}${suffix}` : "—";
+}
+
+function MedicationList({ meds }: { meds: Prescription[] }) {
+  if (meds.length === 0) {
+    return <p className="text-sm text-gray-400">Chưa có thuốc nào.</p>;
+  }
+  return (
+    <ul className="space-y-1.5">
+      {meds.map((m, i) => (
+        <li
+          key={`${m.name}-${i}`}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        >
+          <p className="font-medium text-gray-800">{m.name}</p>
+          {m.instruction && (
+            <p className="text-xs text-gray-500 mt-0.5">{m.instruction}</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function LabTable({ labs }: { labs: LabResult[] }) {

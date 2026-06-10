@@ -197,6 +197,7 @@ export const familyService = {
         address: patient.address,
         phone: patient.phone,
         diagnoses: patient.diagnoses,
+        medications: patient.medications,
         vitals: patient.vitals,
       },
       labResults: labs?.labResults ?? [],
