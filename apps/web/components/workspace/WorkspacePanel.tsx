@@ -181,7 +181,7 @@ export function WorkspacePanel({
                   {showDot && (
                     <span
                       aria-hidden
-                      className="absolute top-1 right-0.5 w-2 h-2 rounded-full bg-rose-500"
+                      className="absolute top-1 right-0.5 w-2 h-2 rounded-full bg-amber-400"
                     />
                   )}
                 </button>

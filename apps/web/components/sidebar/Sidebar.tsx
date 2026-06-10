@@ -157,16 +157,14 @@ export function Sidebar({
                 }
                 className="relative flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
-                <span className="relative shrink-0">
-                  <AssistantAvatar size={32} />
-                  {hasUnreadDirect && (
-                    <span
-                      aria-hidden
-                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
-                    />
-                  )}
-                </span>
+                <AssistantAvatar size={32} className="shrink-0" />
                 {isPatientMode ? directCap : "Trợ Lý Ảo"}
+                {hasUnreadDirect && (
+                  <span
+                    aria-hidden
+                    className="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-white"
+                  />
+                )}
                 <svg
                   viewBox="0 0 20 20"
                   className="w-3.5 h-3.5 text-gray-400 shrink-0"

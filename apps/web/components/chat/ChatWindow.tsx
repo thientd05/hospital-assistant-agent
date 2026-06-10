@@ -93,7 +93,7 @@ export function ChatWindow({
             {panelHasAlert && (
               <span
                 aria-hidden
-                className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
+                className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-white"
               />
             )}
           </button>
@@ -124,7 +124,7 @@ export function ChatWindow({
           {panelHasAlert && (
             <span
               aria-hidden
-              className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
+              className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-white"
             />
           )}
         </button>

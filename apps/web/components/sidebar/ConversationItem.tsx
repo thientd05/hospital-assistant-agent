@@ -51,7 +51,7 @@ export function ConversationItem({
       {showDot && (
         <span
           aria-hidden
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-rose-500"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-amber-400"
         />
       )}
 
