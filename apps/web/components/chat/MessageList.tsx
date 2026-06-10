@@ -97,18 +97,12 @@ export function MessageList({
   );
 }
 
-const ROLE_LABEL_VI: Record<string, string> = {
-  doctor: "bác sĩ",
-  manager: "quản lý",
-  expert: "chuyên gia",
-};
-
-// Lời chào theo buổi (giờ địa phương): sáng 5–10h, chiều 11–17h, còn lại tối.
-function timeGreeting(): string {
+// Buổi theo giờ địa phương: sáng 5–10h, chiều 11–17h, còn lại tối.
+function timeOfDay(): string {
   const h = new Date().getHours();
-  if (h >= 5 && h < 11) return "Chào buổi sáng";
-  if (h >= 11 && h < 18) return "Chào buổi chiều";
-  return "Chào buổi tối";
+  if (h >= 5 && h < 11) return "sáng";
+  if (h >= 11 && h < 18) return "chiều";
+  return "tối";
 }
 
 export function EmptyGreeting({
@@ -118,14 +112,12 @@ export function EmptyGreeting({
   role?: string | null;
   userName: string;
 }) {
-  const roleLabel = role ? ROLE_LABEL_VI[role] ?? "" : "";
-  // Bệnh nhân chưa thu thập tên → "Xin chào" trống chổng chơ → chào theo buổi.
-  const heading =
-    role === "patient" && !userName.trim()
-      ? timeGreeting()
-      : `Xin chào${roleLabel ? ` ${roleLabel}` : ""}${
-          userName ? ` ${userName}` : ""
-        }`;
+  // Template: "Chào buổi {buổi}! [bác sĩ ]{tên}" — bác sĩ thêm tiền tố "bác sĩ",
+  // bệnh nhân để rỗng; chưa có tên thì bỏ luôn phần tên (chỉ "Chào buổi {buổi}!").
+  const name = userName.trim();
+  const prefix = role === "doctor" ? "bác sĩ " : "";
+  const namePart = name ? ` ${prefix}${name}` : "";
+  const heading = `Chào buổi ${timeOfDay()}!${namePart}`;
   return (
     <div className="flex items-center gap-5 text-gray-900">
       <AssistantAvatar size={47} className="shrink-0" />
