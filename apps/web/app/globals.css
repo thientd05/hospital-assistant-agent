@@ -71,6 +71,18 @@
   animation: brand-cursor-blink 1s steps(1) infinite;
 }
 
+/* Nút gợi ý sau lời chào: hiện dần từng cái từ trái qua phải (trượt vào + mờ→rõ).
+   Đặt trên WRAPPER (không phải nút) để không tranh transform với hover của nút.
+   Delay so le set qua inline style. */
+@keyframes chip-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.chip-in {
+  opacity: 0;
+  animation: chip-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .brand-grid-bg {
   background-image:
     linear-gradient(to right, rgba(8, 126, 139, 0.08) 1px, transparent 1px),
