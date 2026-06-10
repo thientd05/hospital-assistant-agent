@@ -2,6 +2,7 @@ import type {
   FamilyInvite,
   FamilyInviteView,
   FamilyMemberDetail,
+  FamilyMemberSummary,
   FamilyView,
 } from "@pr_hospitalagent/types";
 import { familyRepo } from "../repositories/family.repo.ts";
@@ -34,6 +35,17 @@ export const familyService = {
       },
       members: members.map((m) => ({ id: m.id, name: m.name })),
     };
+  },
+
+  // Tìm một bệnh nhân theo SĐT (chỉ trả id + tên để hiển thị trước khi mời).
+  async search(phone: string): Promise<FamilyMemberSummary> {
+    const target = await patientRepo.findRaw({ phone: phone.trim() });
+    if (!target) {
+      throw new NotFoundError(
+        "Không tìm thấy bệnh nhân với số điện thoại này."
+      );
+    }
+    return { id: target.id, name: target.name };
   },
 
   // Mời người nhà theo SĐT.

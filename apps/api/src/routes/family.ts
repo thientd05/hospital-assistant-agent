@@ -6,7 +6,7 @@ import {
   FamilyInviteCreateSchema,
   FamilyRenameSchema,
 } from "../schemas/family.ts";
-import { UnauthorizedError } from "../lib/errors.ts";
+import { BadRequestError, UnauthorizedError } from "../lib/errors.ts";
 
 // Tất cả endpoint chỉ dành cho bệnh nhân (id lấy từ JWT).
 export async function familyRoutes(app: FastifyInstance) {
@@ -27,6 +27,17 @@ export async function familyRoutes(app: FastifyInstance) {
     if (!req.patient) throw new UnauthorizedError();
     return familyService.leave(req.patient.id);
   });
+
+  app.get<{ Querystring: { phone?: string } }>(
+    "/me/family/search",
+    guard,
+    async (req) => {
+      if (!req.patient) throw new UnauthorizedError();
+      const phone = (req.query.phone ?? "").trim();
+      if (!phone) throw new BadRequestError("Vui lòng nhập số điện thoại.");
+      return familyService.search(phone);
+    }
+  );
 
   app.get("/me/family/invites", guard, async (req) => {
     if (!req.patient) throw new UnauthorizedError();

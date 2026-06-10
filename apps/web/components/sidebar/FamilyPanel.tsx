@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type {
   FamilyMemberDetail,
+  FamilyMemberSummary,
   LabResult,
   Prescription,
 } from "@pr_hospitalagent/types";
@@ -27,6 +28,10 @@ export function FamilyPanel() {
   const invites = useFamilyInvites(version);
 
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+
+  // Trạng thái tìm kiếm — khi đang tìm (ô có chữ), tạm ẩn thành viên gia đình.
+  const [query, setQuery] = useState("");
+  const searchMode = query.trim().length > 0;
 
   // Khi data nhóm thay đổi mà thành viên đang xem không còn → đóng chi tiết.
   useEffect(() => {
@@ -58,29 +63,45 @@ export function FamilyPanel() {
         </p>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-gray-400">Đang tải…</p>
-      ) : family.data ? (
-        <FamilyView
-          name={family.data.family.name}
-          members={family.data.members}
-          myId={myId}
-          onChanged={refresh}
-          onOpenMember={setSelectedMemberId}
-        />
-      ) : (
-        <p className="text-sm text-gray-500">
-          Bạn chưa thuộc gia đình nào. Mời người nhà bên dưới để tạo nhóm.
-        </p>
-      )}
-
-      <InviteBox onInvited={refresh} />
-
-      <InvitesList
-        invites={invites.data ?? []}
-        loading={invites.loading && !invites.data}
-        onChanged={refresh}
+      {/* Thanh tìm kiếm — luôn ở trên cùng */}
+      <SearchSection
+        query={query}
+        setQuery={setQuery}
+        onInvited={refresh}
       />
+
+      {/* Đang tìm → chỉ hiện kết quả tìm kiếm, ẩn thành viên gia đình */}
+      {!searchMode &&
+        (loading ? (
+          <p className="text-sm text-gray-400">Đang tải…</p>
+        ) : family.data ? (
+          <>
+            <FamilyView
+              name={family.data.family.name}
+              members={family.data.members}
+              myId={myId}
+              onChanged={refresh}
+              onOpenMember={setSelectedMemberId}
+            />
+            <InvitesList
+              invites={invites.data ?? []}
+              loading={invites.loading && !invites.data}
+              onChanged={refresh}
+            />
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500">
+              Bạn chưa thuộc gia đình nào. Tìm người nhà theo số điện thoại để
+              mời và tạo nhóm.
+            </p>
+            <InvitesList
+              invites={invites.data ?? []}
+              loading={invites.loading && !invites.data}
+              onChanged={refresh}
+            />
+          </>
+        ))}
     </div>
   );
 }
@@ -146,7 +167,7 @@ function FamilyView({
   };
 
   return (
-    <div className="space-y-3 rounded-lg border border-gray-200 p-4">
+    <div className="space-y-3">
       {/* Tên nhóm + sửa */}
       <div className="flex items-center gap-2">
         {editing ? (
@@ -260,64 +281,138 @@ function FamilyView({
   );
 }
 
-// ───────────────────────────── Ô mời theo SĐT ──────────────────────────────
-function InviteBox({ onInvited }: { onInvited: () => void }) {
-  const [phone, setPhone] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+// ─────────────────────── Tìm kiếm + mời theo SĐT ───────────────────────────
+function SearchSection({
+  query,
+  setQuery,
+  onInvited,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  onInvited: () => void;
+}) {
+  const [result, setResult] = useState<FamilyMemberSummary | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState<{
+    type: "ok" | "err";
+    text: string;
+  } | null>(null);
 
-  const submit = async (e: React.FormEvent) => {
+  // Gõ lại → xoá kết quả/thông báo cũ.
+  const onChange = (v: string) => {
+    setQuery(v);
+    setResult(null);
+    setSearchError(null);
+    setInviteMsg(null);
+  };
+
+  const doSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const value = phone.trim();
-    if (!value) return;
-    setBusy(true);
-    setError(null);
-    setSuccess(null);
+    const v = query.trim();
+    if (!v) return;
+    setSearching(true);
+    setSearchError(null);
+    setResult(null);
+    setInviteMsg(null);
     try {
-      await familyApi.invite(value);
-      setSuccess("Đã gửi lời mời. Chờ người kia chấp nhận.");
-      setPhone("");
-      onInvited();
+      setResult(await familyApi.search(v));
     } catch (e) {
-      setError(errMessage(e));
+      setSearchError(errMessage(e));
     } finally {
-      setBusy(false);
+      setSearching(false);
     }
   };
 
+  const invite = async () => {
+    setInviting(true);
+    setInviteMsg(null);
+    try {
+      await familyApi.invite(query.trim());
+      setInviteMsg({
+        type: "ok",
+        text: "Đã gửi lời mời. Chờ người kia chấp nhận.",
+      });
+      onInvited();
+    } catch (e) {
+      setInviteMsg({ type: "err", text: errMessage(e) });
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const label = result ? result.name || result.id : "";
+
   return (
-    <form onSubmit={submit} className="space-y-2">
-      <label className="block">
-        <span className="ws-label">Mời người nhà theo số điện thoại</span>
-        <div className="flex gap-2 mt-1">
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="VD: 0901234002"
-            inputMode="tel"
-            className="ws-input ws-input-sm flex-1"
-          />
-          <button
-            type="submit"
-            disabled={busy || !phone.trim()}
-            className="ws-btn-primary text-sm px-4 py-1.5"
-          >
-            {busy ? "Đang gửi…" : "Mời"}
-          </button>
-        </div>
-      </label>
-      {error && (
+    <div className="space-y-3">
+      <form onSubmit={doSearch}>
+        <label className="block">
+          <span className="ws-label">Tìm người nhà theo số điện thoại</span>
+          <div className="flex gap-2 mt-1">
+            <input
+              value={query}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="VD: 0901234002"
+              inputMode="tel"
+              className="ws-input ws-input-sm flex-1"
+            />
+            <button
+              type="submit"
+              disabled={searching || !query.trim()}
+              className="ws-btn-primary text-sm px-4 py-1.5"
+            >
+              {searching ? "Đang tìm…" : "Tìm kiếm"}
+            </button>
+          </div>
+        </label>
+      </form>
+
+      {searchError && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
-          {error}
+          {searchError}
         </p>
       )}
-      {success && (
-        <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-md px-3 py-2">
-          {success}
-        </p>
+
+      {result && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 shrink-0 rounded-full bg-[#C8E7E9] text-[#087E8B] flex items-center justify-center text-xs font-semibold">
+                {label.trim().charAt(0).toUpperCase() || "?"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {label}
+                </p>
+                <p className="text-xs text-gray-400">{result.id}</p>
+              </div>
+            </div>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={invite}
+                disabled={inviting}
+                className="ws-btn-primary text-xs px-3 py-1.5"
+              >
+                {inviting ? "Đang mời…" : "Mời"}
+              </button>
+            </div>
+            {inviteMsg && (
+              <p
+                className={`text-xs rounded-md px-2 py-1.5 ${
+                  inviteMsg.type === "ok"
+                    ? "text-green-700 bg-green-50 border border-green-100"
+                    : "text-red-600 bg-red-50 border border-red-100"
+                }`}
+              >
+                {inviteMsg.text}
+              </p>
+            )}
+          </div>
+        </div>
       )}
-    </form>
+    </div>
   );
 }
 

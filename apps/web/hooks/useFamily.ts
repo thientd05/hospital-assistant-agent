@@ -4,6 +4,7 @@ import type {
   FamilyView,
   FamilyInviteView,
   FamilyMemberDetail,
+  FamilyMemberSummary,
 } from "@pr_hospitalagent/types";
 import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
@@ -27,6 +28,10 @@ export function useFamilyInvites(version: number, enabled = true) {
 }
 
 export const familyApi = {
+  search: (phone: string) =>
+    http.get<FamilyMemberSummary>(
+      `/api/me/family/search?phone=${encodeURIComponent(phone)}`
+    ),
   invite: (phone: string) =>
     http.post<{ ok: boolean }>("/api/me/family/invites", { phone }),
   accept: (id: string) =>
