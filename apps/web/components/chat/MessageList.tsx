@@ -112,7 +112,7 @@ export function EmptyGreeting({ userName }: { userName: string }) {
   const heading = `Chào buổi ${timeOfDay()}!${name ? ` ${name}` : ""}`;
   return (
     <div className="flex items-center justify-center gap-3 text-gray-900">
-      <AssistantAvatar size={38} className="shrink-0" />
+      <AssistantAvatar size={42} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
         {heading}
       </h1>
