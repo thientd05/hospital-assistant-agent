@@ -195,6 +195,7 @@ export function ChatWindow({
                 <GreetingSuggestions
                   onPick={handlePickSuggestion}
                   disabled={isStreaming}
+                  center
                 />
               )}
             </div>

@@ -19,13 +19,20 @@ const SUGGESTIONS: Suggestion[] = [
 export function GreetingSuggestions({
   onPick,
   disabled,
+  center,
 }: {
   /** message=null → chỉ focus ô nhập (Câu hỏi khác); ngược lại gửi luôn. */
   onPick: (message: string | null) => void;
   disabled?: boolean;
+  /** Căn giữa hàng nút (dùng khi đặt dưới ô nhập đã căn giữa). */
+  center?: boolean;
 }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div
+      className={`mt-3 flex flex-wrap gap-2 ${
+        center ? "justify-center" : ""
+      }`}
+    >
       {SUGGESTIONS.map((s, i) => (
         // Wrapper lo hiệu ứng hiện dần (delay so le); nút lo hover/active riêng.
         <span
