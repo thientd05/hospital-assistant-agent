@@ -31,7 +31,7 @@ export function GreetingSuggestions({
         <span
           key={s.label}
           className="chip-in inline-flex"
-          style={{ animationDelay: `${i * 90}ms` }}
+          style={{ animationDelay: `${i * 200}ms` }}
         >
           <button
             type="button"
