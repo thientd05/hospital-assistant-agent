@@ -48,6 +48,17 @@ export const appointmentService = {
     patientId: string,
     data: AppointmentPatientCreate
   ): Promise<Appointment> {
+    // Chặn cứng: BN chưa lưu họ tên (mới đăng ký, AI chưa thu thập) thì KHÔNG cho
+    // đặt lịch — bác sĩ cần biết tên người khám. Kiểm tra ở server (nguồn sự thật).
+    const patient = await patientRepo.findById(patientId);
+    if (!patient) {
+      throw new NotFoundError(`Không tìm thấy bệnh nhân ${patientId}`);
+    }
+    if (!patient.name?.trim()) {
+      throw new BadRequestError(
+        "Vui lòng cập nhật họ tên trong hồ sơ trước khi đặt lịch hẹn."
+      );
+    }
     let doctorId = "";
     if (data.doctorId) {
       const doctor = await doctorRepo.findById(data.doctorId);

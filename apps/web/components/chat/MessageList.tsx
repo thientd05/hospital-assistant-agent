@@ -103,6 +103,14 @@ const ROLE_LABEL_VI: Record<string, string> = {
   expert: "chuyên gia",
 };
 
+// Lời chào theo buổi (giờ địa phương): sáng 5–10h, chiều 11–17h, còn lại tối.
+function timeGreeting(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 11) return "Chào buổi sáng";
+  if (h >= 11 && h < 18) return "Chào buổi chiều";
+  return "Chào buổi tối";
+}
+
 export function EmptyGreeting({
   role,
   userName,
@@ -111,11 +119,18 @@ export function EmptyGreeting({
   userName: string;
 }) {
   const roleLabel = role ? ROLE_LABEL_VI[role] ?? "" : "";
+  // Bệnh nhân chưa thu thập tên → "Xin chào" trống chổng chơ → chào theo buổi.
+  const heading =
+    role === "patient" && !userName.trim()
+      ? timeGreeting()
+      : `Xin chào${roleLabel ? ` ${roleLabel}` : ""}${
+          userName ? ` ${userName}` : ""
+        }`;
   return (
     <div className="flex items-center gap-5 text-gray-900">
       <AssistantAvatar size={47} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
-        Xin chào{roleLabel ? ` ${roleLabel}` : ""} {userName}
+        {heading}
       </h1>
     </div>
   );
