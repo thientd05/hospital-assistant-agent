@@ -25,6 +25,7 @@ import {
   type PanelAction,
 } from "@/lib/panel-agent";
 import { CHAT_STATE_KEY_PREFIX } from "@/lib/api";
+import { pickPatientGreeting } from "@/lib/greetings";
 
 type SavedChatState = {
   mode?: ChatMode;
@@ -282,6 +283,22 @@ export default function ChatPage() {
     // chat object đổi mỗi render nhưng không cần re-trigger ở đây.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMode, isRestored]);
+
+  // Lời chào tự động cho bệnh nhân khi vừa VÀO APP: render fake-stream MỘT lần,
+  // ngay sau khi khôi phục xong và CHỈ KHI lượt vào này không có hội thoại AI cũ
+  // để tiếp tục (savedConvIdsRef.current.ai === null). Bấm "đoạn chat mới" SAU đó
+  // không kích hoạt lại — greetedRef giữ one-shot cho cả phiên.
+  const greetedRef = useRef(false);
+  useEffect(() => {
+    if (!isRestored || greetedRef.current) return;
+    greetedRef.current = true;
+    if (role !== "patient" || chatMode !== "ai") return;
+    if (savedConvIdsRef.current.ai !== null) return;
+    const name = account?.role === "patient" ? account.patient.name : "";
+    chat.showGreeting(pickPatientGreeting(name));
+    // chat đổi mỗi render; one-shot greetedRef đã chặn chạy lại.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRestored, role, chatMode]);
 
   // Persist mode + per-mode conv id sau khi đã restore xong.
   // Bỏ qua trong lúc đang load conversation để tránh ghi đè ref bằng id null tạm thời.

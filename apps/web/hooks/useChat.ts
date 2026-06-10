@@ -142,9 +142,75 @@ export function useChat(opts: UseChatOptions = {}) {
     onToolCommandRef.current = opts.onToolCommand;
   }, [opts.onToolCommand]);
 
+  // ── Lời chào "fake gen token" (xem lib/greetings.ts) ──────────────────────
+  // Render từng chữ một như AI đang sinh token, nhưng KHÔNG gọi máy chủ. Chỉ là
+  // tin nhắn assistant cục bộ (không lưu server); biến mất tự nhiên khi user mở
+  // hội thoại khác. Nếu user gửi tin trong lúc đang chạy → snap lời chào về đủ.
+  const greetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const greetRef = useRef<{ id: string; full: string } | null>(null);
+
+  const finalizeGreeting = useCallback(() => {
+    if (greetTimerRef.current) {
+      clearTimeout(greetTimerRef.current);
+      greetTimerRef.current = null;
+    }
+    const g = greetRef.current;
+    greetRef.current = null;
+    if (g) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === g.id
+            ? { ...m, content: g.full, parts: [{ type: "text", text: g.full }] }
+            : m
+        )
+      );
+    }
+  }, []);
+
+  const showGreeting = useCallback(
+    (fullText: string) => {
+      if (greetTimerRef.current) clearTimeout(greetTimerRef.current);
+      const id = newId();
+      greetRef.current = { id, full: fullText };
+      const base: Message = {
+        id,
+        role: "assistant",
+        content: "",
+        parts: [{ type: "text", text: "" }],
+        createdAt: new Date(),
+      };
+      setMessages([base]);
+      let i = 0;
+      const step = () => {
+        // Tốc độ "sinh token": nhích vài ký tự mỗi nhịp.
+        i = Math.min(fullText.length, i + 2);
+        const slice = fullText.slice(0, i);
+        setMessages((prev) => {
+          // User đã thao tác (gửi tin/đổi hội thoại) → ngừng can thiệp.
+          if (prev.length !== 1 || prev[0].id !== id) return prev;
+          return [
+            { ...prev[0], content: slice, parts: [{ type: "text", text: slice }] },
+          ];
+        });
+        if (i < fullText.length) {
+          greetTimerRef.current = setTimeout(step, 18);
+        } else {
+          greetTimerRef.current = null;
+          greetRef.current = null;
+        }
+      };
+      greetTimerRef.current = setTimeout(step, 18);
+    },
+    []
+  );
+
+  useEffect(() => () => finalizeGreeting(), [finalizeGreeting]);
+
   const selectConversation = useCallback(
     async (id: string | null) => {
       if (isStreaming) return;
+      // Rời màn hình chào → dừng hiệu ứng gõ chữ (lời chào không thuộc hội thoại nào).
+      finalizeGreeting();
       if (id === null) {
         setMessages([]);
         setConversationId(null);
@@ -214,12 +280,14 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsLoadingConversation(false);
       }
     },
-    [isStreaming, logout, mode, directRole]
+    [isStreaming, logout, mode, directRole, finalizeGreeting]
   );
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isStreaming) return;
+      // User bắt đầu chat thật → chốt lời chào về đủ (giữ làm tin đầu đoạn).
+      finalizeGreeting();
 
       if (mode === "patient") {
         if (!conversationId) return;
@@ -428,7 +496,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [conversationId, isStreaming, logout, mode, directRole]
+    [conversationId, isStreaming, logout, mode, directRole, finalizeGreeting]
   );
 
   return {
@@ -438,6 +506,7 @@ export function useChat(opts: UseChatOptions = {}) {
     conversationId,
     sendMessage,
     selectConversation,
+    showGreeting,
   };
 }
 
