@@ -105,22 +105,14 @@ function timeOfDay(): string {
   return "tối";
 }
 
-export function EmptyGreeting({
-  role,
-  userName,
-}: {
-  role?: string | null;
-  userName: string;
-}) {
-  // Template: "Chào buổi {buổi}! [bác sĩ ]{tên}" — bác sĩ thêm tiền tố "bác sĩ",
-  // bệnh nhân để rỗng; chưa có tên thì bỏ luôn phần tên (chỉ "Chào buổi {buổi}!").
+export function EmptyGreeting({ userName }: { userName: string }) {
+  // "Chào buổi {buổi}! {tên}" — chưa có tên thì chỉ "Chào buổi {buổi}!".
+  // Tên bác sĩ đã kèm chức danh ("BS."/"ThS.BS.") nên không thêm "bác sĩ" nữa.
   const name = userName.trim();
-  const prefix = role === "doctor" ? "bác sĩ " : "";
-  const namePart = name ? ` ${prefix}${name}` : "";
-  const heading = `Chào buổi ${timeOfDay()}!${namePart}`;
+  const heading = `Chào buổi ${timeOfDay()}!${name ? ` ${name}` : ""}`;
   return (
-    <div className="flex items-center gap-5 text-gray-900">
-      <AssistantAvatar size={47} className="shrink-0" />
+    <div className="flex items-center justify-center gap-3 text-gray-900">
+      <AssistantAvatar size={38} className="shrink-0" />
       <h1 className="text-4xl sm:text-4xl font-medium tracking-tight leading-tight">
         {heading}
       </h1>
