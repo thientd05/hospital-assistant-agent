@@ -183,7 +183,20 @@ export function ChatWindow({
           <div className="w-full max-w-3xl flex flex-col items-center gap-8">
             <EmptyGreeting role={role} userName={bareName} />
             <div className="w-full">
-              <ChatInput onSend={onSend} disabled={isStreaming} role={role} />
+              <ChatInput
+                onSend={onSend}
+                disabled={isStreaming}
+                role={role}
+                focusSignal={focusSignal}
+              />
+              {/* Bệnh nhân mở "đoạn chat mới" (không có lời chào) → tag chọn nhanh
+                  ngay dưới ô nhập. */}
+              {role === "patient" && (
+                <GreetingSuggestions
+                  onPick={handlePickSuggestion}
+                  disabled={isStreaming}
+                />
+              )}
             </div>
           </div>
         </div>
