@@ -1,6 +1,6 @@
 "use client";
 
-import type { Message } from "@pr_hospitalagent/types";
+import type { Message, RatingView } from "@pr_hospitalagent/types";
 import { http } from "@/lib/apiClient";
 import { useResource } from "./useResource";
 
@@ -31,6 +31,8 @@ export type ConversationAuditDetail = {
   ownerName: string | null;
   ownerRole: ConversationOwnerRole;
   messages: Message[];
+  /** Đánh giá sao của bệnh nhân theo từng câu trả lời (turnIndex 0-based). */
+  ratings: RatingView[];
   createdAt: string;
   updatedAt: string;
 };

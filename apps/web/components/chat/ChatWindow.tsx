@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Message } from "@pr_hospitalagent/types";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { EmptyGreeting, MessageList } from "./MessageList";
@@ -23,6 +23,10 @@ type Props = {
   onOpenSidebar?: () => void;
   /** Hiện list nút gợi ý dưới lời chào (bệnh nhân vừa vào app). */
   showSuggestions?: boolean;
+  /** Footer dưới mỗi câu trả lời AI (vd chấm sao) — chỉ mode "ai". */
+  renderMessageFooter?: (message: Message, turnIndex: number) => ReactNode;
+  /** id lời chào fake-stream (loại khỏi đếm turnIndex chấm sao). */
+  greetingId?: string | null;
 };
 
 export function ChatWindow({
@@ -36,6 +40,8 @@ export function ChatWindow({
   panelHasAlert = false,
   onOpenSidebar,
   showSuggestions = false,
+  renderMessageFooter,
+  greetingId,
 }: Props) {
   // Tăng để yêu cầu ChatInput focus (bấm "Câu hỏi khác").
   const [focusSignal, setFocusSignal] = useState(0);
@@ -182,6 +188,8 @@ export function ChatWindow({
         <>
           <MessageList
             messages={messages}
+            renderMessageFooter={renderMessageFooter}
+            greetingId={greetingId}
             footer={
               showSuggestions ? (
                 <GreetingSuggestions

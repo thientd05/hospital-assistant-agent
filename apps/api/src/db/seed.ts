@@ -1449,6 +1449,14 @@ async function seed() {
   await conversations.deleteMany({});
   await conversations.insertMany(conversationSeeds);
 
+  // 14b. Đánh giá sao câu trả lời chatbot — chỉ DỌN (không seed). Trỏ theo
+  // conversationId; seed conversations bị dọn nên rating cũ thành rác → xoá sạch.
+  const conversationRatings = db.collection("conversationratings");
+  await conversationRatings.deleteMany({});
+  await conversationRatings
+    .createIndex({ conversationId: 1, turnIndex: 1 }, { unique: true })
+    .catch(() => {});
+
   // 15. Lịch sử khám (examrecords) — snapshot lâm sàng theo từng lần khám.
   const examRecords = db.collection<ExamRecord>("examrecords");
   await examRecords.deleteMany({});

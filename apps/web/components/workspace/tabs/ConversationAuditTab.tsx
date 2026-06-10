@@ -1,13 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MessageBubble } from "@/components/chat/MessageBubble";
+import { StarRating } from "@/components/chat/StarRating";
 import { formatDate } from "@/lib/format";
 import {
   useConversationAuditDetail,
   useConversationAuditList,
   type ConversationOwnerRole,
 } from "@/hooks/useConversationAudit";
+import type { Message, RatingView } from "@pr_hospitalagent/types";
+
+// Danh sách tin nhắn audit + sao đánh giá (chỉ đọc) dưới mỗi câu trả lời AI.
+// turnIndex = thứ tự câu trả lời assistant (0-based) — khớp khoá đánh giá ở server.
+function AuditMessages({
+  messages,
+  ratings,
+}: {
+  messages: Message[];
+  ratings: RatingView[];
+}) {
+  const byTurn = useMemo(() => {
+    const m: Record<number, number> = {};
+    for (const r of ratings) m[r.turnIndex] = r.stars;
+    return m;
+  }, [ratings]);
+
+  if (messages.length === 0) {
+    return (
+      <div className="text-sm text-gray-400 text-center py-4">
+        Hội thoại trống.
+      </div>
+    );
+  }
+
+  let assistantSeen = 0;
+  return (
+    <div className="flex flex-col gap-5 py-2">
+      {messages.map((m) => {
+        let footer: React.ReactNode;
+        if (m.role === "assistant") {
+          const turnIndex = assistantSeen++;
+          footer = <StarRating readOnly value={byTurn[turnIndex] ?? 0} />;
+        }
+        return <MessageBubble key={m.id} message={m} footer={footer} />;
+      })}
+    </div>
+  );
+}
 
 type Props = {
   version: number;
@@ -171,16 +211,10 @@ export function ConversationAuditTab({ version, active }: Props) {
                   {formatDate(detail.data.updatedAt)}
                 </span>
               </div>
-              <div className="flex flex-col gap-5 py-2">
-                {detail.data.messages.length === 0 && (
-                  <div className="text-sm text-gray-400 text-center py-4">
-                    Hội thoại trống.
-                  </div>
-                )}
-                {detail.data.messages.map((m) => (
-                  <MessageBubble key={m.id} message={m} />
-                ))}
-              </div>
+              <AuditMessages
+                messages={detail.data.messages}
+                ratings={detail.data.ratings}
+              />
             </>
           )}
         </>

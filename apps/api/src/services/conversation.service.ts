@@ -6,6 +6,7 @@ import {
 } from "../repositories/conversation.repo.ts";
 import { patientRepo } from "../repositories/patient.repo.ts";
 import { doctorRepo } from "../repositories/doctor.repo.ts";
+import { conversationRatingService } from "./conversationRating.service.ts";
 import { NotFoundError } from "../lib/errors.ts";
 
 const AUDIT_RE = /^(BS|BN)\d+$/i;
@@ -242,6 +243,7 @@ export const conversationService = {
         ownerName = pts[0]?.name ?? null;
       }
     }
+    const ratings = await conversationRatingService.listForAudit(doc.id);
     return {
       id: doc.id,
       title: doc.title,
@@ -249,6 +251,7 @@ export const conversationService = {
       ownerName,
       ownerRole,
       messages: convertMessages(doc.messages ?? [], doc.createdAt),
+      ratings,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     };

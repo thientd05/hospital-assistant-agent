@@ -660,3 +660,23 @@ export type FamilyMemberDetail = {
   labResults: LabResult[];
 };
 
+
+// ───────────────────────────── Đánh giá câu trả lời chatbot (sao) ──────────
+// Bệnh nhân chấm 1–5 sao cho từng câu trả lời của AI trong một hội thoại.
+// Khoá theo (conversationId, turnIndex) — turnIndex = thứ tự câu trả lời assistant
+// trong hội thoại (0-based, tính trên thứ tự lưu ở server). Chuyên gia xem (chỉ đọc).
+export type ConversationRating = {
+  id: string;
+  conversationId: string;
+  ownerId: string; // bệnh nhân sở hữu hội thoại
+  turnIndex: number;
+  stars: number; // 1..5
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Bản gọn để FE/audit hiển thị một đánh giá theo lượt.
+export type RatingView = {
+  turnIndex: number;
+  stars: number;
+};

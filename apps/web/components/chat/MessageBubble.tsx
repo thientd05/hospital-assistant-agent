@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useState, type ReactNode } from "react";
 import type { Message, MessagePart } from "@pr_hospitalagent/types";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -124,6 +124,8 @@ type Props = {
   message: Message;
   /** Bố cục tin nhắn trực tiếp 1-1: tin của mình ("user") phải, đối phương ("assistant") trái — đều bong bóng. */
   bubbles?: boolean;
+  /** Nội dung hiện ngay dưới câu trả lời cuối (assistant) — vd icon chấm sao. */
+  footer?: ReactNode;
 };
 
 // Suy ra danh sách part có thứ tự cho assistant message. Ưu tiên `parts`
@@ -156,7 +158,7 @@ function splitParts(parts: MessagePart[]): {
   };
 }
 
-function MessageBubbleInner({ message, bubbles = false }: Props) {
+function MessageBubbleInner({ message, bubbles = false, footer }: Props) {
   const isUser = message.role === "user";
 
   // === Mode tin nhắn trực tiếp 1-1: cả hai phía đều là bong bóng văn bản thuần ===
@@ -218,6 +220,7 @@ function MessageBubbleInner({ message, bubbles = false }: Props) {
           <AssistantProcess parts={process} idPrefix={message.id} />
         )}
         {final.map((p, i) => renderPart(p, `${message.id}_f${i}`))}
+        {footer}
       </div>
     </div>
   );
@@ -237,6 +240,9 @@ export const MessageBubble = memo(MessageBubbleInner, (prev, next) => {
   const b = next.message;
   return (
     prev.bubbles === next.bubbles &&
+    // null↔non-null footer phải re-render (vd lúc stream xong mới hiện chấm sao);
+    // còn khi cùng có footer thì StarRating tự cập nhật qua context (khỏi re-render).
+    (prev.footer == null) === (next.footer == null) &&
     a.id === b.id &&
     a.role === b.role &&
     a.content === b.content &&

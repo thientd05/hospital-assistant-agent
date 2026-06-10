@@ -7,6 +7,8 @@ import { Sidebar } from "@/components/sidebar/Sidebar";
 import { WorkspacePanel } from "@/components/workspace/WorkspacePanel";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useChat, type ChatMode } from "@/hooks/useChat";
+import { useRatingsState, RatingsProvider } from "@/hooks/useRatings";
+import { RateMessageStars } from "@/components/chat/RateMessageStars";
 import { useConversations } from "@/hooks/useConversations";
 import { useDirectThreads } from "@/hooks/useDirectThreads";
 import { useDirectAlerts } from "@/hooks/useDirectAlerts";
@@ -337,6 +339,21 @@ export default function ChatPage() {
   const aiConversationId =
     chatMode === "ai" ? chat.conversationId : savedConvIdsRef.current.ai;
 
+  // ── Đánh giá sao câu trả lời chatbot — chỉ bệnh nhân ở chế độ AI ──────────
+  const ratingsEnabled = role === "patient" && chatMode === "ai";
+  const ratings = useRatingsState(ratingsEnabled ? chat.conversationId : null);
+  const lastMessageId = chat.messages[chat.messages.length - 1]?.id;
+  const renderMessageFooter = useMemo(() => {
+    // Cần conversationId để lưu đánh giá → lượt đầu (chưa lưu) chưa hiện sao.
+    if (!ratingsEnabled || !chat.conversationId) return undefined;
+    return (message: (typeof chat.messages)[number], turnIndex: number) => {
+      // Ẩn trên câu trả lời đang stream dở + tin chưa có nội dung text.
+      if (chat.isStreaming && message.id === lastMessageId) return null;
+      if (!message.content?.trim()) return null;
+      return <RateMessageStars turnIndex={turnIndex} />;
+    };
+  }, [ratingsEnabled, chat.conversationId, chat.isStreaming, lastMessageId]);
+
   return (
     <>
       <Sidebar
@@ -359,25 +376,29 @@ export default function ChatPage() {
         mobileActive={mobileView === "sidebar"}
         onCloseMobile={() => setMobileView("chat")}
       />
-      <ChatWindow
-        messages={chat.messages}
-        isStreaming={chat.isStreaming}
-        onSend={chat.sendMessage}
-        isPanelOpen={workspace.isOpen}
-        onTogglePanel={
-          hasPanel
-            ? () => {
-                workspace.togglePanel();
-                setMobileView("panel");
-              }
-            : undefined
-        }
-        chatMode={chatMode}
-        hasSelection={hasSelection}
-        panelHasAlert={isDoctor && apptAlerts.hasNew}
-        onOpenSidebar={() => setMobileView("sidebar")}
-        showSuggestions={chatMode === "ai" && chat.showGreetingSuggestions}
-      />
+      <RatingsProvider value={ratings}>
+        <ChatWindow
+          messages={chat.messages}
+          isStreaming={chat.isStreaming}
+          onSend={chat.sendMessage}
+          isPanelOpen={workspace.isOpen}
+          onTogglePanel={
+            hasPanel
+              ? () => {
+                  workspace.togglePanel();
+                  setMobileView("panel");
+                }
+              : undefined
+          }
+          chatMode={chatMode}
+          hasSelection={hasSelection}
+          panelHasAlert={isDoctor && apptAlerts.hasNew}
+          onOpenSidebar={() => setMobileView("sidebar")}
+          showSuggestions={chatMode === "ai" && chat.showGreetingSuggestions}
+          renderMessageFooter={renderMessageFooter}
+          greetingId={chat.greetingId}
+        />
+      </RatingsProvider>
       <WorkspacePanel
         isOpen={workspace.isOpen}
         isMounted={workspace.isMounted}

@@ -3,11 +3,19 @@ import { verifyAuth, requireRole } from "@pr_hospitalagent/api-shared";
 import { parseBody } from "../lib/validate.ts";
 import { UnauthorizedError } from "../lib/errors.ts";
 import { ConversationSaveSchema } from "../schemas/conversation.ts";
+import { RatingSetSchema } from "../schemas/conversationRating.ts";
 import { conversationService } from "../services/conversation.service.ts";
+import { conversationRatingService } from "../services/conversationRating.service.ts";
 import type { StoredMessage } from "../repositories/conversation.repo.ts";
 
 function ownerId(req: FastifyRequest): string {
   const id = req.doctor?.id ?? req.patient?.id;
+  if (!id) throw new UnauthorizedError();
+  return id;
+}
+
+function patientId(req: FastifyRequest): string {
+  const id = req.patient?.id;
   if (!id) throw new UnauthorizedError();
   return id;
 }
@@ -31,6 +39,29 @@ export async function conversationsRoutes(app: FastifyInstance) {
     "/conversations/audit/:id",
     { preHandler: [verifyAuth, requireRole("expert")] },
     async (req) => conversationService.getAudit(req.params.id)
+  );
+
+  // === Đánh giá sao (bệnh nhân chấm câu trả lời chatbot của chính mình) ===
+  app.get<{ Params: { id: string } }>(
+    "/conversations/:id/ratings",
+    { preHandler: [verifyAuth, requireRole("patient")] },
+    async (req) =>
+      conversationRatingService.listForOwner(req.params.id, patientId(req))
+  );
+
+  app.put<{ Params: { id: string; turnIndex: string } }>(
+    "/conversations/:id/ratings/:turnIndex",
+    { preHandler: [verifyAuth, requireRole("patient")] },
+    async (req) => {
+      const { stars } = parseBody(RatingSetSchema, req.body);
+      const turnIndex = Number.parseInt(req.params.turnIndex, 10);
+      return conversationRatingService.setRating(
+        req.params.id,
+        patientId(req),
+        turnIndex,
+        stars
+      );
+    }
   );
 
   // === Nội bộ — agent loop resume (messages thô) ===

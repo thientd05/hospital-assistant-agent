@@ -11,9 +11,23 @@ type Props = {
   bubbles?: boolean;
   /** Nội dung hiện ngay dưới tin cuối, trong vùng cuộn (vd: list nút gợi ý sau lời chào). */
   footer?: ReactNode;
+  /**
+   * Footer riêng dưới MỖI câu trả lời assistant (vd icon chấm sao). `turnIndex` =
+   * thứ tự câu trả lời assistant (0-based, KHÔNG đếm lời chào) — khớp thứ tự lưu
+   * ở server. Trả null để không hiện gì cho tin đó.
+   */
+  renderMessageFooter?: (message: Message, turnIndex: number) => ReactNode;
+  /** id tin nhắn lời chào fake-stream (không lưu server) → loại khỏi đếm turnIndex. */
+  greetingId?: string | null;
 };
 
-export function MessageList({ messages, bubbles, footer }: Props) {
+export function MessageList({
+  messages,
+  bubbles,
+  footer,
+  renderMessageFooter,
+  greetingId,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   // Chỉ TỰ cuộn xuống cuối khi người dùng đang ở sát đáy. Kéo lên (vd để xem dashboard
@@ -41,9 +55,26 @@ export function MessageList({ messages, bubbles, footer }: Props) {
       className="flex-1 overflow-y-auto thin-scrollbar px-6 py-6"
     >
       <div className="max-w-3xl mx-auto flex flex-col gap-5">
-        {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} bubbles={bubbles} />
-        ))}
+        {(() => {
+          let assistantSeen = 0;
+          return messages.map((m) => {
+            let turnIndex = -1;
+            if (m.role === "assistant" && m.id !== greetingId) {
+              turnIndex = assistantSeen;
+              assistantSeen += 1;
+            }
+            const msgFooter =
+              turnIndex >= 0 ? renderMessageFooter?.(m, turnIndex) : undefined;
+            return (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                bubbles={bubbles}
+                footer={msgFooter ?? undefined}
+              />
+            );
+          });
+        })()}
         {footer}
         <div ref={endRef} />
       </div>

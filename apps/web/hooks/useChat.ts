@@ -520,6 +520,7 @@ export function useChat(opts: UseChatOptions = {}) {
     selectConversation,
     showGreeting,
     showGreetingSuggestions,
+    greetingId,
   };
 }
 
