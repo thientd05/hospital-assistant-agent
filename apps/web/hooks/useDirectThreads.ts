@@ -10,6 +10,7 @@ export type DirectThreadSummaryItem = {
   counterpartId: string;
   counterpartName: string;
   lastMessage: string | null;
+  lastSender: "doctor" | "patient" | null;
   updatedAt: string | null;
 };
 
@@ -17,6 +18,8 @@ type Options = {
   // "doctor" → /direct-messages ; "patient" → /me/direct-messages
   role: "doctor" | "patient";
   enabled?: boolean;
+  /** Tự làm mới định kỳ (ms) để bắt tin nhắn mới đến → chấm thông báo. */
+  pollMs?: number;
 };
 
 function listPath(role: "doctor" | "patient"): string {
@@ -25,7 +28,7 @@ function listPath(role: "doctor" | "patient"): string {
 
 // Danh sách thread tin nhắn trực tiếp (1 dòng / đối phương) cho sidebar mode
 // "tin nhắn". Bác sĩ thấy BN mình quản lý; bệnh nhân thấy bác sĩ quản lý mình.
-export function useDirectThreads({ role, enabled = true }: Options) {
+export function useDirectThreads({ role, enabled = true, pollMs }: Options) {
   const { token, logout } = useAuth();
   const cacheKey = listPath(role);
   const [threads, setThreads] = useState<DirectThreadSummaryItem[]>(
@@ -60,6 +63,13 @@ export function useDirectThreads({ role, enabled = true }: Options) {
     if (!enabled) return;
     refresh();
   }, [enabled, refresh]);
+
+  // Poll nền để chấm "tin mới" hiện cả khi đang ở chế độ chat AI.
+  useEffect(() => {
+    if (!enabled || !pollMs) return;
+    const t = setInterval(refresh, pollMs);
+    return () => clearInterval(t);
+  }, [enabled, pollMs, refresh]);
 
   return { threads, refresh };
 }

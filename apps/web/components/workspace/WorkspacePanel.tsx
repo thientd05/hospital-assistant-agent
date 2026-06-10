@@ -37,6 +37,12 @@ type Props = {
   onAcceptAppointment?: (patientId: string) => void;
   /** Hội thoại AI hiện tại — hook đặt lịch nhờ trợ lý ảo tóm tắt triệu chứng. */
   aiConversationId?: string | null;
+  /** Có lịch hẹn mới chưa xem → chấm trên nút tab Lịch hẹn. */
+  appointmentsAlert?: boolean;
+  /** Tập "YYYY-MM-DD" các ngày có lịch mới → ô ngày tương ứng nhấp nháy. */
+  newApptDays?: Set<string>;
+  /** Bác sĩ bấm xem 1 ngày → đánh dấu lịch ngày đó là đã xem. */
+  onApptDaySeen?: (date: Date) => void;
 };
 
 export function WorkspacePanel({
@@ -53,6 +59,9 @@ export function WorkspacePanel({
   bumpTab,
   onAcceptAppointment,
   aiConversationId,
+  appointmentsAlert = false,
+  newApptDays,
+  onApptDaySeen,
 }: Props) {
   const [width, setWidth] = useState(MIN_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -152,6 +161,7 @@ export function WorkspacePanel({
           >
             {tabs.map((tab) => {
               const isActive = tab === activeTab;
+              const showDot = tab === "appointments" && appointmentsAlert;
               return (
                 <button
                   key={tab}
@@ -161,13 +171,19 @@ export function WorkspacePanel({
                   data-agent-role="tab"
                   data-agent-label={TAB_LABELS[tab]}
                   data-agent-active={isActive ? "true" : undefined}
-                  className={`shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
+                  className={`relative shrink-0 whitespace-nowrap text-sm px-3 py-2 -mb-px border-b-2 transition-colors ${
                     isActive
                       ? "border-[#087E8B] text-gray-900 font-medium"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
                   {TAB_LABELS[tab]}
+                  {showDot && (
+                    <span
+                      aria-hidden
+                      className="absolute top-1 right-0.5 w-2 h-2 rounded-full bg-rose-500"
+                    />
+                  )}
                 </button>
               );
             })}
@@ -211,6 +227,8 @@ export function WorkspacePanel({
               active={isMounted && activeTab === "appointments"}
               onChanged={onChanged}
               onAccepted={onAcceptAppointment}
+              newDays={newApptDays}
+              onDaySeen={onApptDaySeen}
             />
           )}
           {role === "patient" && activeTab === "my-record" && (

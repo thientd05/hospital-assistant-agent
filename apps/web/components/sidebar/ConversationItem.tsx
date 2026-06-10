@@ -10,6 +10,8 @@ type Props = {
   onCloseMenu: () => void;
   onRequestDelete: () => void;
   hideMenu?: boolean;
+  /** Chấm "tin mới chưa đọc" ở cuối dòng (mode tin nhắn trực tiếp). */
+  showDot?: boolean;
 };
 
 export function ConversationItem({
@@ -21,6 +23,7 @@ export function ConversationItem({
   onCloseMenu,
   onRequestDelete,
   hideMenu,
+  showDot,
 }: Props) {
   const wrapperBase =
     "group relative w-full rounded-md transition-colors text-sm";
@@ -38,12 +41,19 @@ export function ConversationItem({
         type="button"
         onClick={onClick}
         className={`w-full text-left px-3 py-2 truncate ${
-          hideMenu ? "" : "pr-8"
+          hideMenu ? (showDot ? "pr-7" : "") : "pr-8"
         }`}
         title={title}
       >
         {title}
       </button>
+
+      {showDot && (
+        <span
+          aria-hidden
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-rose-500"
+        />
+      )}
 
       {!hideMenu && (
         <button

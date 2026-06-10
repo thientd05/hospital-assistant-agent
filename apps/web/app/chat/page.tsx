@@ -9,6 +9,9 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { useChat, type ChatMode } from "@/hooks/useChat";
 import { useConversations } from "@/hooks/useConversations";
 import { useDirectThreads } from "@/hooks/useDirectThreads";
+import { useDirectAlerts } from "@/hooks/useDirectAlerts";
+import { useAppointments } from "@/hooks/useAppointments";
+import { useAppointmentAlerts } from "@/hooks/useAppointmentAlerts";
 import {
   useWorkspace,
   ROLE_TABS,
@@ -106,9 +109,11 @@ export default function ChatPage() {
     onToolCommand: executeToolCommand,
   });
   const aiList = useConversations();
+  // Bật cả khi đang ở mode AI (poll nền) → chấm "tin mới" hiện trên nút đổi mode.
   const directList = useDirectThreads({
     role: directRole,
-    enabled: canDirect && chatMode === "patient",
+    enabled: canDirect,
+    pollMs: canDirect ? 20000 : undefined,
   });
 
   useEffect(() => {
@@ -195,19 +200,47 @@ export default function ChatPage() {
     [chat.isStreaming, chat.conversationId, chatMode]
   );
 
-  // Storage key per user; null cho tới khi auth load xong.
-  const storageKey = useMemo(() => {
+  // Id user đang đăng nhập; null cho tới khi auth load xong.
+  const accountId = useMemo(() => {
     if (!account) return null;
-    const id =
-      account.role === "doctor"
-        ? account.doctor.id
-        : account.role === "manager"
-        ? account.manager.id
-        : account.role === "expert"
-        ? account.expert.id
-        : account.patient.id;
-    return `${CHAT_STATE_KEY_PREFIX}${id}`;
+    return account.role === "doctor"
+      ? account.doctor.id
+      : account.role === "manager"
+      ? account.manager.id
+      : account.role === "expert"
+      ? account.expert.id
+      : account.patient.id;
   }, [account]);
+
+  // Storage key per user.
+  const storageKey = accountId ? `${CHAT_STATE_KEY_PREFIX}${accountId}` : null;
+
+  // ── Chấm thông báo ───────────────────────────────────────────────────────
+  // Tin nhắn trực tiếp mới chưa đọc (mode tin nhắn + nút đổi mode).
+  const directAlerts = useDirectAlerts({
+    threads: directList.threads,
+    viewerRole: directRole,
+    storageKey: accountId ? `dm:seen:${accountId}` : null,
+  });
+
+  // Lịch hẹn mới cho bác sĩ — poll nền để chấm hiện cả khi panel đang đóng.
+  const [apptPollTick, setApptPollTick] = useState(0);
+  useEffect(() => {
+    if (!isDoctor) return;
+    const t = setInterval(() => setApptPollTick((v) => v + 1), 20000);
+    return () => clearInterval(t);
+  }, [isDoctor]);
+  const apptList = useAppointments(apptPollTick, isDoctor);
+  const apptAlerts = useAppointmentAlerts({
+    appointments: apptList.data,
+    storageKey: accountId ? `appt:seen:${accountId}` : null,
+  });
+
+  // Mở/xem một thread tin nhắn trực tiếp → đánh dấu đã đọc thread đó.
+  useEffect(() => {
+    if (chatMode !== "patient" || !chat.conversationId) return;
+    directAlerts.markSeen(chat.conversationId);
+  }, [chatMode, chat.conversationId, directAlerts.markSeen]);
 
   const [isRestored, setIsRestored] = useState(false);
   const prevModeRef = useRef<ChatMode>(chatMode);
@@ -304,6 +337,8 @@ export default function ChatPage() {
         disabled={chat.isStreaming}
         mode={chatMode}
         onModeChange={canDirect ? handleChatModeChange : undefined}
+        hasUnreadDirect={canDirect && directAlerts.hasUnseen}
+        unreadThreadIds={directAlerts.unseenIds}
         mobileActive={mobileView === "sidebar"}
         onCloseMobile={() => setMobileView("chat")}
       />
@@ -322,6 +357,7 @@ export default function ChatPage() {
         }
         chatMode={chatMode}
         hasSelection={hasSelection}
+        panelHasAlert={isDoctor && apptAlerts.hasNew}
         onOpenSidebar={() => setMobileView("sidebar")}
       />
       <WorkspacePanel
@@ -341,6 +377,9 @@ export default function ChatPage() {
         bumpTab={workspace.bumpTab}
         onAcceptAppointment={isDoctor ? goToDirectChat : undefined}
         aiConversationId={aiConversationId}
+        appointmentsAlert={isDoctor && apptAlerts.hasNew}
+        newApptDays={apptAlerts.newDays}
+        onApptDaySeen={apptAlerts.markDaySeen}
       />
     </>
   );

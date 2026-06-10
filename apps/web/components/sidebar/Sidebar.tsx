@@ -30,6 +30,10 @@ type Props = {
   disabled?: boolean;
   mode?: "ai" | "patient";
   onModeChange?: (mode: "ai" | "patient") => void;
+  /** Có tin nhắn trực tiếp mới chưa đọc → chấm trên nút đổi mode. */
+  hasUnreadDirect?: boolean;
+  /** Id đối phương của các thread có tin mới chưa đọc → chấm trên dòng tương ứng. */
+  unreadThreadIds?: Set<string>;
   /** Mobile (< lg): sidebar đang là view full-screen được chọn. */
   mobileActive?: boolean;
   /** Mobile: quay lại view chat (đóng sidebar full-screen). */
@@ -48,6 +52,8 @@ export function Sidebar({
   disabled,
   mode = "ai",
   onModeChange,
+  hasUnreadDirect = false,
+  unreadThreadIds,
   mobileActive = false,
   onCloseMobile,
 }: Props) {
@@ -149,9 +155,17 @@ export function Sidebar({
                     ? "Chuyển sang chat với AI"
                     : `Chuyển sang nhắn với ${directLower}`
                 }
-                className="flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
+                className="relative flex items-center gap-2 font-semibold text-gray-900 rounded-md -mx-2 px-2 py-1 hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-left"
               >
-                <AssistantAvatar size={32} className="shrink-0" />
+                <span className="relative shrink-0">
+                  <AssistantAvatar size={32} />
+                  {hasUnreadDirect && (
+                    <span
+                      aria-hidden
+                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
+                    />
+                  )}
+                </span>
                 {isPatientMode ? directCap : "Trợ Lý Ảo"}
                 <svg
                   viewBox="0 0 20 20"
@@ -275,6 +289,7 @@ export function Sidebar({
                       setPendingDeleteId(c.id);
                     }}
                     hideMenu={isPatientMode}
+                    showDot={isPatientMode && !!unreadThreadIds?.has(c.id)}
                   />
                 ))
               )}

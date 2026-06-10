@@ -253,6 +253,9 @@ export type DirectThreadSummary = {
   counterpartId: string;
   counterpartName: string;
   lastMessage: string | null;
+  // Ai gửi tin cuối — để góc nhìn người xem biết tin cuối là "đến" (đối phương gửi)
+  // hay "đi" (chính mình gửi) → tô chấm "tin mới chưa đọc".
+  lastSender: DirectSender | null;
   updatedAt: Date | null;
 };
 

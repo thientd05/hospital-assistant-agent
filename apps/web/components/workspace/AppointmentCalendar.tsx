@@ -91,10 +91,13 @@ export function CalendarToolbar({
 export function MonthGrid({
   cursor,
   appointments,
+  newDays,
   onPickDay,
 }: {
   cursor: Date;
   appointments: CalAppt[];
+  /** "YYYY-MM-DD" các ngày có lịch hẹn MỚI chưa xem → ô ngày nhấp nháy lóe lên. */
+  newDays?: Set<string>;
   onPickDay: (d: Date) => void;
 }) {
   // Gộp theo ngày: ngày nào có lịch chờ duyệt / đã duyệt.
@@ -133,14 +136,15 @@ export function MonthGrid({
           const info = byDay.get(key);
           const inMonth = isSameMonth(d, cursor);
           const isToday = isSameDay(d, today);
+          const isNew = !!newDays?.has(key);
           return (
             <button
               key={key}
               type="button"
               onClick={() => onPickDay(d)}
-              className={`h-12 border-b border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#087E8B]/5 ${
+              className={`relative h-12 border-b border-r border-gray-100 last:border-r-0 flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#087E8B]/5 ${
                 inMonth ? "" : "bg-gray-50/60"
-              }`}
+              } ${isNew ? "appt-day-pulse" : ""}`}
             >
               <span
                 className={`text-xs tabular-nums leading-none grid place-items-center w-5 h-5 rounded-full ${

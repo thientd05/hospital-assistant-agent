@@ -12,6 +12,11 @@ function lastOf(messages: DirectMessage[]): string | null {
   return last ? last.content : null;
 }
 
+function lastSenderOf(messages: DirectMessage[]): DirectMessage["sender"] | null {
+  const last = messages[messages.length - 1];
+  return last ? last.sender : null;
+}
+
 // Bác sĩ chỉ được nhắn BN trong danh sách quản lý của mình.
 async function assertManages(doctorId: string, patientId: string) {
   const ids = await doctorRepo.getManagedIds(doctorId);
@@ -39,6 +44,7 @@ export const directMessageService = {
         counterpartId: pid,
         counterpartName: nameById.get(pid) ?? pid,
         lastMessage: t ? lastOf(t.messages) : null,
+        lastSender: t ? lastSenderOf(t.messages) : null,
         updatedAt: t ? t.updatedAt : null,
       };
     });
@@ -86,6 +92,7 @@ export const directMessageService = {
         counterpartId: d.id,
         counterpartName: nameById.get(d.id) ?? d.id,
         lastMessage: t ? lastOf(t.messages) : null,
+        lastSender: t ? lastSenderOf(t.messages) : null,
         updatedAt: t ? t.updatedAt : null,
       };
     });

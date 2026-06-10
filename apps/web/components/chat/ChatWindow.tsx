@@ -15,6 +15,8 @@ type Props = {
   chatMode?: ChatMode;
   /** Mode "patient": đã chọn 1 đối phương trong sidebar hay chưa. */
   hasSelection?: boolean;
+  /** Có lịch hẹn mới chưa xem → chấm trên nút mở bảng làm việc. */
+  panelHasAlert?: boolean;
   /** Mobile (< lg): mở sidebar full-screen. */
   onOpenSidebar?: () => void;
 };
@@ -27,6 +29,7 @@ export function ChatWindow({
   onTogglePanel,
   chatMode = "ai",
   hasSelection = false,
+  panelHasAlert = false,
   onOpenSidebar,
 }: Props) {
   const { doctor, manager, patient, expert, role } = useAuth();
@@ -84,9 +87,15 @@ export function ChatWindow({
             type="button"
             onClick={onTogglePanel}
             aria-label="Mở bảng làm việc"
-            className="w-9 h-9 -mr-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
+            className="relative w-9 h-9 -mr-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
           >
             {panelIcon}
+            {panelHasAlert && (
+              <span
+                aria-hidden
+                className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
+              />
+            )}
           </button>
         ) : (
           <span className="w-9" />
@@ -112,6 +121,12 @@ export function ChatWindow({
             <rect x="3" y="4" width="18" height="16" rx="2" />
             <line x1="15" y1="4" x2="15" y2="20" />
           </svg>
+          {panelHasAlert && (
+            <span
+              aria-hidden
+              className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"
+            />
+          )}
         </button>
       )}
 

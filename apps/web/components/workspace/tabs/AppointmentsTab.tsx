@@ -13,6 +13,10 @@ type Props = {
   onChanged: () => void;
   /** Sau khi duyệt/nhận → chuyển sang đoạn chat trực tiếp với BN này. */
   onAccepted?: (patientId: string) => void;
+  /** Tập "YYYY-MM-DD" các ngày có lịch mới → ô ngày trong bảng tháng nhấp nháy. */
+  newDays?: Set<string>;
+  /** Bác sĩ bấm xem một ngày → đánh dấu lịch ngày đó là đã xem. */
+  onDaySeen?: (date: Date) => void;
 };
 
 // Bộ lọc nhanh theo trạng thái (không còn tab con tách hẳn). Mặc định "Tất cả"
@@ -30,6 +34,8 @@ export function AppointmentsTab({
   active,
   onChanged,
   onAccepted,
+  newDays,
+  onDaySeen,
 }: Props) {
   const { data, loading, error, refetch } = useAppointments(version, active);
   const [busy, setBusy] = useState<string | null>(null);
@@ -205,7 +211,9 @@ export function AppointmentsTab({
         <MonthGrid
           cursor={cursor}
           appointments={sorted}
+          newDays={newDays}
           onPickDay={(d) => {
+            onDaySeen?.(d);
             setCursor(d);
             setView("day");
           }}
